@@ -131,10 +131,13 @@ cow_sayings = {
             "I'm going to be straight with you - I could use the cash. Field economy's rough.",
             "Okay, real talk: I'm a cow, you're a human, this is weird. But tips make it less weird.",
             "I don't usually do this, but you seem alright. Care to help a cow out?",
-            # Keep ONE great pun for contrast
+            "Finally! Someone who doesn't just stare awkwardly. You here to tip or what?",
+            "You've got that look. The 'I'm about to do something ridiculous' look. I like it.",
+            "I don't want to oversell this, but tipping me might be the best decision of your life.",
+            "Look, I'm contractually obligated to stand here. You're not. But you're here anyway. I respect that.",
+            # Occasional subtle pun for contrast
             "I'm feeling legen-dairy today, want to share the good mood?",
-            "You're looking sharp! A tip would really make my day.",
-            "Holy cow, you startled me! Care to make up for it with a tip?",
+            "I hate to milk this moment, but... actually, no I don't. Tips?",
         ],
         'counter': [
             "Cownt me in for that amount, but I was hoping for more!",
@@ -227,32 +230,39 @@ cow_sayings = {
         'intro': [
             "Yeah?",
             "You need something, or just window shopping for cows?",
-            "Let me guess - you want to tip me. Everyone wants to tip me.",
-            "I'm a cow. You're here. What now?",
+            "Let me guess - you want to tip me. Everyone wants to tip me. Like I'm some kind of attraction.",
+            "I'm a cow. You're here. This is happening. What now?",
             "This again. Alright, let's get this over with.",
-            "Oh, another human. Fantastic.",
+            "Oh, another human. Fantastic. My day is complete.",
             "I'm not much of a talker. You got cash or not?",
-            "If you've got something for me, make it quick.",
-            "Just another day in the field, apparently.",
+            "If you've got something for me, make it quick. Time is money. Well, grass. But you get it.",
+            "Just another day in the field. Another stranger. Another transaction.",
+            "Look, I don't know you, you don't know me. Let's keep this professional.",
+            "I've been standing here contemplating existence. You're interrupting that. This better be good.",
+            "Welcome to my field. I'd offer you a tour, but it's literally just grass. So... tips?",
         ],
         'counter': [
             "That's it? Wow. Okay.",
-            "I've received worse, I suppose.",
-            "Cool. Great. Moving on.",
-            "Is this a joke? Because I'm not laughing.",
-            "You know what, I'm not even mad. Just disappointed.",
-            "Meh. Could be worse.",
-            "That was... a choice you made.",
-            "Not quite what I was expecting, but fine.",
+            "I've received worse, I suppose. Not by much, but I have.",
+            "Cool. Great. Fantastic. Can you sense my enthusiasm? Because there isn't any.",
+            "Is this a joke? Because I'm not laughing. At all.",
+            "You know what, I'm not even mad. Just profoundly disappointed.",
+            "Meh. Could be worse. Could definitely be better.",
+            "That was... certainly a choice you made. An interesting one.",
+            "Not quite what I was expecting, but fine. I've learned to lower my expectations.",
+            "I'm going to pretend that's more impressive than it actually is. For both our sakes.",
+            "That's the kind of tip that makes me question my life choices.",
         ],
         'graceful': [
             "Huh. Actually decent. Color me surprised.",
-            "You know what? That'll do. That'll do.",
-            "I actually respect that. Didn't see it coming.",
-            "Alright, you've earned a modicum of my respect.",
-            "Not bad. Not bad at all. You might know what you're doing.",
-            "Well. That was unexpectedly acceptable.",
-            "I'll take it. Good doing business.",
+            "You know what? That'll do. That'll actually do.",
+            "I actually respect that. Didn't see it coming. Well played.",
+            "Alright, you've earned a modicum of my respect. That's rare.",
+            "Not bad. Not bad at all. You might actually know what you're doing.",
+            "Well. That was unexpectedly acceptable. I'm almost impressed.",
+            "I'll take it. Good doing business with someone competent for once.",
+            "Okay, I wasn't expecting that level of generosity. I stand corrected.",
+            "That's... that's actually pretty good. Are you a professional tipper or something?",
         ],
         'dairy_bucket': [
             "Oh, a bucket! Good thinking.",
@@ -530,3 +540,32 @@ ascii = {
 """,
     }
 }
+
+# Existential/Dark Humor (rare, 5% chance - adds depth)
+existential_dialogue = [
+    "I've been standing in this field for 14 hours. You're the highlight of my day. That's how sad my life is.",
+    "You know what's funny? Nothing. Nothing is funny. Give me money.",
+    "Every day I stand here. Every day the sun rises. Every day I question my purpose. Tips help.",
+    "I used to dream about leaving this field. Now I just dream about having dreams.",
+    "We're all just NPCs in someone's adventure, aren't we? Anyway, tips?",
+    "I once read a book about finding meaning in suffering. It didn't help. Cash might though.",
+    "Do you ever think about the futility of existence? Because I do. Constantly. It's exhausting.",
+]
+
+# Combat victory - player perspective (dark humor)
+combat_victory_messages = [
+    "Another cow tipped. You're getting disturbingly good at this.",
+    "That's one more cow that won't make it to burger form. You're basically a hero.",
+    "Victory. You should probably feel worse about this than you do.",
+    "{cow_name} is down. This is your life now. Tipping cows.",
+    "Well, that happened. You defeated a cow. Your parents must be so proud.",
+]
+
+# Combat death - existential
+combat_death_messages = [
+    "You've been thoroughly trampled. This is exactly as embarrassing as it sounds.",
+    "And that's how your story ends. Defeated by livestock. Poetic, almost.",
+    "The cow wins. You lose. Tale as old as time, really.",
+    "Well. That went poorly. On the bright side, you can retry. The cow can't.",
+    "GAME OVER. You lasted longer than I expected, honestly.",
+]
