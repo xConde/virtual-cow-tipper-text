@@ -7,6 +7,7 @@ from item import Item
 from cow_interaction import CowInteraction
 from terminal.game_terminal import GameTerminal
 from dialogue_manager import DialogueManager
+from models import GameStats
 from game_config import (
     COW_QUEUE_SIZE,
     NUM_COW_PACKS,
@@ -14,13 +15,16 @@ from game_config import (
 )
 
 class VirtualCowTipper:
-    def __init__(self, player_name: str):
+    def __init__(self, player_name: str, show_tutorial: bool = True):
         self.game_terminal = GameTerminal()
         self.player = Player(self.game_terminal, player_name)
         self.cow: Optional[Cow] = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
         self.cow_packs = {pack: 0.0 for pack in range(1, NUM_COW_PACKS + 1)}
+        self.stats = GameStats()
         self.running = True
+        self.first_encounter = show_tutorial
+        self.tutorial_shown = not show_tutorial
 
     def start(self) -> None:
         """Main game loop."""
@@ -30,6 +34,7 @@ class VirtualCowTipper:
             self.player.display_info()
             self.player_turn()
             self.check_end_conditions()
+            self.check_victory_conditions()
 
     def generate_cow(self) -> Cow:
         """Generate a new random cow scaled to player progression."""
@@ -58,6 +63,15 @@ class VirtualCowTipper:
     def player_turn(self):
         if not self.cow:
             self.spawn_cow()
+
+            # Show tutorial tip before first encounter
+            if self.first_encounter:
+                from tutorial import show_first_encounter_tip
+                self.game_terminal.close_game_terminal()
+                show_first_encounter_tip()
+                self.game_terminal = GameTerminal()  # Reinitialize
+                self.first_encounter = False
+
         self.cow.get_approach()
 
         is_interrupted = self.get_interruption()
@@ -93,12 +107,41 @@ class VirtualCowTipper:
     def check_end_conditions(self) -> None:
         """Check if game is over and handle restart."""
         if self.player.hp <= 0 or self.player.cash <= 0:
-            should_restart = self.player.die()
+            should_restart = self.player.die(self.stats)
             if should_restart:
                 self._restart_game()
             else:
                 self.game_terminal.close_game_terminal()
                 self.running = False
+
+    def check_victory_conditions(self) -> None:
+        """Check if player has won the game."""
+        if self.stats.check_victory():
+            self._show_victory_screen()
+            self.game_terminal.close_game_terminal()
+            self.running = False
+
+    def _show_victory_screen(self) -> None:
+        """Display victory screen with stats."""
+        print(f"\n{'='*60}")
+        print("VICTORY! You've Mastered the Art of Cow Tipping!")
+        print(f"{'='*60}")
+        print(f"\nCongratulations, {self.player.name}!")
+        self._show_stats()
+        print(f"\n{'='*60}")
+        input("\nPress Enter to return to main menu...")
+
+    def _show_stats(self) -> None:
+        """Show game statistics."""
+        print(f"\nGame Statistics:")
+        print(f"  Cows Defeated: {self.stats.cows_defeated}")
+        print(f"  Cows Fled From: {self.stats.cows_fled_from}")
+        print(f"  Total Cash Earned: ${self.stats.cash_earned}")
+        print(f"  Total Cash Spent: ${self.stats.cash_spent}")
+        print(f"  Dairy Cows Milked: {self.stats.dairy_cows_milked}")
+        print(f"  Shops Visited: {self.stats.shops_visited}")
+        print(f"  Mini-Games Won: {self.stats.mini_games_won}")
+        print(f"  Legendary Items Found: {self.stats.legendary_items_found}")
 
     def _restart_game(self) -> None:
         """Reset game state for new run."""
@@ -106,3 +149,4 @@ class VirtualCowTipper:
         self.cow = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
         self.cow_packs = {pack: 0.0 for pack in range(1, NUM_COW_PACKS + 1)}
+        self.stats = GameStats()  # Reset stats

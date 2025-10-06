@@ -76,18 +76,34 @@ class Player:
         self.cash += amount
         self.display_info()
 
-    def die(self) -> bool:
+    def die(self, game_stats=None) -> bool:
         """Handle player death - returns True if player wants to restart."""
-        print(f"\n{'='*50}")
+        print(f"\n{'='*60}")
         print(f"GAME OVER - {self.name} has fallen!")
-        print(f"{'='*50}")
-        print(f"Final Stats:")
+        print(f"{'='*60}")
+
+        # Show game stats if available
+        if game_stats:
+            print(f"\nYour Journey:")
+            print(f"  Cows Defeated: {game_stats.cows_defeated}")
+            print(f"  Cows Fled From: {game_stats.cows_fled_from}")
+            print(f"  Cash Earned: ${game_stats.cash_earned}")
+            print(f"  Cash Spent: ${game_stats.cash_spent}")
+            print(f"  Items Purchased: {game_stats.items_purchased}")
+            print(f"  Items Sold: {game_stats.items_sold}")
+            print(f"  Dairy Cows Milked: {game_stats.dairy_cows_milked}")
+            print(f"  Mini-Games Won: {game_stats.mini_games_won}")
+            print(f"  Legendary Items Found: {game_stats.legendary_items_found}")
+
+        print(f"\nFinal Stats:")
         print(f"  HP: {self.hp}")
         print(f"  Cash: ${self.cash}")
         print(f"  Items: {len(self.inventory)}")
+
+        print(f"\n{'='*60}")
         print(f"\nWould you like to:")
         print("1. Restart")
-        print("2. Quit")
+        print("2. Return to Main Menu")
 
         choice = input("Choice (1 or 2): ").strip()
         return choice == "1"

@@ -1,0 +1,11 @@
+# Virtual Cow Tipper - Dependencies
+
+# No external dependencies required!
+# Game uses Python standard library only:
+# - curses (terminal UI)
+# - random (game mechanics)
+# - dataclasses (Python 3.10+)
+# - typing (type hints)
+
+# Python version requirement:
+# python>=3.10
