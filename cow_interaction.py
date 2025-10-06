@@ -19,14 +19,17 @@ from game_config import (
     SHOP_LUCKY_CHANCE_FRIENDLY,
 )
 
-class CowInteraction():
+class CowInteraction:
+    """Handles all cow interaction types: combat, shop, dairy, tipping."""
+
     def __init__(self, game_instance, player, cow):
         self.game_instance = game_instance
         self.game_terminal = self.game_instance.game_terminal
         self.player = player
         self.cow = cow
 
-    def interact(self):
+    def interact(self) -> None:
+        """Route to appropriate interaction handler based on cow type."""
         handlers = {
             "aggro": self.handle_combat,
             "shop": self.handle_shop,
@@ -57,7 +60,8 @@ class CowInteraction():
                 print('You hear a dairy cow mooing in the distance.')
         return is_dairy
 
-    def handle_dairy(self):
+    def handle_dairy(self) -> None:
+        """Handle dairy cow encounter (requires bucket to milk)."""
         bucket = self.get_item_from_inventory(Bucket)
         if bucket:
             liquid_gold = bucket.use()
@@ -70,7 +74,8 @@ class CowInteraction():
             self.cow.print_response(self.cow.name, 'dairy_no_bucket')
         self.game_instance.destroy_cow()
 
-    def handle_combat(self):
+    def handle_combat(self) -> None:
+        """Handle combat encounter with aggressive cow."""
         print(f"A combat with '{self.cow.name}' has started!")
         self.game_terminal.set_cow_stats(self.cow.get_combat_stats())
 
@@ -119,7 +124,8 @@ class CowInteraction():
             if self.cow.hp > 0:
                 CowAttack.cow_attack(self.player, self.cow)
                 
-    def handle_shop(self):
+    def handle_shop(self) -> None:
+        """Handle shop encounter (buy and sell items)."""
         print(f'You enter a shop run by a cow named {self.cow.name} who is currently {self.cow.mood}.')
         self.cow.print_response(self.cow.name, 'shop_keeper_intro', False)
         lucky_chance = SHOP_LUCKY_CHANCE_UPSET if self.cow.mood == 'upset' else SHOP_LUCKY_CHANCE_FRIENDLY
@@ -187,7 +193,8 @@ class CowInteraction():
             else:
                 print("Invalid choice. Please enter a number between 1 and 4.")
 
-    def handle_tip_or_leave(self):
+    def handle_tip_or_leave(self) -> None:
+        """Handle regular cow encounter (tip for mini-game or leave)."""
         self.game_terminal.set_cow_stats(self.cow.get_mood_status())
         self.cow.print_response(self.cow.name, 'intro', False)
         actions = {
@@ -261,17 +268,24 @@ class CowInteraction():
     def _calculate_sell_price(self, item, cow_mood: str) -> int:
         """Calculate sell price for item (50-70% of value based on mood)."""
         from item_factory import ItemFactory
+        from game_config import (
+            SELL_PRICE_VALUE_MULTIPLIER,
+            SELL_PRICE_FRIENDLY,
+            SELL_PRICE_NEUTRAL,
+            SELL_PRICE_UPSET,
+            SELL_PRICE_MINIMUM
+        )
 
         # Estimate item value based on median stat
         median_stat = ItemFactory.calculate_item_median_stat(item)
-        base_value = int(median_stat * 30)  # Rough value estimate
+        base_value = int(median_stat * SELL_PRICE_VALUE_MULTIPLIER)
 
         # Mood affects sell price (friendly pays more)
-        if cow_mood == 'friendly':
-            sell_percentage = 0.70  # 70% of value
-        elif cow_mood == 'neutral':
-            sell_percentage = 0.60  # 60%
-        else:  # upset
-            sell_percentage = 0.50  # 50% (stingy!)
+        sell_percentages = {
+            'friendly': SELL_PRICE_FRIENDLY,
+            'neutral': SELL_PRICE_NEUTRAL,
+            'upset': SELL_PRICE_UPSET
+        }
+        sell_percentage = sell_percentages.get(cow_mood, SELL_PRICE_NEUTRAL)
 
-        return max(10, int(base_value * sell_percentage))
+        return max(SELL_PRICE_MINIMUM, int(base_value * sell_percentage))

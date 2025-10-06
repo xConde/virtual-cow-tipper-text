@@ -42,14 +42,22 @@ class Cow:
             int(player.hp * COW_MAX_STRENGTH_MULTIPLIER),
             int(player.cash // COW_MAX_STRENGTH_FROM_CASH)
         )
+        from game_config import (
+            COW_MIN_HP, COW_HP_STRENGTH_MULTIPLIER_LOW, COW_HP_STRENGTH_MULTIPLIER_HIGH,
+            COW_HP_LIKELINESS_MULTIPLIER, COW_HP_CASH_BONUS_MIN, COW_HP_CASH_BONUS_MAX,
+            COW_HP_CASH_MODULO, COW_TIP_REQUIREMENT_MIN, COW_TIP_REQUIREMENT_MAX,
+            COW_TIP_CASH_SCALING
+        )
         strength = random.randint(3, max_strength) if 3 < max_strength else 3
-        hp = max(10, strength * random.randint(1, 2) * (2 if likeliness < LIKELINESS_BASE else 1)) + random.randint(1, 3) * int(player.cash % 20)
+        hp_multiplier = COW_HP_LIKELINESS_MULTIPLIER if likeliness < LIKELINESS_BASE else 1
+        hp = max(COW_MIN_HP, strength * random.randint(COW_HP_STRENGTH_MULTIPLIER_LOW, COW_HP_STRENGTH_MULTIPLIER_HIGH) * hp_multiplier)
+        hp += random.randint(COW_HP_CASH_BONUS_MIN, COW_HP_CASH_BONUS_MAX) * int(player.cash % COW_HP_CASH_MODULO)
         is_aggro = random.randint(0, 99) < (AGGRO_BASE_CHANCE * 100 + int(player.cash / 20))
         is_shop = random.randint(0, 99) < (SHOP_CHANCE * 100) if not is_aggro else False
 
         return CowProperties(
             name=random.choice(cow_names),
-            req_amount=(random.randint(3, 12) + 5 * player.cash % 25),
+            req_amount=(random.randint(COW_TIP_REQUIREMENT_MIN, COW_TIP_REQUIREMENT_MAX) + 5 * player.cash % COW_TIP_CASH_SCALING),
             likeliness=likeliness,
             strength=strength,
             hp=hp,

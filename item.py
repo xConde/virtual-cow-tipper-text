@@ -104,113 +104,28 @@ class LiquidGold(Object):
         return 150 + 5 * weapon_dps + 10 * (player.cash // 50)
 
 
-WEAPON_TYPES = [
-    {'name': 'dagger', 'min_damage': 1, 'max_damage': 4},
-    {'name': 'club', 'min_damage': 2, 'max_damage': 6},
-    {'name': 'short bow', 'min_damage': 3, 'max_damage': 8},
-    {'name': 'mace', 'min_damage': 4, 'max_damage': 10},
-    {'name': 'longbow', 'min_damage': 5, 'max_damage': 12},
-    {'name': 'battleaxe', 'min_damage': 6, 'max_damage': 14},
-    {'name': 'flail', 'min_damage': 7, 'max_damage': 16},
-    {'name': 'halberd', 'min_damage': 8, 'max_damage': 18},
-    {'name': 'greatsword', 'min_damage': 9, 'max_damage': 20},
-    {'name': 'godsword', 'min_damage': 10, 'max_damage': 22}
-]
+# All item generation moved to item_factory.py
+# This file now only contains item classes
 
-SHIELD_TYPES = [
-    {'name': 'buckler', 'min_defence': 1, 'max_defence': 4},
-    {'name': 'targe', 'min_defence': 2, 'max_defence': 6},
-    {'name': 'round shield', 'min_defence': 3, 'max_defence': 8},
-    {'name': 'heater shield', 'min_defence': 4, 'max_defence': 10},
-    {'name': 'kite shield', 'min_defence': 5, 'max_defence': 12},
-    {'name': 'tower shield', 'min_defence': 6, 'max_defence': 14},
-    {'name': 'pavise', 'min_defence': 7, 'max_defence': 16},
-    {'name': 'spiked shield', 'min_defence': 8, 'max_defence': 18},
-    {'name': 'barrier shield', 'min_defence': 9, 'max_defence': 20},
-    {'name': 'aegis', 'min_defence': 10, 'max_defence': 22}
-]
+# Legacy function exports at end of file to avoid circular imports
 
-RARITY_ADJECTIVES = {
-    'common': {
-        'prefix': ['Plain', 'Simple', 'Basic'],
-        'suffix': ['']
-    },
-    'uncommon': {
-        'prefix': ['Sturdy', 'Polished', 'Reinforced'],
-        'suffix': ['of Quality', 'of Precision']
-    },
-    'magic': {
-        'prefix': ['Enchanted', 'Mystic', 'Arcane'],
-        'suffix': ['of Power', 'of Sorcery']
-    },
-    'rare': {
-        'prefix': ['Ancient', 'Exquisite', 'Ethereal'],
-        'suffix': ['of Legends', 'of the Ancients']
-    },
-    'lengendairy': {
-        'prefix': ['Mythic', 'Astral', 'Ethereal'],
-        'suffix': ['of the Ancients', 'of Eons']
-    }
-}
-
-
-def get_modified_name(base_name, rarity, item_type):
-    prefix_or_suffix = random.choice(['prefix', 'suffix'])
-    adjective = random.choice(RARITY_ADJECTIVES[rarity][prefix_or_suffix])
-    return f'{adjective} {base_name}'.strip() if prefix_or_suffix == 'prefix' else f'{base_name} {adjective}'.strip()
-
-
-def build_item(item_type: str, less_likely: bool = False):
-    if item_type not in ['weapon', 'shield', 'tool', 'object']:
-        raise ValueError('Invalid item type.')
-
-    item_list = WEAPON_TYPES if item_type == 'weapon' else SHIELD_TYPES
-    item_weights = [35, 28, 24, 15, 12, 9, 6, 4, 2, 1] if not less_likely else [
-        40, 30, 20, 10, 5, 3, 2, 1, 1, 1]
-    item_index = random.choices(range(len(item_list)), weights=item_weights)[0]
-    base_item = item_list[item_index]
-
-    weights = [60, 35, 10, 4, 1] if not less_likely else [72, 32, 3, 2, 1]
-    scale = random.choices([1, 2, 3, 4, 5], weights=weights)[0]
-    rarity = list(RARITY_ADJECTIVES.keys())[scale - 1]
-
-    stat_key = 'min_damage' if item_type == 'weapon' else 'min_defence'
-    min_stat = base_item[stat_key]
-    max_stat = min(base_item['max_' + stat_key[4:]], min_stat)
-
-    item_obj = {'name': base_item['name'], str(stat_key): min_stat, str('max_' + stat_key[4:]): max_stat, 'rarity': rarity, 'scale': scale}
-    item = Weapon(**item_obj) if item_type == 'weapon' else Shield(**item_obj)
-    item.name = get_modified_name(item.name, rarity, item_type)
-
-    return item
-
-
-# Legacy exports for backwards compatibility
-# These redirect to ItemFactory - will be removed in Phase 3
-from item_factory import ItemFactory
-
+# Legacy exports for backwards compatibility (at end to avoid circular imports)
 def find_median_stat(item):
     """DEPRECATED: Use ItemFactory.calculate_item_median_stat()"""
+    from item_factory import ItemFactory
     return ItemFactory.calculate_item_median_stat(item)
 
-def roll_weapon_dmg(weapon) -> int:
+def roll_weapon_dmg(weapon):
     """DEPRECATED: Use ItemFactory.roll_weapon_damage()"""
+    from item_factory import ItemFactory
     return ItemFactory.roll_weapon_damage(weapon)
 
 def random_item_roll(less_likely):
     """DEPRECATED: Use ItemFactory.create_random_item()"""
+    from item_factory import ItemFactory
     return ItemFactory.create_random_item(less_likely)
 
-def get_shop_items(cow_mood: str, player_cash: float, isLucky: bool):
+def get_shop_items(cow_mood, player_cash, isLucky):
     """DEPRECATED: Use ItemFactory.get_shop_inventory()"""
+    from item_factory import ItemFactory
     return ItemFactory.get_shop_inventory(cow_mood, player_cash, isLucky)
-
-def random_tool_roll():
-    """DEPRECATED: Use ItemFactory._create_random_tool()"""
-    return ItemFactory._create_random_tool()
-
-def random_object_roll():
-    """DEPRECATED: Use ItemFactory._create_random_object()"""
-    return ItemFactory._create_random_object()
-
-# Remove build_item - no longer needed

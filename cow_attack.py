@@ -1,7 +1,20 @@
+from typing import Optional, Literal, TYPE_CHECKING
 import random
 
+if TYPE_CHECKING:
+    from player import Player
+    from cow import Cow
+
+CowAttackEffect = Literal["stun", "heal", "power_up"]
+
 class CowAttack:
-    def __init__(self, name, damage=None, effect=None, duration=None, healing=None, accuracy=100):
+    """Represents a cow's attack with damage, effects, and accuracy."""
+
+    def __init__(self, name: str, damage: Optional[int] = None,
+                 effect: Optional[CowAttackEffect] = None,
+                 duration: Optional[int] = None,
+                 healing: Optional[int] = None,
+                 accuracy: int = 100):
         self.name = name
         self.damage = damage
         self.effect = effect
@@ -10,7 +23,7 @@ class CowAttack:
         self.accuracy = accuracy
 
     @classmethod
-    def generate_cow_combat_styles(cls, cow_strength):
+    def generate_cow_combat_styles(cls, cow_strength: int) -> list['CowAttack']:
         return [
             cls("headbutt", damage=random.randint(3, 2 + cow_strength), accuracy=85),
             cls("hoof kick", damage=random.randint(5, 4 + cow_strength), accuracy=60),
@@ -27,7 +40,8 @@ class CowAttack:
         ]
 
     @classmethod
-    def cow_attack(cls, player, cow):
+    def cow_attack(cls, player: 'Player', cow: 'Cow') -> None:
+        """Execute a cow's attack against the player."""
         cow_combat_styles = cls.generate_cow_combat_styles(cow.strength)
         attack_weights = [25, 15, 18, 9, 9, 9, 9, 3, 2, 1]
         chosen_attack = random.choices(cow_combat_styles, weights=attack_weights, k=1)[0]
