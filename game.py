@@ -4,9 +4,9 @@ import random
 from cow import Cow
 from player import Player
 from item import Item
-from assets.context import interruptions
 from cow_interaction import CowInteraction
 from terminal.game_terminal import GameTerminal
+from dialogue_manager import DialogueManager
 from game_config import (
     COW_QUEUE_SIZE,
     NUM_COW_PACKS,
@@ -85,7 +85,7 @@ class VirtualCowTipper:
     def get_interruption(self) -> Optional[str]:
         """Check for random interruption event (10% chance)."""
         if random.random() < INTERRUPTION_CHANCE:
-            message = random.choice(interruptions)
+            message = DialogueManager.get_interruption()
             self.game_terminal.draw_dialog(message)
             return message
         return None

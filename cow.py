@@ -1,6 +1,6 @@
 import random
 
-from assets.context import cow_sayings, cow_names, approaches
+from dialogue_manager import DialogueManager
 from game_config import (
     LIKELINESS_BASE,
     LIKELINESS_UPSET_THRESHOLD,
@@ -56,7 +56,7 @@ class Cow:
         is_shop = random.randint(0, 99) < (SHOP_CHANCE * 100) if not is_aggro else False
 
         return CowProperties(
-            name=random.choice(cow_names),
+            name=DialogueManager.get_cow_name(),
             req_amount=(random.randint(COW_TIP_REQUIREMENT_MIN, COW_TIP_REQUIREMENT_MAX) + 5 * player.cash % COW_TIP_CASH_SCALING),
             likeliness=likeliness,
             strength=strength,
@@ -65,7 +65,7 @@ class Cow:
             is_shop=is_shop,
             is_aggro=is_aggro,
             pack=random.randint(1, NUM_COW_PACKS),
-            approach=random.choice(approaches)
+            approach=DialogueManager.get_approach()
         )
 
     @staticmethod
@@ -83,13 +83,15 @@ class Cow:
         else:
             return 'neutral'
 
-    def tip(self, amount):
-        response = 'graceful' if amount >= self.req_amount else 'counter'
+    def tip(self, amount: int) -> str:
+        """Handle tipping and return cow's response."""
+        response_type = 'graceful' if amount >= self.req_amount else 'counter'
         self.likeliness += (amount >= self.req_amount)
-        return self.get_response(response)
+        return self.get_response(response_type)
 
-    def get_response(self, response_type):
-        return random.choice(cow_sayings[self.mood][response_type])
+    def get_response(self, response_type: str) -> str:
+        """Get dialogue response from DialogueManager."""
+        return DialogueManager.get_cow_saying(self.mood, response_type)
 
     def get_approach(self):
         print(f'\n{self.approach}')

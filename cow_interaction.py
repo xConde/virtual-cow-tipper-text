@@ -4,9 +4,9 @@ import time
 import os
 
 from item import CowBell, Bucket, random_item_roll, get_shop_items, Tool
-from assets.context import cow_names
 from cow_attack import CowAttack
 from cow_games import CowGames
+from dialogue_manager import DialogueManager
 from game_config import (
     DAIRY_ENCOUNTER_BASE_CHANCE,
     DAIRY_ENCOUNTER_WITH_COWBELL,
