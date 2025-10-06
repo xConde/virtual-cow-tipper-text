@@ -130,16 +130,6 @@ Career statistics persist across runs, unlocking permanent bonuses:
 - Dynamic difficulty scaling
 - Multiple victory conditions
 
-## Game Stats
-
-- **1,911 lines of gameplay code**
-- **28 unit tests** - All passing
-- **6 cow packs** to befriend or anger
-- **92 cow names**
-- **26 random interruption events**
-- **3 mini-games**
-- **20 weapon/shield types**
-- **Infinite replay value**
 
 ## Development
 
