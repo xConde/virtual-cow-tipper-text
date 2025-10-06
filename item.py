@@ -33,10 +33,12 @@ class Weapon(Item):
     def stats(self):
         return f"{self.name} (L: {self.min_damage}, H: {self.max_damage}, Rarity: {self.rarity})"
 
-    def is_upgrade(self, player, item):
-        if not player.weapon or player.weapon and find_median_stat(item) > find_median_stat(player.weapon):
+    def is_upgrade(self, player, item) -> bool:
+        """Check if this weapon is better than player's current weapon."""
+        if not player.weapon:
             return True
-        return False
+        from item_factory import ItemFactory
+        return ItemFactory.calculate_item_median_stat(item) > ItemFactory.calculate_item_median_stat(player.weapon)
 
 
 class Shield(Item):
@@ -51,10 +53,12 @@ class Shield(Item):
     def stats(self):
         return f"{self.name} (L: {self.min_defence}, H: {self.max_defence}, Rarity: {self.rarity})"
 
-    def is_upgrade(self, player, item):
-        if not player.shield or player.shield and find_median_stat(item) > find_median_stat(player.shield):
+    def is_upgrade(self, player, item) -> bool:
+        """Check if this shield is better than player's current shield."""
+        if not player.shield:
             return True
-        return False
+        from item_factory import ItemFactory
+        return ItemFactory.calculate_item_median_stat(item) > ItemFactory.calculate_item_median_stat(player.shield)
 
 
 class Tool(Item):
@@ -181,69 +185,32 @@ def build_item(item_type: str, less_likely: bool = False):
     return item
 
 
+# Legacy exports for backwards compatibility
+# These redirect to ItemFactory - will be removed in Phase 3
+from item_factory import ItemFactory
+
 def find_median_stat(item):
-    if item.type == 'weapon':
-        min_stat = item.min_damage
-        max_stat = item.max_damage
-    elif item.type == 'shield':
-        min_stat = item.min_defence
-        max_stat = item.max_defence
-    else:
-        raise ValueError('Invalid item type for find_median_stat function.')
-
-    min_item_ = min_stat + int(min_stat * item.scale * 0.25)
-    max_item_ = max_stat + int(max_stat * item.scale * 0.6)
-    median_item_ = (min_item_ + max_item_) // 2
-    return median_item_ / 3
-
+    """DEPRECATED: Use ItemFactory.calculate_item_median_stat()"""
+    return ItemFactory.calculate_item_median_stat(item)
 
 def roll_weapon_dmg(weapon) -> int:
-    if not weapon:
-        return 0
-
-    min_damage = weapon.min_damage + int(weapon.min_damage * weapon.scale * 0.25)
-    max_damage = weapon.max_damage + int(weapon.max_damage * weapon.scale * 0.6)
-    return random.randint(min_damage, max_damage)
-
+    """DEPRECATED: Use ItemFactory.roll_weapon_damage()"""
+    return ItemFactory.roll_weapon_damage(weapon)
 
 def random_item_roll(less_likely):
-    weights = [35, 30, 32, 3] if not less_likely else [63, 15, 20, 2]
-    item_type = random.choices(
-        ['weapon', 'shield', 'tool', 'object'], weights=weights)[0]
-    if item_type == 'weapon':
-        return build_item('weapon', less_likely)
-    elif item_type == 'shield':
-        return build_item('shield', less_likely)
-    elif item_type == 'tool':
-        return random_tool_roll()
-    else:
-        return random_object_roll()
-
+    """DEPRECATED: Use ItemFactory.create_random_item()"""
+    return ItemFactory.create_random_item(less_likely)
 
 def get_shop_items(cow_mood: str, player_cash: float, isLucky: bool):
-    price = random.randint(20, 25) + 3 * int(player_cash // 50)
-    price_multiplier = 1 if cow_mood != 'upset' else 2
-    less_likely = False if isLucky and cow_mood != 'neutral' else True
-    items = [
-        {"label": "random item", "item": random_item_roll(
-            less_likely), "price_multiplier": 1 * price_multiplier},
-        {"label": "random weapon", "item": build_item(
-            'weapon', less_likely=False), "price_multiplier": 1.5 * price_multiplier},
-        {"label": "random shield", "item": build_item(
-            'shield', less_likely=False), "price_multiplier": 2 * price_multiplier},
-    ]
-
-    for item in items:
-        item["price"] = price * item["price_multiplier"]
-
-    return items
-
+    """DEPRECATED: Use ItemFactory.get_shop_inventory()"""
+    return ItemFactory.get_shop_inventory(cow_mood, player_cash, isLucky)
 
 def random_tool_roll():
-    tools = [CowBell(), Bucket()]
-    return random.choice(tools)
-
+    """DEPRECATED: Use ItemFactory._create_random_tool()"""
+    return ItemFactory._create_random_tool()
 
 def random_object_roll():
-    objects = [LiquidGold()]
-    return random.choice(objects)
+    """DEPRECATED: Use ItemFactory._create_random_object()"""
+    return ItemFactory._create_random_object()
+
+# Remove build_item - no longer needed

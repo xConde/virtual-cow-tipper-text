@@ -31,21 +31,10 @@ class VirtualCowTipper:
             self.player_turn()
             self.check_end_conditions()
 
-    def generate_cow(self)-> Cow:
-        cow_properties = Cow.generate_random_cow_properties(self.player)
-        return Cow(
-            self.game_terminal,
-            cow_properties['name'],
-            cow_properties['req_amount'],
-            cow_properties['likeliness'],
-            cow_properties['strength'],
-            cow_properties['hp'],
-            cow_properties['cash'],
-            cow_properties['is_shop'],
-            cow_properties['is_aggro'],
-            cow_properties['pack'],
-            cow_properties['approach']
-        )
+    def generate_cow(self) -> Cow:
+        """Generate a new random cow scaled to player progression."""
+        properties = Cow.generate_random_cow_properties(self.player)
+        return Cow(self.game_terminal, properties)
 
     def spawn_cow(self):
         if not self.cow:

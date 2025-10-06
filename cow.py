@@ -1,4 +1,3 @@
-from typing import Dict, Literal
 import random
 
 from assets.context import cow_sayings, cow_names, approaches
@@ -12,30 +11,31 @@ from game_config import (
     COW_MAX_STRENGTH_FROM_CASH,
     AGGRO_BASE_CHANCE,
     SHOP_CHANCE,
+    NUM_COW_PACKS,
 )
-
-CowMood = Literal['upset', 'neutral', 'friendly']
+from models import CowProperties, CowMood
 
 class Cow:
-    def __init__(self, game_terminal, name: str, req_amount: int, likeliness: int,
-                 strength: int, hp: int, cash: int, is_shop: bool, is_aggro: bool,
-                 pack: int, approach: str):
+    """Represents a cow in the game with stats, behavior, and dialogue."""
+
+    def __init__(self, game_terminal, properties: CowProperties):
+        """Initialize cow from CowProperties dataclass."""
         self.game_terminal = game_terminal
-        self.name = name
-        self.req_amount = req_amount
-        self.likeliness = likeliness
-        self.strength = strength
-        self.hp = hp
-        self.max_hp = hp
-        self.cash = cash
-        self.is_shop = is_shop
-        self.is_aggro = is_aggro
-        self.pack = pack
-        self.approach = approach
+        self.name = properties.name
+        self.req_amount = properties.req_amount
+        self.likeliness = properties.likeliness
+        self.strength = properties.strength
+        self.hp = properties.hp
+        self.max_hp = properties.hp
+        self.cash = properties.cash
+        self.is_shop = properties.is_shop
+        self.is_aggro = properties.is_aggro
+        self.pack = properties.pack
+        self.approach = properties.approach
         self.mood: CowMood = self.set_mood(self.likeliness)
 
     @staticmethod
-    def generate_random_cow_properties(player) -> Dict[str, any]:
+    def generate_random_cow_properties(player) -> CowProperties:
         """Generate random cow properties scaled to player progression."""
         likeliness = Cow.set_random_likeliness()
         max_strength = max(
@@ -47,18 +47,18 @@ class Cow:
         is_aggro = random.randint(0, 99) < (AGGRO_BASE_CHANCE * 100 + int(player.cash / 20))
         is_shop = random.randint(0, 99) < (SHOP_CHANCE * 100) if not is_aggro else False
 
-        return {
-            "name": random.choice(cow_names),
-            "req_amount": (random.randint(3, 12) + 5 * player.cash % 25),
-            "likeliness": likeliness,
-            "strength": strength,
-            "hp": hp,
-            "cash": random.choices([random.randint(strength, hp), random.randint(strength, hp) * 2], weights=[0.40, 0.60])[0],
-            "is_shop": is_shop,
-            "is_aggro": is_aggro,
-            "pack": random.randint(1, NUM_COW_PACKS),
-            "approach": random.choice(approaches)
-        }
+        return CowProperties(
+            name=random.choice(cow_names),
+            req_amount=(random.randint(3, 12) + 5 * player.cash % 25),
+            likeliness=likeliness,
+            strength=strength,
+            hp=hp,
+            cash=random.choices([random.randint(strength, hp), random.randint(strength, hp) * 2], weights=[0.40, 0.60])[0],
+            is_shop=is_shop,
+            is_aggro=is_aggro,
+            pack=random.randint(1, NUM_COW_PACKS),
+            approach=random.choice(approaches)
+        )
 
     @staticmethod
     def set_random_likeliness() -> int:
