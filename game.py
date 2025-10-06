@@ -86,10 +86,27 @@ class VirtualCowTipper:
 
         actions = {
             "approach the cow": lambda: CowInteraction(self, self.player, self.cow).interact(),
+            "rest": self._rest,
             "check inventory": lambda: self.player.check_inventory(),
             "use an item from inventory": self.player.use_item,
             "save and quit": self.quit_with_save,
         }
+
+    def _rest(self) -> None:
+        """Rest to recover HP (skip cow encounter)."""
+        from game_config import REST_HEAL_AMOUNT, PLAYER_MAX_HP
+
+        old_hp = self.player.hp
+        self.player.hp = min(self.player.hp + REST_HEAL_AMOUNT, PLAYER_MAX_HP)
+        healed = self.player.hp - old_hp
+
+        print(f"\n{self.player.name} rests and recovers {healed} HP.")
+        print(f"Current HP: {self.player.hp}/{PLAYER_MAX_HP}")
+        print("The cow wanders off while you rest...")
+
+        # Skip this cow, generate new one
+        self.destroy_cow()
+        input("\nPress Enter to continue...")
         while True:
             menu_items = [f"{i+1}. {action.capitalize()}" for i, action in enumerate(actions.keys())]
             choice = self.game_terminal.get_menu_choice(menu_items)

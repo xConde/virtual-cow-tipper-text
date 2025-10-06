@@ -21,6 +21,24 @@ class Potion(Item):
         self.duration = duration
         self.type = 'potion'
 
+    def use(self, player):
+        """Use potion to restore HP."""
+        if self.stat == 'hp':
+            old_hp = player.hp
+            player.hp = min(player.hp + self.boost_amount, 100)  # Cap at 100
+            healed = player.hp - old_hp
+            print(f"{player.name} uses {self.name} and restores {healed} HP!")
+            return True
+        return False
+
+
+class HealthPotion(Potion):
+    def __init__(self, strength: str = 'minor'):
+        amounts = {'minor': 10, 'normal': 20, 'greater': 40}
+        names = {'minor': 'Minor Health Potion', 'normal': 'Health Potion', 'greater': 'Greater Health Potion'}
+        super().__init__(names[strength], 'hp', amounts[strength])
+        self.strength = strength
+
 class Weapon(Item):
     def __init__(self, name, min_damage, max_damage, rarity, scale):
         super().__init__(name, 'weapon')

@@ -64,10 +64,20 @@ class CowInteraction:
         """Handle dairy cow encounter (requires bucket to milk)."""
         bucket = self.get_item_from_inventory(Bucket)
         if bucket:
+            from game_config import DAIRY_COW_HEAL_AMOUNT, PLAYER_MAX_HP
+
             liquid_gold = bucket.use()
             self.player.update_inventory(liquid_gold, "add")
             self.player.update_inventory(bucket, "remove")
+
+            # HEALING: Milking dairy cows restores HP!
+            old_hp = self.player.hp
+            self.player.hp = min(self.player.hp + DAIRY_COW_HEAL_AMOUNT, PLAYER_MAX_HP)
+            healed = self.player.hp - old_hp
+
             print(f"You milk {self.cow.name} with your bucket and obtain liquid gold.")
+            if healed > 0:
+                print(f"The fresh milk restores {healed} HP! (HP: {self.player.hp})")
             self.cow.print_response(self.cow.name, 'dairy_bucket')
         else:
             print(f"You encounter a dairy cow named {self.cow.name}, but you don't have a bucket to milk it.")

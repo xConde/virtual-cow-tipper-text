@@ -1,7 +1,7 @@
 from typing import Optional, List
 import random
 
-from item import Weapon, Shield, Tool, CowBell, Bucket, roll_weapon_dmg, Item
+from item import Weapon, Shield, Tool, CowBell, Bucket, Potion, roll_weapon_dmg, Item
 from assets.context import small_damage_contexts, large_damage_contexts
 from game_config import (
     PLAYER_STARTING_HP,
@@ -123,11 +123,40 @@ class Player:
         items = ', '.join(item.name for item in self.inventory) if self.inventory else "empty"
         print(f"{self.name}'s inventory: {items}")
 
-    def use_item(self, item):
+    def use_item(self, item=None):
+        """Use an item from inventory."""
+        if item is None:
+            # Show inventory to select item
+            if not self.inventory:
+                print("Inventory is empty!")
+                return
+
+            print("\nSelect item to use:")
+            for i, inv_item in enumerate(self.inventory):
+                print(f"{i+1}. {inv_item.name}")
+            print(f"{len(self.inventory)+1}. Cancel")
+
+            try:
+                choice = int(input("Choice: ").strip())
+                if choice <= len(self.inventory):
+                    item = self.inventory[choice - 1]
+                else:
+                    return
+            except (ValueError, IndexError):
+                print("Invalid choice.")
+                return
+
         if item in self.inventory:
-            if isinstance(item, Tool):
-                item.action()
-                self.remove_item_from_inventory(item)
+            if isinstance(item, Potion):
+                # Use potion
+                if item.use(self):
+                    self.inventory.remove(item)
+                    self.display_info()
+            elif isinstance(item, Tool):
+                # Tools might have actions
+                if hasattr(item, 'action') and item.action:
+                    item.action()
+                self.inventory.remove(item)
             else:
                 print(f"{self.name} cannot use {item.name}.")
         else:

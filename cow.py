@@ -52,8 +52,16 @@ class Cow:
         hp_multiplier = COW_HP_LIKELINESS_MULTIPLIER if likeliness < LIKELINESS_BASE else 1
         hp = max(COW_MIN_HP, strength * random.randint(COW_HP_STRENGTH_MULTIPLIER_LOW, COW_HP_STRENGTH_MULTIPLIER_HIGH) * hp_multiplier)
         hp += random.randint(COW_HP_CASH_BONUS_MIN, COW_HP_CASH_BONUS_MAX) * int(player.cash % COW_HP_CASH_MODULO)
-        is_aggro = random.randint(0, 99) < (AGGRO_BASE_CHANCE * 100 + int(player.cash / 20))
-        is_shop = random.randint(0, 99) < (SHOP_CHANCE * 100) if not is_aggro else False
+        from game_config import AGGRO_MAX_CHANCE
+        # Cap aggro chance to prevent late-game combat overload
+        aggro_chance = min(AGGRO_BASE_CHANCE + (player.cash / 2000), AGGRO_MAX_CHANCE)
+        is_aggro = random.random() < aggro_chance
+        is_shop = random.random() < SHOP_CHANCE if not is_aggro else False
+
+        # ECONOMY FIX: Increase cash rewards to match shop prices
+        base_cash = random.randint(strength, hp)
+        cash_multiplier = 1.5 + (player.cash / 1000)  # Scales better late game
+        cash_reward = int(base_cash * cash_multiplier)
 
         return CowProperties(
             name=DialogueManager.get_cow_name(),
@@ -61,7 +69,7 @@ class Cow:
             likeliness=likeliness,
             strength=strength,
             hp=hp,
-            cash=random.choices([random.randint(strength, hp), random.randint(strength, hp) * 2], weights=[0.40, 0.60])[0],
+            cash=cash_reward,
             is_shop=is_shop,
             is_aggro=is_aggro,
             pack=random.randint(1, NUM_COW_PACKS),

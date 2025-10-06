@@ -106,7 +106,11 @@ class ItemFactory:
     @staticmethod
     def get_shop_inventory(cow_mood: str, player_cash: float, is_lucky: bool) -> List[Dict]:
         """Generate shop inventory with pricing based on cow mood and player wealth."""
-        base_price = random.randint(SHOP_PRICE_BASE_MIN, SHOP_PRICE_BASE_MAX) + 3 * int(player_cash // SHOP_PRICE_CASH_SCALING)
+        from game_config import POTION_MINOR_PRICE, POTION_NORMAL_PRICE, POTION_GREATER_PRICE
+        from item import HealthPotion
+
+        # ECONOMY FIX: Reduce price scaling (was too expensive late game)
+        base_price = random.randint(SHOP_PRICE_BASE_MIN, SHOP_PRICE_BASE_MAX) + int(player_cash // SHOP_PRICE_CASH_SCALING)
         price_multiplier = SHOP_PRICE_UPSET_MULTIPLIER if cow_mood == 'upset' else 1.0
         less_likely = not (is_lucky and cow_mood != 'neutral')
 
@@ -126,7 +130,20 @@ class ItemFactory:
                 "item": ItemFactory.create_shield(less_likely=False),
                 "price": base_price * SHOP_SHIELD_MULTIPLIER * price_multiplier
             },
+            {
+                "label": "health potion",
+                "item": HealthPotion('normal'),
+                "price": POTION_NORMAL_PRICE * price_multiplier
+            },
         ]
+
+        # Add greater potion if player is wealthy
+        if player_cash >= 200:
+            items.append({
+                "label": "greater health potion",
+                "item": HealthPotion('greater'),
+                "price": POTION_GREATER_PRICE * price_multiplier
+            })
 
         return items
 

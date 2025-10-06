@@ -14,6 +14,7 @@ NUM_COW_PACKS = 6
 DAIRY_ENCOUNTER_BASE_CHANCE = 0.05  # 5%
 DAIRY_ENCOUNTER_WITH_COWBELL = 0.15  # 15%
 AGGRO_BASE_CHANCE = 0.15  # 15%
+AGGRO_MAX_CHANCE = 0.40  # Cap at 40% (was uncapped!)
 SHOP_CHANCE = 0.15  # 15%
 
 # Game Events
@@ -27,12 +28,12 @@ LIKELINESS_FRIENDLY_THRESHOLD = 7  # >= 7 is friendly
 LIKELINESS_MOOD_OFFSETS = [-2, 0, 2]  # Random offsets
 LIKELINESS_MOOD_WEIGHTS = [10, 80, 10]  # Weights for offsets
 
-# Combat Balance
+# Combat Balance (REBALANCED!)
 PLAYER_BASE_DAMAGE_MIN = 2
 PLAYER_BASE_DAMAGE_MAX = 8
-PLAYER_DAMAGE_CASH_SCALING = 25  # Damage += cash // 25
-COW_MAX_STRENGTH_MULTIPLIER = 0.25  # Max strength = player.hp * 0.25
-COW_MAX_STRENGTH_FROM_CASH = 20  # Max strength = player.cash // 20
+PLAYER_DAMAGE_CASH_SCALING = 15  # IMPROVED: was 25, now 15 (more damage!)
+COW_MAX_STRENGTH_MULTIPLIER = 0.20  # REDUCED: was 0.25, now 0.20 (weaker cows)
+COW_MAX_STRENGTH_FROM_CASH = 30  # INCREASED: was 20, now 30 (slower scaling)
 
 # Damage Context Thresholds
 SMALL_DAMAGE_THRESHOLD = 0.20  # <= 20% of cow HP
@@ -126,3 +127,13 @@ SELL_PRICE_MINIMUM = 10
 VICTORY_COWS_DEFEATED = 50
 VICTORY_CASH_EARNED = 5000
 VICTORY_LEGENDARY_ITEMS = 3  # Collect 3 legendary items
+
+# Healing System
+PLAYER_MAX_HP = 100  # HP cap
+DAIRY_COW_HEAL_AMOUNT = 5  # Heal when successfully milking
+REST_HEAL_AMOUNT = 10  # Heal when resting
+
+# Health Potion Prices
+POTION_MINOR_PRICE = 30   # Heals 10 HP
+POTION_NORMAL_PRICE = 50  # Heals 20 HP
+POTION_GREATER_PRICE = 80 # Heals 40 HP
