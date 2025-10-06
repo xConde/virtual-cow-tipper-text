@@ -1,6 +1,10 @@
 # Local development assistance (never commit)
 .ai/
 
+# Save files
+saves/
+*.json
+
 # Python
 __pycache__/
 *.py[cod]

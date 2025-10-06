@@ -8,6 +8,7 @@ from cow_interaction import CowInteraction
 from terminal.game_terminal import GameTerminal
 from dialogue_manager import DialogueManager
 from models import GameStats
+from save_manager import SaveManager
 from game_config import (
     COW_QUEUE_SIZE,
     NUM_COW_PACKS,
@@ -15,7 +16,7 @@ from game_config import (
 )
 
 class VirtualCowTipper:
-    def __init__(self, player_name: str, show_tutorial: bool = True):
+    def __init__(self, player_name: str, show_tutorial: bool = True, load_save: bool = False):
         self.game_terminal = GameTerminal()
         self.player = Player(self.game_terminal, player_name)
         self.cow: Optional[Cow] = None
@@ -25,6 +26,10 @@ class VirtualCowTipper:
         self.running = True
         self.first_encounter = show_tutorial
         self.tutorial_shown = not show_tutorial
+
+        # Load saved game if requested
+        if load_save:
+            self._load_saved_game()
 
     def start(self) -> None:
         """Main game loop."""
@@ -83,7 +88,7 @@ class VirtualCowTipper:
             "approach the cow": lambda: CowInteraction(self, self.player, self.cow).interact(),
             "check inventory": lambda: self.player.check_inventory(),
             "use an item from inventory": self.player.use_item,
-            "quit game": lambda: setattr(self, "running", False),
+            "save and quit": self.quit_with_save,
         }
         while True:
             menu_items = [f"{i+1}. {action.capitalize()}" for i, action in enumerate(actions.keys())]
@@ -145,8 +150,50 @@ class VirtualCowTipper:
 
     def _restart_game(self) -> None:
         """Reset game state for new run."""
+        # Delete old save before restarting
+        SaveManager.delete_save()
+
         self.player = Player(self.game_terminal, self.player.name)
         self.cow = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
         self.cow_packs = {pack: 0.0 for pack in range(1, NUM_COW_PACKS + 1)}
         self.stats = GameStats()  # Reset stats
+
+    def save_game(self) -> bool:
+        """Save current game state."""
+        return SaveManager.save_game(self.player, self.stats, self.cow_packs)
+
+    def _load_saved_game(self) -> None:
+        """Load game state from save file."""
+        save_data = SaveManager.load_game()
+        if not save_data:
+            print("No save file found or load failed.")
+            return
+
+        # Restore player
+        SaveManager.restore_player(self.player, save_data)
+
+        # Restore stats
+        SaveManager.restore_stats(self.stats, save_data)
+
+        # Restore pack scores
+        self.cow_packs = save_data['cow_packs']
+
+        print(f"\nGame loaded from {save_data['timestamp']}")
+        print(f"Welcome back, {self.player.name}!")
+        input("\nPress Enter to continue...")
+
+    def quit_with_save(self) -> None:
+        """Quit game with option to save."""
+        print("\n" + "="*60)
+        print("Quitting game...")
+        save_choice = input("Save your progress? (y/n): ").strip().lower()
+
+        if save_choice == 'y':
+            if self.save_game():
+                print("Progress saved! You can continue later.")
+            else:
+                print("Save failed.")
+
+        self.game_terminal.close_game_terminal()
+        self.running = False

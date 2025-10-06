@@ -34,10 +34,16 @@ class MainMenu:
         Returns:
             'new_game', 'continue', 'how_to_play', or 'quit'
         """
+        from save_manager import SaveManager
+
+        # Check if save exists
+        has_save = SaveManager.save_exists()
+
         menu_options = [
             "1. New Game",
-            "2. How to Play",
-            "3. Quit"
+            "2. Continue" if has_save else "2. Continue (No save found)",
+            "3. How to Play",
+            "4. Quit"
         ]
 
         selected = 0
@@ -90,12 +96,16 @@ class MainMenu:
                 selected = (selected - 1) % len(menu_options)
             elif key == curses.KEY_DOWN:
                 selected = (selected + 1) % len(menu_options)
-            elif key == ord('\n') or key in [ord('1'), ord('2'), ord('3')]:
-                if key in [ord('1'), ord('2'), ord('3')]:
+            elif key == ord('\n') or key in [ord('1'), ord('2'), ord('3'), ord('4')]:
+                if key in [ord('1'), ord('2'), ord('3'), ord('4')]:
                     selected = int(chr(key)) - 1
 
                 # Map selection to action
-                actions = ['new_game', 'how_to_play', 'quit']
+                if selected == 1 and not has_save:
+                    # Continue option but no save - do nothing
+                    continue
+
+                actions = ['new_game', 'continue', 'how_to_play', 'quit']
                 return actions[selected]
 
     def show_how_to_play(self):
