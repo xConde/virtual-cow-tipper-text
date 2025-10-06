@@ -14,6 +14,7 @@ test_files = [
     'tests/test_save_load.py',
     'tests/test_gameplay_simulation.py',
     'tests/test_meta_progression.py',
+    'tests/test_crash_scenarios.py',
 ]
 
 def run_test(test_file):
