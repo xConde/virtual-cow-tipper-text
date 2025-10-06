@@ -1,11 +1,21 @@
+from typing import Optional, Type
 import random
 import time
 import os
-import msvcrt
-from item import CowBell, Bucket, random_item_roll, get_shop_items
+
+from item import CowBell, Bucket, random_item_roll, get_shop_items, Tool
 from assets.context import cow_names
 from cow_attack import CowAttack
 from cow_games import CowGames
+from game_config import (
+    DAIRY_ENCOUNTER_BASE_CHANCE,
+    DAIRY_ENCOUNTER_WITH_COWBELL,
+    COWBELL_BREAK_CHANCE_BASE,
+    PACK_SCORE_COMBAT_WIN,
+    PACK_SCORE_COMBAT_FLEE,
+    PACK_SCORE_SHOP_BASE,
+    PACK_SCORE_SHOP_EXPENSIVE_BONUS,
+)
 
 # rarity should raise the floor for items rare dag should not be min 1
 
@@ -32,15 +42,17 @@ class CowInteraction():
         self.game_instance.player.display_info(combat=self.cow.is_aggro)
         handler()
 
-    def calculate_dairy_chance(self):
+    def calculate_dairy_chance(self) -> bool:
+        """Determine if this is a dairy encounter (affected by cow bell)."""
         cow_bell = self.get_item_from_inventory(CowBell)
-        dairy_encounter_chance = 5 if not cow_bell else 15
-        is_dairy = random.randint(0, 99) < dairy_encounter_chance
+        dairy_encounter_chance = DAIRY_ENCOUNTER_WITH_COWBELL if cow_bell else DAIRY_ENCOUNTER_BASE_CHANCE
+        is_dairy = random.random() < dairy_encounter_chance
+
         if is_dairy:
             if cow_bell:
-                rand_destroy = random.randint(0, 99) < 5 + int(self.player.cash) // 20
+                break_chance = COWBELL_BREAK_CHANCE_BASE + int(self.player.cash) // 20 / 100
                 print(f'Your cowbell helps attract the cow.')
-                if rand_destroy:
+                if random.random() < break_chance:
                     print('The cowbell breaks in the process.')
                     self.player.inventory.remove(cow_bell)
             else:
@@ -81,7 +93,7 @@ class CowInteraction():
                 if choice == 1:
                     self.player.deal_damage(self.cow)
                     if self.cow.hp <= 0:
-                        self.game_instance.update_cow_scores(self.cow, 1)
+                        self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_WIN)
                         self.player.update_cash(self.cow.cash)
                         victory_msg = f"You defeat {self.cow.name}. You gain ${self.cow.cash}."
                         print(victory_msg)
@@ -89,11 +101,11 @@ class CowInteraction():
                         self.cow.print_response(self.cow.name, 'enraged_end')
                         break
                 elif choice == 2:
-                    check_inventory(self.player)
+                    self.player.check_inventory()
                 elif choice == 3:
-                    use_item(self.player)
+                    self.player.use_item()
                 elif choice == 4:
-                    self.game_instance.update_cow_scores(self.cow, -2)
+                    self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_FLEE)
                     print("You flee from the combat.")
                     break
             else:
@@ -132,7 +144,7 @@ class CowInteraction():
                 item_price = item_choice['price']
                 if self.player.cash >= item_price:
                     self.player.update_cash(-item_price)
-                    score = 1 + int(item_choice['price'] // 50)
+                    score = PACK_SCORE_SHOP_BASE + int(item_choice['price'] // PACK_SCORE_SHOP_EXPENSIVE_BONUS)
                     self.game_instance.update_cow_scores(self.cow, score)
                     self.player.update_inventory(item_choice['item'], "add")
                     self.player.display_info()

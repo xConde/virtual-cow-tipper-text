@@ -1,16 +1,31 @@
+from typing import Optional, List
 import random
-from item import Weapon, Shield, Tool, CowBell, Bucket, roll_weapon_dmg
+
+from item import Weapon, Shield, Tool, CowBell, Bucket, roll_weapon_dmg, Item
 from assets.context import small_damage_contexts, large_damage_contexts
+from game_config import (
+    PLAYER_STARTING_HP,
+    PLAYER_STARTING_CASH,
+    PLAYER_MAX_INVENTORY_SIZE,
+    PLAYER_BASE_DAMAGE_MIN,
+    PLAYER_BASE_DAMAGE_MAX,
+    PLAYER_DAMAGE_CASH_SCALING,
+    SMALL_DAMAGE_THRESHOLD,
+    LARGE_DAMAGE_THRESHOLD,
+    SMALL_DAMAGE_CONTEXT_CHANCE,
+)
 
 class Player:
-    def __init__(self, game_terminal, name, starting_hp=20, starting_cash=50):
+    def __init__(self, game_terminal, name: str,
+                 starting_hp: int = PLAYER_STARTING_HP,
+                 starting_cash: int = PLAYER_STARTING_CASH):
         self.game_terminal = game_terminal
         self.name = name
         self.hp = starting_hp
         self.cash = starting_cash
-        self.inventory = []
-        self.weapon = None
-        self.shield = None
+        self.inventory: List[Item] = []
+        self.weapon: Optional[Weapon] = None
+        self.shield: Optional[Shield] = None
 
     def display_info(self, combat=True):
         player_stats = f"{self.name} | HP: {self.hp} | Cash: ${self.cash}"
@@ -37,15 +52,16 @@ class Player:
         context = context.format(player_name=self.name, cow_name=cow_name, total_damage=total_damage)
         print(context)
 
-    def deal_damage(self, cow):
-        base_damage = 2 * random.randint(1, 4)  + (self.cash // 25)
+    def deal_damage(self, cow) -> None:
+        """Calculate and apply damage to cow with contextual flavor text."""
+        base_damage = random.randint(PLAYER_BASE_DAMAGE_MIN, PLAYER_BASE_DAMAGE_MAX) + (self.cash // PLAYER_DAMAGE_CASH_SCALING)
         weapon_damage = roll_weapon_dmg(self.weapon)
         total_damage = base_damage + weapon_damage
-        total_damage = total_damage if cow.hp >= total_damage else cow.hp
+        total_damage = min(total_damage, cow.hp)
         cow.hp -= total_damage
 
-        print_small_hit_context = total_damage <= cow.hp * 0.2 and random.random() <= 0.66
-        print_large_hit_context = total_damage >= cow.hp * 0.5
+        print_small_hit_context = total_damage <= cow.hp * SMALL_DAMAGE_THRESHOLD and random.random() <= SMALL_DAMAGE_CONTEXT_CHANCE
+        print_large_hit_context = total_damage >= cow.hp * LARGE_DAMAGE_THRESHOLD
 
         if print_small_hit_context:
             self.print_small_damage_context(cow.name, total_damage)
@@ -63,8 +79,9 @@ class Player:
         print(f"{self.name} has died.")
         # Logic for handling player death, such as resetting stats, can be added here.
 
-    def update_inventory(self, item, action):
-        if action == "add" and len(self.inventory) < 8:
+    def update_inventory(self, item: Item, action: str) -> None:
+        """Add or remove item from inventory."""
+        if action == "add" and len(self.inventory) < PLAYER_MAX_INVENTORY_SIZE:
             self.inventory.append(item)
             if isinstance(item, (Weapon, Shield)) and item.is_upgrade(self, item):
                 self.equip(item)

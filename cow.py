@@ -1,8 +1,25 @@
+from typing import Dict, Literal
 import random
+
 from assets.context import cow_sayings, cow_names, approaches
+from game_config import (
+    LIKELINESS_BASE,
+    LIKELINESS_UPSET_THRESHOLD,
+    LIKELINESS_FRIENDLY_THRESHOLD,
+    LIKELINESS_MOOD_OFFSETS,
+    LIKELINESS_MOOD_WEIGHTS,
+    COW_MAX_STRENGTH_MULTIPLIER,
+    COW_MAX_STRENGTH_FROM_CASH,
+    AGGRO_BASE_CHANCE,
+    SHOP_CHANCE,
+)
+
+CowMood = Literal['upset', 'neutral', 'friendly']
 
 class Cow:
-    def __init__(self, game_terminal, name, req_amount, likeliness, strength, hp, cash, is_shop, is_aggro, pack, approach):
+    def __init__(self, game_terminal, name: str, req_amount: int, likeliness: int,
+                 strength: int, hp: int, cash: int, is_shop: bool, is_aggro: bool,
+                 pack: int, approach: str):
         self.game_terminal = game_terminal
         self.name = name
         self.req_amount = req_amount
@@ -15,16 +32,20 @@ class Cow:
         self.is_aggro = is_aggro
         self.pack = pack
         self.approach = approach
-        self.mood = self.set_mood(self.likeliness)
+        self.mood: CowMood = self.set_mood(self.likeliness)
 
     @staticmethod
-    def generate_random_cow_properties(player):
+    def generate_random_cow_properties(player) -> Dict[str, any]:
+        """Generate random cow properties scaled to player progression."""
         likeliness = Cow.set_random_likeliness()
-        max_strength = max(int(player.hp * 0.25), int(player.cash // 20))
+        max_strength = max(
+            int(player.hp * COW_MAX_STRENGTH_MULTIPLIER),
+            int(player.cash // COW_MAX_STRENGTH_FROM_CASH)
+        )
         strength = random.randint(3, max_strength) if 3 < max_strength else 3
-        hp = max(10, strength * random.randint(1, 2) * (2 if likeliness < 5 else 1)) + random.randint(1, 3) * int(player.cash % 20)
-        is_aggro = random.randint(0, 99) < 15 + int(player.cash / 20)
-        is_shop = random.randint(0, 99) < 15 if not is_aggro else False
+        hp = max(10, strength * random.randint(1, 2) * (2 if likeliness < LIKELINESS_BASE else 1)) + random.randint(1, 3) * int(player.cash % 20)
+        is_aggro = random.randint(0, 99) < (AGGRO_BASE_CHANCE * 100 + int(player.cash / 20))
+        is_shop = random.randint(0, 99) < (SHOP_CHANCE * 100) if not is_aggro else False
 
         return {
             "name": random.choice(cow_names),
@@ -35,19 +56,24 @@ class Cow:
             "cash": random.choices([random.randint(strength, hp), random.randint(strength, hp) * 2], weights=[0.40, 0.60])[0],
             "is_shop": is_shop,
             "is_aggro": is_aggro,
-            "pack": random.randint(1, 6),
+            "pack": random.randint(1, NUM_COW_PACKS),
             "approach": random.choice(approaches)
         }
 
     @staticmethod
-    def set_random_likeliness():
-        mood_base = 5
-        mood_weights = [10, 80, 10]
-        mood_offsets = random.choices([-2, 0, 2], weights=mood_weights)[0]
-        return mood_base + mood_offsets
+    def set_random_likeliness() -> int:
+        """Generate random cow likeliness with weighted offsets."""
+        mood_offsets = random.choices(LIKELINESS_MOOD_OFFSETS, weights=LIKELINESS_MOOD_WEIGHTS)[0]
+        return LIKELINESS_BASE + mood_offsets
 
-    def set_mood(self, likeliness):
-        return 'upset' if likeliness <= 4 else 'friendly' if likeliness >= 7 else 'neutral'
+    def set_mood(self, likeliness: int) -> CowMood:
+        """Determine cow mood based on likeliness value."""
+        if likeliness <= LIKELINESS_UPSET_THRESHOLD:
+            return 'upset'
+        elif likeliness >= LIKELINESS_FRIENDLY_THRESHOLD:
+            return 'friendly'
+        else:
+            return 'neutral'
 
     def tip(self, amount):
         response = 'graceful' if amount >= self.req_amount else 'counter'
