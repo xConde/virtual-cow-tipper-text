@@ -101,7 +101,28 @@ class VirtualCowTipper:
                 self.game_terminal = GameTerminal()  # Reinitialize
                 self.first_encounter = False
 
+            # Easter egg: Lucky 777
+            from easter_eggs import check_lucky_number
+            lucky = check_lucky_number(self.player.hp, self.player.cash)
+            if lucky and not getattr(self, '_lucky_777_used', False):
+                self._lucky_777_used = True
+                from easter_eggs import EasterEggRewards
+                self.game_terminal.close_game_terminal()
+                self._lucky_effects = EasterEggRewards.lucky_777_activated(
+                    "HP" if self.player.hp == 77 else "Cash"
+                )
+                self.game_terminal = GameTerminal()
+
         self.cow.get_approach()
+
+        # Easter egg: Meta-dialogue (1% chance)
+        from easter_eggs import get_meta_dialogue
+        meta = get_meta_dialogue()
+        if meta:
+            print(f"\n[The cow pauses and looks directly at you]")
+            print(f'"{meta}"')
+            print("[It shakes its head and continues as normal]\n")
+            input("Press Enter...")
 
         is_interrupted = self.get_interruption()
         if is_interrupted:
@@ -171,6 +192,17 @@ class VirtualCowTipper:
 
     def check_victory_conditions(self) -> None:
         """Check if player has won the game."""
+        from easter_eggs import check_achievement_42, EasterEggRewards
+
+        # Easter egg: 42 cows achievement
+        if check_achievement_42(self.stats.cows_defeated) and self.stats.cows_defeated not in getattr(self, '_achievements_shown', set()):
+            if not hasattr(self, '_achievements_shown'):
+                self._achievements_shown = set()
+            self._achievements_shown.add(self.stats.cows_defeated)
+            self.game_terminal.close_game_terminal()
+            EasterEggRewards.achievement_42()
+            self.game_terminal = GameTerminal()
+
         if self.stats.check_victory():
             # Update career stats with victory
             self.career_stats.add_run_stats(self.stats, victory=True)

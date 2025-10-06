@@ -61,6 +61,13 @@ def main():
                     display_tutorial()
 
                 player_name = input('\nEnter your name: ')
+
+                # Easter egg: Developer cow
+                from easter_eggs import check_developer_name, EasterEggRewards
+                if check_developer_name(player_name):
+                    EasterEggRewards.developer_encounter()
+                    input("\nPress Enter to start...")
+
                 game = VirtualCowTipper(player_name, show_tutorial=show_tutorial)
                 game.start()
 

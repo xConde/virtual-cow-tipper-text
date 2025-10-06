@@ -37,6 +37,14 @@ class Cow:
     @staticmethod
     def generate_random_cow_properties(player) -> CowProperties:
         """Generate random cow properties scaled to player progression."""
+        from easter_eggs import get_legendary_cow
+
+        # Check for legendary cow Easter egg (0.1% chance)
+        legendary = get_legendary_cow()
+        if legendary:
+            cow_name, legendary_data = legendary
+            return Cow._create_legendary_cow(player, cow_name, legendary_data)
+
         likeliness = Cow.set_random_likeliness()
         max_strength = max(
             int(player.hp * COW_MAX_STRENGTH_MULTIPLIER),
@@ -116,4 +124,35 @@ class Cow:
 
     def get_mood_status(self):
         return f"{self.name} | {self.mood}."
+
+    @staticmethod
+    def _create_legendary_cow(player, cow_name: str, legendary_data: Dict) -> CowProperties:
+        """Create a legendary named cow with special properties."""
+        from easter_eggs import EasterEggRewards
+
+        EasterEggRewards.legendary_cow_found(cow_name)
+
+        # Use legendary approach
+        approach = legendary_data['approach']
+        mood = legendary_data.get('mood_override', 'friendly')
+        strength = legendary_data.get('strength_override', 10)
+        hp = strength * 5
+        cash = int(30 * legendary_data.get('cash_multiplier', 2.0))
+
+        # Map mood to likeliness
+        mood_to_likeliness = {'upset': 3, 'neutral': 5, 'friendly': 8}
+        likeliness = mood_to_likeliness.get(mood, 5)
+
+        return CowProperties(
+            name=cow_name,
+            req_amount=10,
+            likeliness=likeliness,
+            strength=strength,
+            hp=hp,
+            cash=cash,
+            is_shop=legendary_data.get('is_shop', False),
+            is_aggro=legendary_data.get('is_aggro', False),
+            pack=random.randint(1, 6),
+            approach=approach
+        )
         
