@@ -1,6 +1,9 @@
 # Virtual Cow Tipper
 
 ```
+     ____________________
+    < No bull, just code >
+     --------------------
       \   ^__^
        \  (oo)\_______
           (__)\       )\/\
@@ -8,50 +11,37 @@
               ||     ||
 ```
 
-> *"What's your beef? Let's talk tips."*
+A terminal-based roguelike RPG with strategic depth and absurdist humor.
 
-## What is this?
+## Overview
 
-Ever wondered what would happen if cows ran shops, hosted game shows, and occasionally tried to trample you? Wonder no more.
+Virtual Cow Tipper is a Python-based roguelike featuring a unique pack reputation system, meta-progression mechanics, and procedural encounters. Players navigate a world where cows run shops, engage in combat, and participate in mini-games.
 
-This is a text-based RPG where you wander fields tipping cows. Some cows are friendly and will play mini-games with you. Some run shops (yes, really). Some are **very** upset and want to fight. Your actions build reputation with different cow packs, making future encounters easier... or harder.
+**Core Features:**
+- Pack reputation system affecting future encounters
+- Meta-progression with persistent unlocks
+- Turn-based combat with strategic choices
+- Dynamic difficulty scaling
+- Save/load functionality
 
-It's absurd, it's punny (but not *too* punny), and it's oddly engaging.
+## Installation
 
-**The short version:**
-- Tip cows, fight cows, buy stuff from cows
-- Unlock permanent bonuses across runs
-- Try not to get trampled
-- See if you can find the legendary cow named "The Cowculator"
+### Requirements
+- Python 3.10 or higher
+- Terminal with curses support (included in standard library)
 
-## Getting Started
-
-**Requirements:** Python 3.10+, a terminal
-
-**Running it:**
+### Setup
 ```bash
+git clone <repository-url>
+cd virtual-cow-tipper-text
 python3 main.py
 ```
 
-That's it. No dependencies, no setup. Just cows.
+No external dependencies required.
 
 ---
 
-## Why would I play this?
-
-Good question! Here's what makes it fun:
-
-**Strategic Depth:** The pack reputation system means your choices matter. Anger Pack 3? Future Pack 3 cows will be hostile. Befriend Pack 5? They'll help you out.
-
-**Meta-Progression:** Every run counts. Defeat 25 cows total (across all runs) and unlock +10 starting HP forever. Losses aren't wasted - they're progress toward unlocks.
-
-**Actual Balance:** This game was unwinnable in 2023 (no healing = death spiral). Now it's actually beatable with potions, rest mechanics, and fair combat.
-
-**Decent Writing:** 100+ absurd cow scenarios (cow attempting stand-up comedy, cow building time machine, cow giving TED talks). Plus dry humor that doesn't rely on puns every sentence.
-
----
-
-## The Technical Stuff
+## Game Mechanics
 
 ## How to Play
 
@@ -114,27 +104,31 @@ Each cow belongs to one of 6 packs and has a mood (upset/neutral/friendly):
 - Earn $5000
 - Collect a full legendairy set
 
-### Features
+### Core Systems
 
-**The Game Loop:**
-- Encounter random cows (some friendly, some... not)
-- Fight aggressive cows for cash and items
-- Buy healing potions and equipment at cow-run shops
-- Play mini-games (or skip them if you're grinding)
-- Every 10 encounters = floor complete → choose a reward
+**Pack Reputation:**
+Each cow belongs to one of 6 packs. Your interactions affect future encounters:
+- Defeating or befriending a pack improves relations
+- Fleeing or angering a pack increases hostility
+- Strategic choice: which packs to cultivate relationships with
 
-**The Hook:**
-- Pack reputation system (strategic depth)
-- Meta-progression (11 unlocks to earn)
-- 3 ways to win (combat, economy, or collection)
-- Save/load your progress
-- Easter eggs (0.1% chance for legendary named cows!)
+**Meta-Progression:**
+Career statistics persist across runs, unlocking permanent bonuses:
+- 11 unlockable upgrades (increased HP, starting cash, equipment, etc.)
+- Defeats contribute to long-term progress
+- Encourages multiple playthroughs
 
-**The Vibe:**
-- Absurdist humor (cows doing human things)
-- Dry wit with occasional sharp puns
-- Self-aware comedy
-- Text-based but polished
+**Encounter Types:**
+- Combat encounters (aggressive cows)
+- Shop encounters (buy/sell equipment)
+- Dairy encounters (resource gathering)
+- Mini-game encounters (optional gambling)
+
+**Progression:**
+- Floor-based structure (10 encounters per floor)
+- Choice of rewards between floors
+- Dynamic difficulty scaling
+- Multiple victory conditions
 
 ## Game Stats
 
@@ -180,19 +174,34 @@ virtual-cow-tipper-text/
 └── tests/               # Unit tests
 ```
 
+## Technical Details
+
+- **Language:** Python 3.10+
+- **UI:** curses (terminal-based)
+- **Architecture:** Object-oriented, factory pattern, dataclasses
+- **Testing:** 44 unit tests
+- **Lines of Code:** ~5,600
+
+## Development
+
+### Running Tests
+```bash
+python3 run_tests.py
+```
+
+### Project Structure
+Clean separation of concerns with dedicated modules for game logic, dialogue management, item generation, and save/load functionality.
+
+---
+
 ## Credits
 
-Built in 2023, finished in 2025.
-All 558 lines of cow dialogue lovingly handcrafted.
+Created by Ed Conde
 
 ## License
 
-Personal project - Play it, don't sell it.
+Personal project - Educational use only
 
 ---
 
-*"I'm feeling legen-dairy today. Want to share the good mood?"* - Friendly Cow, probably
-
----
-
-**Start your bovine adventure:** `python3 main.py`
+*Run the game:* `python3 main.py`
