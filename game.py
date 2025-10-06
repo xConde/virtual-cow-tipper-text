@@ -51,6 +51,11 @@ class VirtualCowTipper:
         self.tutorial_shown = not show_tutorial
         self.career_bonuses = bonuses  # Store for use throughout game
 
+        # FIX 4: Floor system tracking (MUST be initialized!)
+        self.current_floor = 1
+        self.encounters_this_floor = 0
+        self.encounters_per_floor = 10
+
         # Load saved game if requested
         if load_save:
             self._load_saved_game()

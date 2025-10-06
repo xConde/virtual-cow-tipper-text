@@ -133,7 +133,7 @@ class CowInteraction:
                             self.player.inventory.append(drop)
                             print(f"{self.cow.name} dropped: {drop.name}!")
 
-                        self.game_terminal.type_dialog(victory_msg)
+                        self.game_terminal.draw_dialog(victory_msg)
                         self.cow.print_response(self.cow.name, 'enraged_end')
                         break
                 elif choice == 2:
