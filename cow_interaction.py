@@ -113,10 +113,26 @@ class CowInteraction:
                 if choice == 1:
                     self.player.deal_damage(self.cow)
                     if self.cow.hp <= 0:
+                        from game_config import COMBAT_CASH_MULTIPLIER, COMBAT_ITEM_DROP_CHANCE
+
+                        # FIX 5: Combat rewards 2x cash!
+                        cash_reward = int(self.cow.cash * COMBAT_CASH_MULTIPLIER)
+
                         self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_WIN)
-                        self.player.update_cash(self.cow.cash)
-                        victory_msg = f"You defeat {self.cow.name}. You gain ${self.cow.cash}."
+                        self.player.update_cash(cash_reward)
+                        self.game_instance.stats.cows_defeated += 1
+
+                        victory_msg = f"You defeat {self.cow.name}. You gain ${cash_reward}!"
                         print(victory_msg)
+
+                        # FIX 5: Item drops from combat!
+                        import random
+                        if random.random() < COMBAT_ITEM_DROP_CHANCE:
+                            from item_factory import ItemFactory
+                            drop = ItemFactory.create_random_item(less_likely=True)
+                            self.player.inventory.append(drop)
+                            print(f"{self.cow.name} dropped: {drop.name}!")
+
                         self.game_terminal.type_dialog(victory_msg)
                         self.cow.print_response(self.cow.name, 'enraged_end')
                         break
@@ -207,13 +223,18 @@ class CowInteraction:
         """Handle regular cow encounter (tip for mini-game or leave)."""
         self.game_terminal.set_cow_stats(self.cow.get_mood_status())
         self.cow.print_response(self.cow.name, 'intro', False)
+
+        # FIX 2: Make mini-games OPTIONAL!
         actions = {
-            "tip": f"Tip {self.cow.name}",
-            "leave": "Flee from the cow"
+            "play_mini_game": f"Tip {self.cow.name} (play mini-game)",
+            "quick_tip": f"Quick tip ${self.cow.req_amount} (skip mini-game)",
+            "leave": "Leave"
         }
 
         choice = self.handle_menu_choice(actions)
+
         if choice == "1":
+            # Play mini-game (original flow)
             min_bet = self.cow.req_amount
             max_bet = min(self.player.cash, self.cow.req_amount * random.randint(2,5))
 
@@ -256,12 +277,28 @@ class CowInteraction:
                 self.game_instance.update_cow_scores(self.cow, score)
 
         elif choice == "2":
+            # NEW: Quick tip option (skip mini-game)
+            quick_tip = self.cow.req_amount
+            if self.player.cash >= quick_tip:
+                self.player.update_cash(-quick_tip)
+                reward = int(quick_tip * 1.5)  # Small profit for tipping
+                self.player.update_cash(reward)
+                score = 0.5
+                self.cow.likeliness += score
+                print(f"You tip {self.cow.name} ${quick_tip}. They appreciate it.")
+                print(f"You gain ${reward - quick_tip} (modest profit, no mini-game)")
+                self.game_instance.update_cow_scores(self.cow, score)
+            else:
+                print(f"You don't have ${quick_tip} for a quick tip.")
+                return
+
+        elif choice == "3":
             print(f"You decided to leave {self.cow.name}.")
-            score = -2
+            score = -1  # Less harsh penalty for leaving
             self.cow.likeliness += score
             self.game_instance.update_cow_scores(self.cow, score)
         else:
-            print("Please enter a number between 1 and 2.")
+            print("Please enter a number between 1 and 3.")
 
     def handle_menu_choice(self, actions, prompt=None):
         menu_items = [f"{i + 1}. {action}" for i, action in enumerate(actions.values())]

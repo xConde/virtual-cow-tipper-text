@@ -13,8 +13,8 @@ COW_QUEUE_SIZE = 3
 NUM_COW_PACKS = 6
 DAIRY_ENCOUNTER_BASE_CHANCE = 0.05  # 5%
 DAIRY_ENCOUNTER_WITH_COWBELL = 0.15  # 15%
-AGGRO_BASE_CHANCE = 0.15  # 15%
-AGGRO_MAX_CHANCE = 0.40  # Cap at 40% (was uncapped!)
+AGGRO_BASE_CHANCE = 0.35  # 35% - INCREASED! Combat is the fun part!
+AGGRO_MAX_CHANCE = 0.50  # Cap at 50% (increased from 40%)
 SHOP_CHANCE = 0.15  # 15%
 
 # Game Events
@@ -54,10 +54,14 @@ SHOP_WEAPON_MULTIPLIER = 1.5
 SHOP_SHIELD_MULTIPLIER = 2.0
 
 # Pack Score Updates
-PACK_SCORE_COMBAT_WIN = 1.0
+PACK_SCORE_COMBAT_WIN = 2.0  # INCREASED! (was 1.0)
 PACK_SCORE_COMBAT_FLEE = -2.0
 PACK_SCORE_SHOP_BASE = 1.0
 PACK_SCORE_SHOP_EXPENSIVE_BONUS = 50  # +1 per 50 cash spent
+
+# Combat Rewards (IMPROVED!)
+COMBAT_CASH_MULTIPLIER = 2.0  # Combat gives 2x cash!
+COMBAT_ITEM_DROP_CHANCE = 0.15  # 15% chance for item drop
 
 # Mini-Game Settings
 TIPPING_BAR_MAX_MULTIPLIER = 3  # Max reward = bet * 3
