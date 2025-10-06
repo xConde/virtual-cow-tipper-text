@@ -26,6 +26,7 @@ class Player:
         self.inventory: List[Item] = []
         self.weapon: Optional[Weapon] = None
         self.shield: Optional[Shield] = None
+        self.stunned_turns = 0  # For stun effect implementation
 
     def display_info(self, combat=True):
         player_stats = f"{self.name} | HP: {self.hp} | Cash: ${self.cash}"
@@ -75,9 +76,21 @@ class Player:
         self.cash += amount
         self.display_info()
 
-    def die(self):
-        print(f"{self.name} has died.")
-        # Logic for handling player death, such as resetting stats, can be added here.
+    def die(self) -> bool:
+        """Handle player death - returns True if player wants to restart."""
+        print(f"\n{'='*50}")
+        print(f"GAME OVER - {self.name} has fallen!")
+        print(f"{'='*50}")
+        print(f"Final Stats:")
+        print(f"  HP: {self.hp}")
+        print(f"  Cash: ${self.cash}")
+        print(f"  Items: {len(self.inventory)}")
+        print(f"\nWould you like to:")
+        print("1. Restart")
+        print("2. Quit")
+
+        choice = input("Choice (1 or 2): ").strip()
+        return choice == "1"
 
     def update_inventory(self, item: Item, action: str) -> None:
         """Add or remove item from inventory."""

@@ -79,6 +79,13 @@ class CowInteraction():
         cow_strength = self.cow.strength
 
         while self.player.hp > 0 and self.cow.hp > 0:
+            # Check if player is stunned
+            if self.player.stunned_turns > 0:
+                print(f"{self.player.name} is stunned and cannot act! ({self.player.stunned_turns} turns remaining)")
+                self.player.stunned_turns -= 1
+                CowAttack.cow_attack(self.player, self.cow)
+                continue
+
             actions = {
                 "attack": "Attack",
                 "check_inventory": "Check inventory",
@@ -129,18 +136,16 @@ class CowInteraction():
                 item_name = item['label'] if self.cow.mood != 'friendly' else item['item'].name
                 price = item["price"]
                 item_strings.append(f"{i + 1}. {item_name} - ${price}")
-            item_strings.append("4. Leave the shop")
+            item_strings.append("4. Sell items")
+            item_strings.append("5. Leave the shop")
 
             menu_items = item_strings
             choice = self.game_terminal.get_menu_choice(menu_items)
-            if choice in range(1, 5):
+            if choice in range(1, 6):
                 choice = int(choice)
-                if choice == 4:
-                    self.cow.print_response(self.cow.name, 'shop_keeper_end')
-                    self.game_instance.destroy_cow()
-                    return
-
-                item_choice = available_items[choice - 1]
+                if choice <= 3:
+                    # Buy item
+                    item_choice = available_items[choice - 1]
                 item_price = item_choice['price']
                 if self.player.cash >= item_price:
                     self.player.update_cash(-item_price)
@@ -154,6 +159,30 @@ class CowInteraction():
                     else:
                         print(f"You purchased {item_choice['item'].name} for ${item_price}.")
                     print(f"Remaining cash: ${self.player.cash}\n")
+                elif choice == 4:
+                    # Sell items (your TODO!)
+                    print("\n=== Sell Items ===")
+                    sellable = [item for item in self.player.inventory if hasattr(item, 'stats')]
+                    if not sellable:
+                        print("You have no items to sell.")
+                        continue
+
+                    sell_menu = [f"{i+1}. {item.name} - ${self._calculate_sell_price(item, self.cow.mood)}"
+                                 for i, item in enumerate(sellable)]
+                    sell_menu.append(f"{len(sellable)+1}. Cancel")
+
+                    sell_choice = self.game_terminal.get_menu_choice(sell_menu, "Select item to sell:")
+                    if sell_choice <= len(sellable):
+                        sold_item = sellable[sell_choice - 1]
+                        sell_price = self._calculate_sell_price(sold_item, self.cow.mood)
+                        self.player.update_inventory(sold_item, "remove")
+                        self.player.update_cash(sell_price)
+                        print(f"You sold {sold_item.name} for ${sell_price}.")
+                        self.cow.print_response(self.cow.name, 'shop_keeper_purchase', False)
+                elif choice == 5:
+                    self.cow.print_response(self.cow.name, 'shop_keeper_end')
+                    self.game_instance.destroy_cow()
+                    return
                 else:
                     print("You don't have enough cash for that item.\n")
             else:
@@ -224,8 +253,26 @@ class CowInteraction():
         return choice
 
     def get_item_from_inventory(self, item_class):
+        """Find first item of given type in player inventory."""
         for item in self.player.inventory:
             if isinstance(item, item_class):
                 return item
-        else:
-            return None
+        return None
+
+    def _calculate_sell_price(self, item, cow_mood: str) -> int:
+        """Calculate sell price for item (50-70% of value based on mood)."""
+        from item_factory import ItemFactory
+
+        # Estimate item value based on median stat
+        median_stat = ItemFactory.calculate_item_median_stat(item)
+        base_value = int(median_stat * 30)  # Rough value estimate
+
+        # Mood affects sell price (friendly pays more)
+        if cow_mood == 'friendly':
+            sell_percentage = 0.70  # 70% of value
+        elif cow_mood == 'neutral':
+            sell_percentage = 0.60  # 60%
+        else:  # upset
+            sell_percentage = 0.50  # 50% (stingy!)
+
+        return max(10, int(base_value * sell_percentage))

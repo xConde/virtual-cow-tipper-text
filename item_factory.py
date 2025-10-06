@@ -145,10 +145,23 @@ class ItemFactory:
         scale = random.choices([1, 2, 3, 4, 5], weights=rarity_weights)[0]
         rarity = RARITY_NAMES[scale - 1]
 
-        # Calculate stats
+        # Calculate stats with rarity floor
         stat_key = 'min_damage' if item_type == 'weapon' else 'min_defence'
-        min_stat = base_item[stat_key]
-        max_stat = base_item['max_' + stat_key[4:]]
+        base_min_stat = base_item[stat_key]
+        base_max_stat = base_item['max_' + stat_key[4:]]
+
+        # FIX: Rarity should raise the floor (your TODO from line 10!)
+        # Legendary dagger should not have min_damage = 1
+        rarity_floor_multiplier = {
+            'common': 1.0,
+            'uncommon': 1.2,
+            'magic': 1.5,
+            'rare': 2.0,
+            'legendairy': 2.5
+        }
+        floor_mult = rarity_floor_multiplier.get(rarity, 1.0)
+        min_stat = max(base_min_stat, int(base_min_stat * floor_mult))
+        max_stat = max(base_max_stat, int(base_max_stat * floor_mult))
 
         # Apply rarity-based name modification
         modified_name = ItemFactory._get_modified_name(base_item['name'], rarity)

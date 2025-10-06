@@ -40,8 +40,8 @@ class CowAttack:
 
             if chosen_attack.effect:
                 if chosen_attack.effect == "stun":
+                    player.stunned_turns = chosen_attack.duration
                     print(f"{player.name} is stunned for {chosen_attack.duration} turns!")
-                    # Add logic to handle stun effect for the player
                 elif chosen_attack.effect == "heal":
                     print(f"{cow.name} heals for {chosen_attack.healing} HP!")
                     cow.hp += chosen_attack.healing

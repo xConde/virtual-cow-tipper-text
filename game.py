@@ -90,8 +90,19 @@ class VirtualCowTipper:
             return message
         return None
 
-    def check_end_conditions(self):
+    def check_end_conditions(self) -> None:
+        """Check if game is over and handle restart."""
         if self.player.hp <= 0 or self.player.cash <= 0:
-            self.player.die()
-            self.game_terminal.close_game_terminal()    # close the game terminal for now, add main menu later.
-            self.running = False
+            should_restart = self.player.die()
+            if should_restart:
+                self._restart_game()
+            else:
+                self.game_terminal.close_game_terminal()
+                self.running = False
+
+    def _restart_game(self) -> None:
+        """Reset game state for new run."""
+        self.player = Player(self.game_terminal, self.player.name)
+        self.cow = None
+        self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
+        self.cow_packs = {pack: 0.0 for pack in range(1, NUM_COW_PACKS + 1)}
