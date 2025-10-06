@@ -12,6 +12,7 @@ test_files = [
     'tests/test_dialogue_manager.py',
     'tests/test_game_integration.py',
     'tests/test_save_load.py',
+    'tests/test_gameplay_simulation.py',
 ]
 
 def run_test(test_file):

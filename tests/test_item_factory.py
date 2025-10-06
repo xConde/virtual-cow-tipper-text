@@ -70,11 +70,16 @@ def test_shop_inventory():
     """Test shop inventory generation."""
     inventory = ItemFactory.get_shop_inventory('neutral', player_cash=100, is_lucky=False)
 
-    assert len(inventory) == 3, f"Shop should have 3 items, got {len(inventory)}"
+    # Shop now has 4 items (added health potions in balance fix)
+    assert len(inventory) >= 4, f"Shop should have at least 4 items, got {len(inventory)}"
     for item in inventory:
         assert 'item' in item
         assert 'price' in item
         assert item['price'] > 0
+
+    # Check health potion is in shop
+    has_potion = any('potion' in item['label'].lower() for item in inventory)
+    assert has_potion, "Shop should include health potion"
 
     print("test_shop_inventory: PASSED")
 

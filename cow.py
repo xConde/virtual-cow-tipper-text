@@ -60,8 +60,8 @@ class Cow:
 
         # ECONOMY FIX: Increase cash rewards to match shop prices
         base_cash = random.randint(strength, hp)
-        cash_multiplier = 1.5 + (player.cash / 1000)  # Scales better late game
-        cash_reward = int(base_cash * cash_multiplier)
+        cash_multiplier = 2.0 + (player.cash / 500)  # Better scaling
+        cash_reward = max(30, int(base_cash * cash_multiplier))  # Minimum $30 reward
 
         return CowProperties(
             name=DialogueManager.get_cow_name(),
