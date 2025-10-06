@@ -1,3 +1,4 @@
+from typing import Dict
 import random
 
 from dialogue_manager import DialogueManager
