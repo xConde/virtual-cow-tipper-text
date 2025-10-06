@@ -6,6 +6,8 @@ from typing import Dict, List, Optional
 import random
 
 from assets.context import cow_sayings, approaches, interruptions, cow_names
+from assets.mature_dialogue import mature_cow_sayings, mature_cow_names, mature_approaches
+import random
 
 
 class DialogueManager:
@@ -17,21 +19,35 @@ class DialogueManager:
     """
 
     @staticmethod
-    def get_cow_saying(mood: str, response_type: str, **context) -> str:
+    def get_cow_saying(mood: str, response_type: str, use_mature: bool = True, **context) -> str:
         """
         Get a cow's dialogue response based on mood and situation.
 
         Args:
             mood: 'friendly', 'neutral', or 'upset'
             response_type: 'intro', 'counter', 'graceful', 'dairy_bucket', etc.
+            use_mature: If True, 70% chance for mature dialogue (less punny)
             **context: Optional context variables (player_name, tip_amount, etc.)
 
         Returns:
             Dialogue string (may include formatting if context provided)
         """
         try:
-            responses = cow_sayings[mood][response_type]
-            response = random.choice(responses)
+            # 70% chance to use mature dialogue (adult humor)
+            # 30% chance to use original dialogue (puns)
+            if use_mature and random.random() < 0.70:
+                # Try mature dialogue first
+                if mood in mature_cow_sayings and response_type in mature_cow_sayings[mood]:
+                    responses = mature_cow_sayings[mood][response_type]
+                    response = random.choice(responses)
+                else:
+                    # Fall back to original if mature version doesn't exist
+                    responses = cow_sayings[mood][response_type]
+                    response = random.choice(responses)
+            else:
+                # Use original punny dialogue
+                responses = cow_sayings[mood][response_type]
+                response = random.choice(responses)
 
             # Apply context variables if provided and response is a template
             if context and '{' in response:
@@ -43,8 +59,18 @@ class DialogueManager:
             return f"Moo. ({mood} {response_type})"
 
     @staticmethod
-    def get_approach() -> str:
-        """Get a random cow approach scenario."""
+    def get_approach(mature_chance: float = 0.30) -> str:
+        """
+        Get a random cow approach scenario.
+
+        Args:
+            mature_chance: Probability of sophisticated/dark humor approach
+
+        Returns:
+            Approach text
+        """
+        if random.random() < mature_chance and mature_approaches:
+            return random.choice(mature_approaches)
         return random.choice(approaches)
 
     @staticmethod
@@ -53,8 +79,18 @@ class DialogueManager:
         return random.choice(interruptions)
 
     @staticmethod
-    def get_cow_name() -> str:
-        """Get a random cow name."""
+    def get_cow_name(mature_chance: float = 0.20) -> str:
+        """
+        Get a random cow name.
+
+        Args:
+            mature_chance: Probability of sophisticated literary name
+
+        Returns:
+            Cow name
+        """
+        if random.random() < mature_chance and mature_cow_names:
+            return random.choice(mature_cow_names)
         return random.choice(cow_names)
 
     # Context-aware helpers for future enhancements
