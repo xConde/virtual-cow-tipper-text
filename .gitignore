@@ -3,7 +3,10 @@
 
 # Save files
 saves/
-*.json
+game_save.json
+
+# Career stats (meta-progression) - can optionally commit this
+# career_stats.json
 
 # Python
 __pycache__/

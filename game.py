@@ -3,12 +3,13 @@ import random
 
 from cow import Cow
 from player import Player
-from item import Item
+from item import Item, CowBell
 from cow_interaction import CowInteraction
 from terminal.game_terminal import GameTerminal
 from dialogue_manager import DialogueManager
 from models import GameStats
 from save_manager import SaveManager
+from career_stats import CareerStats, Unlock
 from game_config import (
     COW_QUEUE_SIZE,
     NUM_COW_PACKS,
@@ -18,7 +19,29 @@ from game_config import (
 class VirtualCowTipper:
     def __init__(self, player_name: str, show_tutorial: bool = True, load_save: bool = False):
         self.game_terminal = GameTerminal()
-        self.player = Player(self.game_terminal, player_name)
+        self.career_stats = CareerStats.load()  # Load career progression
+
+        # Apply career bonuses to starting stats
+        bonuses = self.career_stats.get_starting_bonuses()
+
+        self.player = Player(
+            self.game_terminal,
+            player_name,
+            starting_hp=20 + bonuses['extra_hp'],
+            starting_cash=50 + bonuses['extra_cash']
+        )
+
+        # Apply starting items from unlocks
+        for item_id in bonuses['starting_items']:
+            if item_id == 'cowbell':
+                self.player.inventory.append(CowBell())
+                print(f"[UNLOCK BONUS] {player_name} starts with a Cow Bell!")
+            elif item_id == 'basic_weapon':
+                from item_factory import ItemFactory
+                weapon = ItemFactory.create_weapon(less_likely=True)  # Common weapon
+                self.player.weapon = weapon
+                print(f"[UNLOCK BONUS] {player_name} starts with {weapon.name}!")
+
         self.cow: Optional[Cow] = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
         self.cow_packs = {pack: 0.0 for pack in range(1, NUM_COW_PACKS + 1)}
@@ -26,6 +49,7 @@ class VirtualCowTipper:
         self.running = True
         self.first_encounter = show_tutorial
         self.tutorial_shown = not show_tutorial
+        self.career_bonuses = bonuses  # Store for use throughout game
 
         # Load saved game if requested
         if load_save:
@@ -129,6 +153,15 @@ class VirtualCowTipper:
     def check_end_conditions(self) -> None:
         """Check if game is over and handle restart."""
         if self.player.hp <= 0 or self.player.cash <= 0:
+            # Update career stats
+            self.career_stats.add_run_stats(self.stats, victory=False)
+            newly_unlocked = self.career_stats.check_unlocks()
+            self.career_stats.save()
+
+            # Show unlocks if any
+            if newly_unlocked:
+                self._show_new_unlocks(newly_unlocked)
+
             should_restart = self.player.die(self.stats)
             if should_restart:
                 self._restart_game()
@@ -139,9 +172,34 @@ class VirtualCowTipper:
     def check_victory_conditions(self) -> None:
         """Check if player has won the game."""
         if self.stats.check_victory():
+            # Update career stats with victory
+            self.career_stats.add_run_stats(self.stats, victory=True)
+            newly_unlocked = self.career_stats.check_unlocks()
+            self.career_stats.save()
+
             self._show_victory_screen()
+
+            # Show unlocks after victory
+            if newly_unlocked:
+                self._show_new_unlocks(newly_unlocked)
+
             self.game_terminal.close_game_terminal()
             self.running = False
+
+    def _show_new_unlocks(self, newly_unlocked: List[str]) -> None:
+        """Show newly unlocked bonuses."""
+        print("\n" + "="*60)
+        print("NEW UNLOCKS ACHIEVED!")
+        print("="*60)
+
+        for unlock_id in newly_unlocked:
+            info = Unlock.UNLOCK_DATA[unlock_id]
+            print(f"\n✓ {info['name']}")
+            print(f"  {info['description']}")
+            print(f"  Bonus: {info['bonus']}")
+
+        print(f"\n{len(newly_unlocked)} new unlock(s) will apply to future runs!")
+        input("\nPress Enter to continue...")
 
     def _show_victory_screen(self) -> None:
         """Display victory screen with stats."""

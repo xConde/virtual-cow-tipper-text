@@ -13,6 +13,7 @@ test_files = [
     'tests/test_game_integration.py',
     'tests/test_save_load.py',
     'tests/test_gameplay_simulation.py',
+    'tests/test_meta_progression.py',
 ]
 
 def run_test(test_file):

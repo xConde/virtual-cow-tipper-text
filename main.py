@@ -15,6 +15,11 @@ def main():
                 print("\nThanks for playing Virtual Cow Tipper!")
                 break
 
+            elif choice == 'career':
+                menu.cleanup()
+                menu.show_career_progress()
+                menu = MainMenu()
+
             elif choice == 'how_to_play':
                 menu.show_how_to_play()
 
