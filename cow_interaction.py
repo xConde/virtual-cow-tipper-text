@@ -15,11 +15,9 @@ from game_config import (
     PACK_SCORE_COMBAT_FLEE,
     PACK_SCORE_SHOP_BASE,
     PACK_SCORE_SHOP_EXPENSIVE_BONUS,
+    SHOP_LUCKY_CHANCE_UPSET,
+    SHOP_LUCKY_CHANCE_FRIENDLY,
 )
-
-# rarity should raise the floor for items rare dag should not be min 1
-
-# should be able to sell at the shop
 
 class CowInteraction():
     def __init__(self, game_instance, player, cow):
@@ -124,7 +122,8 @@ class CowInteraction():
     def handle_shop(self):
         print(f'You enter a shop run by a cow named {self.cow.name} who is currently {self.cow.mood}.')
         self.cow.print_response(self.cow.name, 'shop_keeper_intro', False)
-        isLucky = random.randint(0, 99) < (40 if self.cow.mood == 'upset' else 25)
+        lucky_chance = SHOP_LUCKY_CHANCE_UPSET if self.cow.mood == 'upset' else SHOP_LUCKY_CHANCE_FRIENDLY
+        isLucky = random.random() < lucky_chance
         if (self.cow.mood == 'friendly' and isLucky):
             print(f"The shop owner is very welcoming and shows you all the items in their shop with a smile.")
         elif (self.cow.mood == 'upset' and isLucky):
