@@ -106,8 +106,9 @@ class GameTerminal:
         self.stdscr.refresh()
                 
     def get_key_variables(self):
-        KEY_UP = 450
-        KEY_DOWN = 456
+        # Use curses constants for arrow keys (more reliable)
+        KEY_UP = curses.KEY_UP
+        KEY_DOWN = curses.KEY_DOWN
         KEY_ENTER = ord('\n')
         KEY_ESCAPE = 27
         NUM_OFFSET = 49

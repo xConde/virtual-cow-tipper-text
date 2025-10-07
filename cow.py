@@ -117,11 +117,11 @@ class Cow:
         self.game_terminal.refresh()
 
     def print_response(self, cow_name, response_type, gap=True):
-        """Print cow response with margin formatting."""
-        from utils import safe_print
+        """Print cow response - only use draw_dialog to avoid duplication."""
         response = self.get_response(response_type)
-        safe_print(f"{cow_name}: {response}" + ('\n' if gap else ''))
-        self.game_terminal.draw_dialog(response)
+        # Only use draw_dialog (handles margins via curses)
+        # Don't print() - that would duplicate the text
+        self.game_terminal.draw_dialog(f"{cow_name}: {response}")
         
     def get_combat_stats(self):
         hp_str = f"{self.hp}/{self.max_hp}" if self.hp != self.max_hp else f"{self.hp}"
