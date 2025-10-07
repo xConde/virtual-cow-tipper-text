@@ -6,6 +6,8 @@ from .dialog_history import DialogHistory
 class GameTerminal:
     WIDTH = 100
     HEIGHT = 30
+    LEFT_MARGIN = 2   # Add left margin for readability
+    RIGHT_MARGIN = 2  # Add right margin
 
     PLAYER_INFO_Y = 0
     COW_INFO_Y = 0
@@ -45,9 +47,22 @@ class GameTerminal:
         self.pause_menu = PauseMenu(self)
 
     def draw(self, y, x, text, custom_attr=0, align='left'):
+        """Draw text with margin consideration."""
+        # Apply left margin
+        x = x + self.LEFT_MARGIN
+
         if align == 'right':
-            x = self.WIDTH - len(text) - 3
-        self.stdscr.addstr(y, x, text, custom_attr)
+            x = self.WIDTH - len(text) - self.RIGHT_MARGIN
+
+        # Truncate text if it would exceed right margin
+        max_width = self.WIDTH - self.LEFT_MARGIN - self.RIGHT_MARGIN
+        if len(text) > max_width:
+            text = text[:max_width - 3] + "..."
+
+        try:
+            self.stdscr.addstr(y, x, text, custom_attr)
+        except:
+            pass  # Ignore if out of bounds
 
     def generate_pointer(self, menu_item_length, total_width):
         min_spaces_between = 8
@@ -165,10 +180,29 @@ class GameTerminal:
         self.draw(y=self.COW_INFO_Y, x=0, text=self.cow_stats, align='right')
 
     def draw_dialog(self, text):
+        """Draw dialog with word wrapping to fit margins."""
         self.clear_area(self.DIALOG_Y_START, self.DIALOG_Y_END)
         self.dialog_history.add_dialog(text)
-        lines = text.split("\n")
-        for idx, line in enumerate(lines):
+
+        # Word wrap text to fit within margins
+        max_width = self.WIDTH - self.LEFT_MARGIN - self.RIGHT_MARGIN - 4
+        words = text.split()
+        lines = []
+        current_line = ""
+
+        for word in words:
+            if len(current_line) + len(word) + 1 <= max_width:
+                current_line += (word + " ")
+            else:
+                if current_line:
+                    lines.append(current_line.strip())
+                current_line = word + " "
+
+        if current_line:
+            lines.append(current_line.strip())
+
+        # Draw wrapped lines
+        for idx, line in enumerate(lines[:2]):  # Max 2 lines of dialog
             self.draw(self.DIALOG_Y_START + idx, 0, line)
 
     def set_player_stats(self, stats, weapon, shield):
