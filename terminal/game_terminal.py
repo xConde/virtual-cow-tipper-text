@@ -4,7 +4,7 @@ from .pause_menu import PauseMenu
 from .dialog_history import DialogHistory
 
 class GameTerminal:
-    WIDTH = 100
+    WIDTH = 85  # Reduced from 100 to create natural margins for print() text
     HEIGHT = 30
     LEFT_MARGIN = 2   # Add left margin for readability
     RIGHT_MARGIN = 2  # Add right margin
