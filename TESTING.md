@@ -100,12 +100,12 @@ Tests:
 **Total:** 28 tests
 
 **Coverage:**
-- Cow generation ✓
-- Item generation ✓
-- Dialogue system ✓
-- Combat mechanics ✓
-- Config system ✓
-- All imports ✓
+- Cow generation OK
+- Item generation OK
+- Dialogue system OK
+- Combat mechanics OK
+- Config system OK
+- All imports OK
 
 ---
 

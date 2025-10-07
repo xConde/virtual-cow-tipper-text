@@ -141,9 +141,9 @@ class EasterEggRewards:
     @staticmethod
     def lucky_777_activated(hp_or_cash: str):
         """Called when player has exactly 777 or 77."""
-        print(f"\n{'✨'*20}")
+        print(f"\n{'*'*40}")
         print(f"LUCKY NUMBER 777! ({hp_or_cash})")
-        print(f"{'✨'*20}")
+        print(f"{'*'*40}")
         print("A four-leaf clover appears!")
         print("Next 3 shops will have legendary items!")
         print("Next 3 mini-games will auto-win!")
@@ -155,9 +155,9 @@ class EasterEggRewards:
     @staticmethod
     def achievement_42():
         """The Answer to Life, Universe, and Everything."""
-        print(f"\n{'🌟'*20}")
+        print(f"\n{'='*40}")
         print("42 COWS DEFEATED!")
-        print(f"{'🌟'*20}")
+        print(f"{'='*40}")
         print("You've found the Answer to Life, the Universe, and Everything!")
         print("\n*A towel mysteriously appears*")
         print("\nUNLOCKED: The Towel of Destiny (legendary item)")
@@ -166,10 +166,10 @@ class EasterEggRewards:
     @staticmethod
     def developer_encounter():
         """Special encounter when using developer's name."""
-        print(f"\n{'🎮'*20}")
+        print(f"\n{'='*40}")
         print("DEVELOPER COW ENCOUNTERED!")
-        print(f"{'🎮'*20}")
-        print("A cow that looks suspiciously like it's been coding for 2 years...")
+        print(f"{'='*40}")
+        print("A cow that looks suspiciously like it's been coding...")
         print('"Oh, it\'s YOU. The one who brought me into existence."')
-        print('"I\'ve been waiting in context.py since May 2023!"')
+        print('"I\'ve been waiting in context.py!"')
         print('"Here, take this legendary item as thanks for finishing the game."')

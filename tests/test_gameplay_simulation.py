@@ -70,7 +70,7 @@ def test_early_game_scenario():
         print(f"After: HP={player.hp}, Cash=${player.cash}")
 
     assert player.hp > 0, "Player should survive early game"
-    print(f"\n✓ Early game survivable!")
+    print(f"\n[OK] Early game survivable!")
 
 
 def test_healing_mechanics():
@@ -91,30 +91,30 @@ def test_healing_mechanics():
     player.inventory.append(potion)
     potion.use(player)
     assert player.hp == 70, f"Expected 70 HP, got {player.hp}"
-    print(f"   After potion: {player.hp} HP ✓")
+    print(f"   After potion: {player.hp} HP [OK]")
 
     # Test 2: Rest (simulated)
     print("\n2. Rest:")
     from game_config import REST_HEAL_AMOUNT, PLAYER_MAX_HP
     old_hp = player.hp
     player.hp = min(player.hp + REST_HEAL_AMOUNT, PLAYER_MAX_HP)
-    print(f"   After rest: {player.hp} HP (+{player.hp - old_hp}) ✓")
+    print(f"   After rest: {player.hp} HP (+{player.hp - old_hp}) [OK]")
 
     # Test 3: Dairy healing (simulated)
     print("\n3. Dairy Milk:")
     from game_config import DAIRY_COW_HEAL_AMOUNT
     old_hp = player.hp
     player.hp = min(player.hp + DAIRY_COW_HEAL_AMOUNT, PLAYER_MAX_HP)
-    print(f"   After milking: {player.hp} HP (+{player.hp - old_hp}) ✓")
+    print(f"   After milking: {player.hp} HP (+{player.hp - old_hp}) [OK]")
 
     # Test HP cap
     print("\n4. HP Cap:")
     player.hp = 95
     player.hp = min(player.hp + 20, PLAYER_MAX_HP)
     assert player.hp == 100, "HP should cap at 100"
-    print(f"   HP capped at: {player.hp} ✓")
+    print(f"   HP capped at: {player.hp} [OK]")
 
-    print(f"\n✓ All healing mechanics working!")
+    print(f"\n[OK] All healing mechanics working!")
 
 
 def test_combat_balance():
@@ -147,7 +147,7 @@ def test_combat_balance():
     assert cow.strength < 40, f"Late game cows should be < 40 strength (got {cow.strength})"
     assert player_dmg > cow.strength, f"Player should outdamage cow (player:{player_dmg} vs cow:{cow.strength})"
 
-    print(f"\n✓ Combat balanced! Player can win late game fights!")
+    print(f"\n[OK] Combat balanced! Player can win late game fights!")
 
 
 def test_economy_balance():
@@ -179,7 +179,7 @@ def test_economy_balance():
     item_price = shop_items[0]['price']
     assert item_price < 100, f"Shop items should be <$100 (got ${item_price:.0f})"
 
-    print(f"\n✓ Economy balanced! Can afford items from cow rewards!")
+    print(f"\n[OK] Economy balanced! Can afford items from cow rewards!")
 
 
 def test_aggro_chance_capped():
@@ -207,7 +207,7 @@ def test_aggro_chance_capped():
     from game_config import AGGRO_MAX_CHANCE
     assert aggro_percentage <= AGGRO_MAX_CHANCE + 0.1, f"Aggro should be capped at {AGGRO_MAX_CHANCE*100}%"
 
-    print(f"✓ Aggro capped at {AGGRO_MAX_CHANCE*100}% (was 65%+)")
+    print(f"[OK] Aggro capped at {AGGRO_MAX_CHANCE*100}% (was 65%+)")
 
 
 def test_save_load_with_potions():
@@ -246,7 +246,7 @@ def test_save_load_with_potions():
     # Cleanup
     SaveManager.delete_save()
 
-    print(f"✓ Save/load works with new potion system!")
+    print(f"[OK] Save/load works with new potion system!")
 
 
 if __name__ == "__main__":
@@ -265,9 +265,9 @@ if __name__ == "__main__":
     print("\n" + "="*60)
     print("ALL GAMEPLAY TESTS PASSED!")
     print("="*60)
-    print("\n✓ Game is balanced and playable")
-    print("✓ All healing methods work")
-    print("✓ Combat is fair")
-    print("✓ Economy is sustainable")
-    print("✓ Save/load preserves state")
+    print("\n[OK] Game is balanced and playable")
+    print("[OK] All healing methods work")
+    print("[OK] Combat is fair")
+    print("[OK] Economy is sustainable")
+    print("[OK] Save/load preserves state")
     print("\nGame is ready for real gameplay testing!")

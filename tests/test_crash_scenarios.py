@@ -27,7 +27,7 @@ def test_imports_dont_crash():
         from easter_eggs import get_legendary_cow
         from tutorial import show_tutorial
 
-        print("✓ All imports successful (no circular dependencies)")
+        print("[OK] All imports successful (no circular dependencies)")
         return True
     except Exception as e:
         print(f"✗ Import failed: {e}")
@@ -51,7 +51,7 @@ def test_player_inventory_operations():
     potion = HealthPotion()
     try:
         player.use_item(potion)  # Not in inventory
-        print("  ✓ Using item not in inventory doesn't crash")
+        print("  [OK] Using item not in inventory doesn't crash")
     except Exception as e:
         print(f"  ✗ Crash on use_item: {e}")
         return False
@@ -62,12 +62,12 @@ def test_player_inventory_operations():
         player.update_inventory(HealthPotion(), "add")
 
     assert len(player.inventory) <= PLAYER_MAX_INVENTORY_SIZE
-    print(f"  ✓ Inventory caps at {PLAYER_MAX_INVENTORY_SIZE} (no overflow)")
+    print(f"  [OK] Inventory caps at {PLAYER_MAX_INVENTORY_SIZE} (no overflow)")
 
     # Test 3: Remove item not in inventory
     weapon = Weapon("Test", 1, 1, "common", 1)
     player.update_inventory(weapon, "remove")  # Not in inventory
-    print("  ✓ Removing missing item doesn't crash")
+    print("  [OK] Removing missing item doesn't crash")
 
     # Test 4: Use potion at full HP
     player.hp = 100
@@ -75,7 +75,7 @@ def test_player_inventory_operations():
     player.inventory.append(potion2)
     potion2.use(player)
     assert player.hp == 100
-    print("  ✓ Potion at full HP doesn't overflow")
+    print("  [OK] Potion at full HP doesn't overflow")
 
     return True
 
@@ -94,7 +94,7 @@ def test_cow_generation_edge_cases():
     try:
         props = Cow.generate_random_cow_properties(PoorPlayer())
         assert props.cash >= 30, "Min cash reward should be $30"
-        print("  ✓ Cow generation works with $0 player")
+        print("  [OK] Cow generation works with $0 player")
     except Exception as e:
         print(f"  ✗ Crash with poor player: {e}")
         return False
@@ -106,7 +106,7 @@ def test_cow_generation_edge_cases():
 
     try:
         props = Cow.generate_random_cow_properties(DyingPlayer())
-        print("  ✓ Cow generation works with 1 HP player")
+        print("  [OK] Cow generation works with 1 HP player")
     except Exception as e:
         print(f"  ✗ Crash with low HP: {e}")
         return False
@@ -118,7 +118,7 @@ def test_cow_generation_edge_cases():
 
     try:
         props = Cow.generate_random_cow_properties(RichPlayer())
-        print("  ✓ Cow generation works with wealthy player")
+        print("  [OK] Cow generation works with wealthy player")
     except Exception as e:
         print(f"  ✗ Crash with rich player: {e}")
         return False
@@ -138,7 +138,7 @@ def test_save_load_edge_cases():
     # Test 1: Load when no save exists
     result = SaveManager.load_game()
     assert result is None
-    print("  ✓ Load with no save returns None (doesn't crash)")
+    print("  [OK] Load with no save returns None (doesn't crash)")
 
     # Test 2: Save with empty inventory
     class EmptyPlayer:
@@ -155,7 +155,7 @@ def test_save_load_edge_cases():
 
     try:
         SaveManager.save_game(EmptyPlayer(), stats, packs)
-        print("  ✓ Save with empty inventory works")
+        print("  [OK] Save with empty inventory works")
     except Exception as e:
         print(f"  ✗ Crash on empty save: {e}")
         return False
@@ -192,13 +192,13 @@ def test_combat_edge_cases():
     player.deal_damage(cow)
     # Should cap at cow.hp, not go negative
     assert cow.hp >= 0
-    print("  ✓ Damage doesn't cause negative HP")
+    print("  [OK] Damage doesn't cause negative HP")
 
     # Test 2: Player at 0 HP
     player.hp = 0
     try:
         player.deal_damage(cow)  # Can dead player attack?
-        print("  ✓ Dead player can still execute actions (death check happens after)")
+        print("  [OK] Dead player can still execute actions (death check happens after)")
     except Exception as e:
         print(f"  ✗ Crash with dead player: {e}")
         return False
@@ -216,7 +216,7 @@ def test_shop_edge_cases():
     try:
         items = ItemFactory.get_shop_inventory('neutral', player_cash=0, is_lucky=False)
         assert len(items) >= 4
-        print("  ✓ Shop generates with $0 player")
+        print("  [OK] Shop generates with $0 player")
     except Exception as e:
         print(f"  ✗ Shop crash with poor player: {e}")
         return False
@@ -224,7 +224,7 @@ def test_shop_edge_cases():
     # Test 2: Upset mood (2x prices)
     try:
         items = ItemFactory.get_shop_inventory('upset', player_cash=100, is_lucky=False)
-        print("  ✓ Upset shop doesn't crash")
+        print("  [OK] Upset shop doesn't crash")
     except Exception as e:
         print(f"  ✗ Upset shop crash: {e}")
         return False
@@ -233,7 +233,7 @@ def test_shop_edge_cases():
     try:
         items = ItemFactory.get_shop_inventory('friendly', player_cash=500, is_lucky=True)
         assert len(items) >= 5  # Should have greater potion
-        print("  ✓ Wealthy player shop generates correctly")
+        print("  [OK] Wealthy player shop generates correctly")
     except Exception as e:
         print(f"  ✗ Wealthy shop crash: {e}")
         return False
@@ -260,7 +260,7 @@ def test_floor_system():
     assert current_floor == 3  # Should be on floor 3
     assert encounters_this_floor == 5  # 5 encounters into floor 3
 
-    print("  ✓ Floor system logic correct (no off-by-one)")
+    print("  [OK] Floor system logic correct (no off-by-one)")
 
     return True
 
@@ -284,13 +284,13 @@ if __name__ == "__main__":
     if all_pass:
         print("ALL CRASH SCENARIOS TESTED - SAFE!")
         print("="*60)
-        print("\n✓ No circular dependencies")
-        print("✓ Inventory operations safe")
-        print("✓ Cow generation handles edge cases")
-        print("✓ Save/load robust")
-        print("✓ Combat math safe")
-        print("✓ Shop generation safe")
-        print("✓ Floor system correct")
+        print("\n[OK] No circular dependencies")
+        print("[OK] Inventory operations safe")
+        print("[OK] Cow generation handles edge cases")
+        print("[OK] Save/load robust")
+        print("[OK] Combat math safe")
+        print("[OK] Shop generation safe")
+        print("[OK] Floor system correct")
         print("\nGame is crash-resistant and ready for demo!")
     else:
         print("SOME TESTS FAILED - REVIEW ABOVE")

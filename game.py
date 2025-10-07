@@ -231,7 +231,7 @@ class VirtualCowTipper:
 
         for unlock_id in newly_unlocked:
             info = Unlock.UNLOCK_DATA[unlock_id]
-            print(f"\n✓ {info['name']}")
+            print(f"\n[OK] {info['name']}")
             print(f"  {info['description']}")
             print(f"  Bonus: {info['bonus']}")
 

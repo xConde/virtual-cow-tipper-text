@@ -17,18 +17,21 @@ TITLE_ART_LARGE = r"""
 """
 
 TITLE_ART_SMALL = r"""
- _   ___      _              _    ____               _____ _
-| | | \ \ /\ / /            | |  / ___|___  _      _|_   (_)_ __ _ __   ___ _ __
-| | | |\ V  V /   ______    | | | |   / _ \| | /\ | || |  | | '_ \ '_ \ / _ \ '__|
-\ \_/ / \_/\_/   |______|   | | | |__| (_) \ V  V / | |  | | |_) | |_) |  __/ |
- \___/                      |_|  \____\___/ \_/\_/  |_|  |_| .__/| .__/ \___|_|
-                                                            |_|   |_|
+ __     ___      _               _    ____               _____ _
+ \ \   / (_)_ __| |_ _   _  __ _| |  / ___|_____      _|_   (_)_ __  _ __   ___ _ __
+  \ \ / /| | '__| __| | | |/ _` | | | |   / _ \ \ /\ / / | | | | '_ \| '_ \ / _ \ '__|
+   \ V / | | |  | |_| |_| | (_| | | | |__| (_) \ V  V /  | | | | |_) | |_) |  __/ |
+    \_/  |_|_|   \__|\__,_|\__,_|_|  \____\___/ \_/\_/   |_| |_| .__/| .__/ \___|_|
+                                                                |_|   |_|
 """
 
 TITLE_ART_MINIMAL = """
-╔════════════════════════════════╗
-║    VIRTUAL COW TIPPER         ║
-╚════════════════════════════════╝
++---------------------------------------+
+|                                       |
+|        VIRTUAL COW TIPPER             |
+|        Text-Based Roguelike           |
+|                                       |
++---------------------------------------+
 """
 
 
@@ -68,11 +71,13 @@ class MainMenu:
             self.stdscr.clear()
 
             # Choose title based on terminal width
-            if curses.COLS >= 95:
+            # Use simple ASCII by default to avoid rendering issues
+            if curses.COLS >= 110:
                 title_art = TITLE_ART_LARGE
-            elif curses.COLS >= 85:
+            elif curses.COLS >= 95:
                 title_art = TITLE_ART_SMALL
             else:
+                # Fallback to simple text (always works)
                 title_art = TITLE_ART_MINIMAL
 
             # Draw title
@@ -103,7 +108,7 @@ class MainMenu:
                         pass
 
             # Draw footer
-            footer = "Arrow keys to navigate | Enter to select | Created 2023"
+            footer = "Arrow keys to navigate | Enter to select"
             footer_y = curses.LINES - 2
             footer_x = (curses.COLS - len(footer)) // 2
             try:
