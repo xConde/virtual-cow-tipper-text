@@ -48,20 +48,22 @@ class CowAttack:
 
         hit_chance = random.randint(0, 100)
         if hit_chance <= chosen_attack.accuracy:
+            from utils import safe_print
+
             if chosen_attack.damage:
                 player.hp -= chosen_attack.damage
-                print(f"{cow.name} uses {chosen_attack.name} and deals {chosen_attack.damage} damage to {player.name}!")
+                safe_print(f"{cow.name} uses {chosen_attack.name} and deals {chosen_attack.damage} damage to {player.name}!")
 
             if chosen_attack.effect:
                 if chosen_attack.effect == "stun":
                     player.stunned_turns = chosen_attack.duration
-                    print(f"{player.name} is stunned for {chosen_attack.duration} turns!")
+                    safe_print(f"{player.name} is stunned for {chosen_attack.duration} turns!")
                 elif chosen_attack.effect == "heal":
-                    print(f"{cow.name} heals for {chosen_attack.healing} HP!")
+                    safe_print(f"{cow.name} heals for {chosen_attack.healing} HP!")
                     cow.hp += chosen_attack.healing
                     # Cap the cow's HP to its maximum HP
                     cow.hp = min(cow.hp, cow.max_hp)
                 elif chosen_attack.effect == "power_up":
-                    print(f"{cow.name} powers up")
+                    safe_print(f"{cow.name} powers up")
         else:
-            print(f"{cow.name} uses {chosen_attack.name} but misses {player.name}!")
+            safe_print(f"{cow.name} uses {chosen_attack.name} but misses {player.name}!")

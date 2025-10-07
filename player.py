@@ -44,14 +44,16 @@ class Player:
             print(f"{item.name} is neither a weapon nor a shield and cannot be equipped.")
 
     def print_small_damage_context(self, cow_name, total_damage):
+        from utils import safe_print
         context = random.choice(small_damage_contexts)
         context = context.format(player_name=self.name, cow_name=cow_name, total_damage=total_damage)
-        print(context)
+        safe_print(context)
 
     def print_large_damage_context(self, cow_name, total_damage):
+        from utils import safe_print
         context = random.choice(large_damage_contexts)
         context = context.format(player_name=self.name, cow_name=cow_name, total_damage=total_damage)
-        print(context)
+        safe_print(context)
 
     def deal_damage(self, cow) -> None:
         """Calculate and apply damage to cow with contextual flavor text."""
@@ -69,7 +71,8 @@ class Player:
         elif print_large_hit_context:
             self.print_large_damage_context(cow.name, total_damage)
         else:
-            print(f"{self.name} dealt {total_damage} damage to {cow.name}.")
+            from utils import safe_print
+            safe_print(f"{self.name} dealt {total_damage} damage to {cow.name}.")
         self.display_info()
 
     def update_cash(self, amount):
