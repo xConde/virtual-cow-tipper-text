@@ -7,6 +7,7 @@ from item import CowBell, Bucket, random_item_roll, get_shop_items, Tool
 from cow_attack import CowAttack
 from cow_games import CowGames
 from dialogue_manager import DialogueManager
+from utils import safe_print
 from game_config import (
     DAIRY_ENCOUNTER_BASE_CHANCE,
     DAIRY_ENCOUNTER_WITH_COWBELL,
@@ -52,12 +53,12 @@ class CowInteraction:
         if is_dairy:
             if cow_bell:
                 break_chance = COWBELL_BREAK_CHANCE_BASE + int(self.player.cash) // 20 / 100
-                print(f'Your cowbell helps attract the cow.')
+                safe_print(f'Your cowbell helps attract the cow.')
                 if random.random() < break_chance:
-                    print('The cowbell breaks in the process.')
+                    safe_print('The cowbell breaks in the process.')
                     self.player.inventory.remove(cow_bell)
             else:
-                print('You hear a dairy cow mooing in the distance.')
+                safe_print('You hear a dairy cow mooing in the distance.')
         return is_dairy
 
     def handle_dairy(self) -> None:
@@ -75,18 +76,18 @@ class CowInteraction:
             self.player.hp = min(self.player.hp + DAIRY_COW_HEAL_AMOUNT, PLAYER_MAX_HP)
             healed = self.player.hp - old_hp
 
-            print(f"You milk {self.cow.name} with your bucket and obtain liquid gold.")
+            safe_print(f"You milk {self.cow.name} with your bucket and obtain liquid gold.")
             if healed > 0:
-                print(f"The fresh milk restores {healed} HP! (HP: {self.player.hp})")
+                safe_print(f"The fresh milk restores {healed} HP! (HP: {self.player.hp})")
             self.cow.print_response(self.cow.name, 'dairy_bucket')
         else:
-            print(f"You encounter a dairy cow named {self.cow.name}, but you don't have a bucket to milk it.")
+            safe_print(f"You encounter a dairy cow named {self.cow.name}, but you don't have a bucket to milk it.")
             self.cow.print_response(self.cow.name, 'dairy_no_bucket')
         self.game_instance.destroy_cow()
 
     def handle_combat(self) -> None:
         """Handle combat encounter with aggressive cow."""
-        print(f"A combat with '{self.cow.name}' has started!")
+        safe_print(f"A combat with '{self.cow.name}' has started!")
         self.game_terminal.set_cow_stats(self.cow.get_combat_stats())
 
         cow_strength = self.cow.strength
@@ -94,7 +95,7 @@ class CowInteraction:
         while self.player.hp > 0 and self.cow.hp > 0:
             # Check if player is stunned
             if self.player.stunned_turns > 0:
-                print(f"{self.player.name} is stunned and cannot act! ({self.player.stunned_turns} turns remaining)")
+                safe_print(f"{self.player.name} is stunned and cannot act! ({self.player.stunned_turns} turns remaining)")
                 self.player.stunned_turns -= 1
                 CowAttack.cow_attack(self.player, self.cow)
                 continue
@@ -123,7 +124,7 @@ class CowInteraction:
                         self.game_instance.stats.cows_defeated += 1
 
                         victory_msg = f"You defeat {self.cow.name}. You gain ${cash_reward}!"
-                        print(victory_msg)
+                        safe_print(victory_msg)
 
                         # FIX 5: Item drops from combat!
                         import random
@@ -131,7 +132,7 @@ class CowInteraction:
                             from item_factory import ItemFactory
                             drop = ItemFactory.create_random_item(less_likely=True)
                             self.player.inventory.append(drop)
-                            print(f"{self.cow.name} dropped: {drop.name}!")
+                            safe_print(f"{self.cow.name} dropped: {drop.name}!")
 
                         self.game_terminal.draw_dialog(victory_msg)
                         self.cow.print_response(self.cow.name, 'enraged_end')
@@ -142,24 +143,24 @@ class CowInteraction:
                     self.player.use_item()
                 elif choice == 4:
                     self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_FLEE)
-                    print("You flee from the combat.")
+                    safe_print("You flee from the combat.")
                     break
             else:
-                print("Invalid choice. Please enter a number between 1 and 4.")
+                safe_print("Invalid choice. Please enter a number between 1 and 4.")
             
             if self.cow.hp > 0:
                 CowAttack.cow_attack(self.player, self.cow)
                 
     def handle_shop(self) -> None:
         """Handle shop encounter (buy and sell items)."""
-        print(f'You enter a shop run by a cow named {self.cow.name} who is currently {self.cow.mood}.')
+        safe_print(f'You enter a shop run by a cow named {self.cow.name} who is currently {self.cow.mood}.')
         self.cow.print_response(self.cow.name, 'shop_keeper_intro', False)
         lucky_chance = SHOP_LUCKY_CHANCE_UPSET if self.cow.mood == 'upset' else SHOP_LUCKY_CHANCE_FRIENDLY
         isLucky = random.random() < lucky_chance
         if (self.cow.mood == 'friendly' and isLucky):
-            print(f"The shop owner is very welcoming and shows you all the items in their shop with a smile.")
+            safe_print(f"The shop owner is very welcoming and shows you all the items in their shop with a smile.")
         elif (self.cow.mood == 'upset' and isLucky):
-            print(f"{self.cow.name} grudgingly charges extra, but you're feeling lucky.")
+            safe_print(f"{self.cow.name} grudgingly charges extra, but you're feeling lucky.")
         while True:
             available_items = get_shop_items(self.cow.mood, self.player.cash, isLucky)
             item_strings = []
@@ -186,16 +187,16 @@ class CowInteraction:
                     self.player.display_info()
                     self.cow.print_response(self.cow.name, 'shop_keeper_purchase', False)
                     if item_choice['item'].type in ['weapon', 'shield']:
-                        print(f"You purchased a {item_choice['item'].stats()} for ${item_price}.")
+                        safe_print(f"You purchased a {item_choice['item'].stats()} for ${item_price}.")
                     else:
-                        print(f"You purchased {item_choice['item'].name} for ${item_price}.")
-                    print(f"Remaining cash: ${self.player.cash}\n")
+                        safe_print(f"You purchased {item_choice['item'].name} for ${item_price}.")
+                    safe_print(f"Remaining cash: ${self.player.cash}\n")
                 elif choice == 4:
                     # Sell items (your TODO!)
-                    print("\n=== Sell Items ===")
+                    safe_print("\n=== Sell Items ===")
                     sellable = [item for item in self.player.inventory if hasattr(item, 'stats')]
                     if not sellable:
-                        print("You have no items to sell.")
+                        safe_print("You have no items to sell.")
                         continue
 
                     sell_menu = [f"{i+1}. {item.name} - ${self._calculate_sell_price(item, self.cow.mood)}"
@@ -208,16 +209,16 @@ class CowInteraction:
                         sell_price = self._calculate_sell_price(sold_item, self.cow.mood)
                         self.player.update_inventory(sold_item, "remove")
                         self.player.update_cash(sell_price)
-                        print(f"You sold {sold_item.name} for ${sell_price}.")
+                        safe_print(f"You sold {sold_item.name} for ${sell_price}.")
                         self.cow.print_response(self.cow.name, 'shop_keeper_purchase', False)
                 elif choice == 5:
                     self.cow.print_response(self.cow.name, 'shop_keeper_end')
                     self.game_instance.destroy_cow()
                     return
                 else:
-                    print("You don't have enough cash for that item.\n")
+                    safe_print("You don't have enough cash for that item.\n")
             else:
-                print("Invalid choice. Please enter a number between 1 and 4.")
+                safe_print("Invalid choice. Please enter a number between 1 and 4.")
 
     def handle_tip_or_leave(self) -> None:
         """Handle regular cow encounter (tip for mini-game or leave)."""
@@ -251,7 +252,7 @@ class CowInteraction:
 
             if reward > bet_amount:
                 win_amount = round(reward - bet_amount, 2)
-                print(f"Congratulations! You won ${win_amount}!")
+                safe_print(f"Congratulations! You won ${win_amount}!")
                 self.player.update_cash(reward)
 
                 if win_amount >= bet_amount * 1.5:
@@ -285,20 +286,20 @@ class CowInteraction:
                 self.player.update_cash(reward)
                 score = 0.5
                 self.cow.likeliness += score
-                print(f"You tip {self.cow.name} ${quick_tip}. They appreciate it.")
-                print(f"You gain ${reward - quick_tip} (modest profit, no mini-game)")
+                safe_print(f"You tip {self.cow.name} ${quick_tip}. They appreciate it.")
+                safe_print(f"You gain ${reward - quick_tip} (modest profit, no mini-game)")
                 self.game_instance.update_cow_scores(self.cow, score)
             else:
-                print(f"You don't have ${quick_tip} for a quick tip.")
+                safe_print(f"You don't have ${quick_tip} for a quick tip.")
                 return
 
         elif choice == "3":
-            print(f"You decided to leave {self.cow.name}.")
+            safe_print(f"You decided to leave {self.cow.name}.")
             score = -1  # Less harsh penalty for leaving
             self.cow.likeliness += score
             self.game_instance.update_cow_scores(self.cow, score)
         else:
-            print("Please enter a number between 1 and 3.")
+            safe_print("Please enter a number between 1 and 3.")
 
     def handle_menu_choice(self, actions, prompt=None):
         menu_items = [f"{i + 1}. {action}" for i, action in enumerate(actions.values())]

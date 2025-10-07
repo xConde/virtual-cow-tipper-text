@@ -41,7 +41,7 @@ class Player:
         elif isinstance(item, Shield):
             self.shield = item
         else:
-            print(f"{item.name} is neither a weapon nor a shield and cannot be equipped.")
+            safe_print(f"{item.name} is neither a weapon nor a shield and cannot be equipped.")
 
     def print_small_damage_context(self, cow_name, total_damage):
         from utils import safe_print
@@ -81,32 +81,32 @@ class Player:
 
     def die(self, game_stats=None) -> bool:
         """Handle player death - returns True if player wants to restart."""
-        print(f"\n{'='*60}")
-        print(f"GAME OVER - {self.name} has fallen!")
-        print(f"{'='*60}")
+        safe_print(f"\n{'='*60}")
+        safe_print(f"GAME OVER - {self.name} has fallen!")
+        safe_print(f"{'='*60}")
 
         # Show game stats if available
         if game_stats:
-            print(f"\nYour Journey:")
-            print(f"  Cows Defeated: {game_stats.cows_defeated}")
-            print(f"  Cows Fled From: {game_stats.cows_fled_from}")
-            print(f"  Cash Earned: ${game_stats.cash_earned}")
-            print(f"  Cash Spent: ${game_stats.cash_spent}")
-            print(f"  Items Purchased: {game_stats.items_purchased}")
-            print(f"  Items Sold: {game_stats.items_sold}")
-            print(f"  Dairy Cows Milked: {game_stats.dairy_cows_milked}")
-            print(f"  Mini-Games Won: {game_stats.mini_games_won}")
-            print(f"  Legendary Items Found: {game_stats.legendary_items_found}")
+            safe_print(f"\nYour Journey:")
+            safe_print(f"  Cows Defeated: {game_stats.cows_defeated}")
+            safe_print(f"  Cows Fled From: {game_stats.cows_fled_from}")
+            safe_print(f"  Cash Earned: ${game_stats.cash_earned}")
+            safe_print(f"  Cash Spent: ${game_stats.cash_spent}")
+            safe_print(f"  Items Purchased: {game_stats.items_purchased}")
+            safe_print(f"  Items Sold: {game_stats.items_sold}")
+            safe_print(f"  Dairy Cows Milked: {game_stats.dairy_cows_milked}")
+            safe_print(f"  Mini-Games Won: {game_stats.mini_games_won}")
+            safe_print(f"  Legendary Items Found: {game_stats.legendary_items_found}")
 
-        print(f"\nFinal Stats:")
-        print(f"  HP: {self.hp}")
-        print(f"  Cash: ${self.cash}")
-        print(f"  Items: {len(self.inventory)}")
+        safe_print(f"\nFinal Stats:")
+        safe_print(f"  HP: {self.hp}")
+        safe_print(f"  Cash: ${self.cash}")
+        safe_print(f"  Items: {len(self.inventory)}")
 
-        print(f"\n{'='*60}")
-        print(f"\nWould you like to:")
-        print("1. Restart")
-        print("2. Return to Main Menu")
+        safe_print(f"\n{'='*60}")
+        safe_print(f"\nWould you like to:")
+        safe_print("1. Restart")
+        safe_print("2. Return to Main Menu")
 
         choice = input("Choice (1 or 2): ").strip()
         return choice == "1"
@@ -120,24 +120,24 @@ class Player:
         elif action == "remove" and item in self.inventory:
             self.inventory.remove(item)
         else:
-            print(f"update_inventory failed to {action} {item.name}.")
+            safe_print(f"update_inventory failed to {action} {item.name}.")
     
     def check_inventory(self):
         items = ', '.join(item.name for item in self.inventory) if self.inventory else "empty"
-        print(f"{self.name}'s inventory: {items}")
+        safe_print(f"{self.name}'s inventory: {items}")
 
     def use_item(self, item=None):
         """Use an item from inventory."""
         if item is None:
             # Show inventory to select item
             if not self.inventory:
-                print("Inventory is empty!")
+                safe_print("Inventory is empty!")
                 return
 
-            print("\nSelect item to use:")
+            safe_print("\nSelect item to use:")
             for i, inv_item in enumerate(self.inventory):
-                print(f"{i+1}. {inv_item.name}")
-            print(f"{len(self.inventory)+1}. Cancel")
+                safe_print(f"{i+1}. {inv_item.name}")
+            safe_print(f"{len(self.inventory)+1}. Cancel")
 
             try:
                 choice = int(input("Choice: ").strip())
@@ -146,7 +146,7 @@ class Player:
                 else:
                     return
             except (ValueError, IndexError):
-                print("Invalid choice.")
+                safe_print("Invalid choice.")
                 return
 
         if item in self.inventory:
@@ -161,6 +161,6 @@ class Player:
                     item.action()
                 self.inventory.remove(item)
             else:
-                print(f"{self.name} cannot use {item.name}.")
+                safe_print(f"{self.name} cannot use {item.name}.")
         else:
-            print(f"{self.name} does not have {item.name} in their inventory.")
+            safe_print(f"{self.name} does not have {item.name} in their inventory.")
