@@ -111,7 +111,8 @@ class Cow:
         return DialogueManager.get_cow_saying(self.mood, response_type)
 
     def get_approach(self):
-        print(f'\n{self.approach}')
+        """Display cow's approach (already shown via draw_dialog)."""
+        # Don't use print() - it bypasses terminal margins!
         self.game_terminal.draw_dialog(self.approach)
         self.game_terminal.refresh()
 

@@ -124,10 +124,10 @@ class VirtualCowTipper:
         from easter_eggs import get_meta_dialogue
         meta = get_meta_dialogue()
         if meta:
-            print(f"\n[The cow pauses and looks directly at you]")
-            print(f'"{meta}"')
-            print("[It shakes its head and continues as normal]\n")
-            input("Press Enter...")
+            # Use draw_dialog for proper margins
+            self.game_terminal.draw_dialog(f"[The cow pauses and looks at you] \"{meta}\" [It continues as normal]")
+            self.game_terminal.refresh()
+            input("\n  Press Enter...")
 
         is_interrupted = self.get_interruption()
         if is_interrupted:
