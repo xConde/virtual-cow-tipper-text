@@ -3,6 +3,7 @@ import random
 
 from item import Weapon, Shield, Tool, CowBell, Bucket, Potion, roll_weapon_dmg, Item
 from assets.context import small_damage_contexts, large_damage_contexts
+from utils import safe_print
 from game_config import (
     PLAYER_STARTING_HP,
     PLAYER_STARTING_CASH,
