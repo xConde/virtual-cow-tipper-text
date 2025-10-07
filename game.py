@@ -127,7 +127,8 @@ class VirtualCowTipper:
             # Use draw_dialog for proper margins
             self.game_terminal.draw_dialog(f"[The cow pauses and looks at you] \"{meta}\" [It continues as normal]")
             self.game_terminal.refresh()
-            input("\n  Press Enter...")
+            # Use getch instead of input (curses mode)
+            self.game_terminal.stdscr.getch()
 
         is_interrupted = self.get_interruption()
         if is_interrupted:
