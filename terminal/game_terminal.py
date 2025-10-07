@@ -65,43 +65,44 @@ class GameTerminal:
             pass  # Ignore if out of bounds
 
     def generate_pointer(self, menu_item_length, total_width):
-        min_spaces_between = 8
-        min_equal_symbols = 8
+        """Generate menu pointer - simplified to prevent wrapping."""
+        # Use simple arrows instead of long equal signs
+        # This prevents the wrap issue you're seeing
         pointer_left = ">"
         pointer_right = "<"
-        spaces_between = " " * min_spaces_between
+        spaces = " " * 4
 
-        half_width = total_width // 2
-        left_padding = half_width - menu_item_length // 2 - len(pointer_left) - min_spaces_between // 2 - min_equal_symbols
-        right_padding = total_width - half_width - menu_item_length // 2 - len(pointer_right) - min_spaces_between // 2 - min_equal_symbols
-
-        if left_padding > 0:
-            equal_symbols_left = "=" * (min_equal_symbols + left_padding)
-        else:
-            equal_symbols_left = "=" * min_equal_symbols
-            spaces_between = " " * max(min_spaces_between + left_padding, 0)
-
-        if right_padding > 0:
-            equal_symbols_right = "=" * (min_equal_symbols + right_padding)
-        else:
-            equal_symbols_right = "=" * min_equal_symbols
-            spaces_between = " " * max(min_spaces_between - 1, 0)
-
-        return equal_symbols_left + pointer_left + spaces_between + pointer_right + equal_symbols_right
+        return f"{pointer_left}{spaces}{pointer_right}"
 
     def draw_menu(self, menu_items, selected_index=None):
+        """Draw menu with safe margins."""
         self.clear_area(self.MENU_Y_START, self.MENU_Y_END + 1)
+
         for i, item in enumerate(menu_items):
-            self.stdscr.move(self.MENU_Y_START + i, 0)
+            y = self.MENU_Y_START + i
+            self.stdscr.move(y, 0)
             self.stdscr.clrtoeol()
+
             if i == selected_index:
+                # Simple pointer: >    <  Item text
                 pointer = self.generate_pointer(len(item), self.WIDTH)
-                item_with_pointer = pointer[:len(pointer)//2] + item + pointer[len(pointer)//2:]
-                self.stdscr.addstr(self.MENU_Y_START + i, 0, item_with_pointer.ljust(self.WIDTH))
-                max_chgat_len = min(self.WIDTH - len(pointer)//2, len(item_with_pointer))
-                self.stdscr.chgat(self.MENU_Y_START + i, len(pointer)//2, max_chgat_len)
+                display_text = f"{pointer} {item}"
+
+                # Use draw() for margin support
+                x = self.LEFT_MARGIN
+                try:
+                    self.stdscr.addstr(y, x, display_text[:self.WIDTH - self.LEFT_MARGIN - self.RIGHT_MARGIN])
+                    # Highlight the item text
+                    self.stdscr.chgat(y, x, len(display_text), curses.A_REVERSE)
+                except:
+                    pass
             else:
-                self.stdscr.addstr(self.MENU_Y_START + i, 0, item.ljust(self.WIDTH))
+                # Unselected: just show item with margin
+                try:
+                    self.stdscr.addstr(y, self.LEFT_MARGIN, item)
+                except:
+                    pass
+
         self.stdscr.refresh()
                 
     def get_key_variables(self):
