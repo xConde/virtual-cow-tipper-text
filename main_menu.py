@@ -5,7 +5,7 @@ import curses
 import sys
 
 
-TITLE_ART = r"""
+TITLE_ART_LARGE = r"""
  _   _ _      _               _    _____                _____ _
 | | | (_)    | |             | |  /  __ \              |_   _(_)
 | | | |_ _ __| |_ _   _  __ _| |  | /  \/ _____      __ | |  _ _ __  _ __   ___ _ __
@@ -14,6 +14,21 @@ TITLE_ART = r"""
  \___/|_|_|   \__|\__,_|\__,_|_|   \____/\___/ \_/\_/   \_/ |_| .__/| .__/ \___|_|
                                                                 | |   | |
                                                                 |_|   |_|
+"""
+
+TITLE_ART_SMALL = r"""
+ _   ___      _              _    ____               _____ _
+| | | \ \ /\ / /            | |  / ___|___  _      _|_   (_)_ __ _ __   ___ _ __
+| | | |\ V  V /   ______    | | | |   / _ \| | /\ | || |  | | '_ \ '_ \ / _ \ '__|
+\ \_/ / \_/\_/   |______|   | | | |__| (_) \ V  V / | |  | | |_) | |_) |  __/ |
+ \___/                      |_|  \____\___/ \_/\_/  |_|  |_| .__/| .__/ \___|_|
+                                                            |_|   |_|
+"""
+
+TITLE_ART_MINIMAL = """
+╔════════════════════════════════╗
+║    VIRTUAL COW TIPPER         ║
+╚════════════════════════════════╝
 """
 
 
@@ -52,8 +67,16 @@ class MainMenu:
         while True:
             self.stdscr.clear()
 
+            # Choose title based on terminal width
+            if curses.COLS >= 95:
+                title_art = TITLE_ART_LARGE
+            elif curses.COLS >= 85:
+                title_art = TITLE_ART_SMALL
+            else:
+                title_art = TITLE_ART_MINIMAL
+
             # Draw title
-            title_lines = TITLE_ART.strip().split('\n')
+            title_lines = title_art.strip().split('\n')
             start_y = 2
             for i, line in enumerate(title_lines):
                 x = max(0, (curses.COLS - len(line)) // 2)
