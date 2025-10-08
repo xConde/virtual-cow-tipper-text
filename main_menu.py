@@ -55,35 +55,44 @@ class MainMenu:
 
             # Use single reliable title for all sizes
             title_lines = TITLE_ART.strip().split('\n')
+
+            # Calculate center based on longest line
+            max_title_width = max(len(line) for line in title_lines)
+            title_x_offset = max(0, (curses.COLS - max_title_width) // 2)
+
             start_y = 2
             for i, line in enumerate(title_lines):
-                x = max(0, (curses.COLS - len(line)) // 2)
+                # Don't re-center each line - use consistent offset
                 try:
-                    self.stdscr.addstr(start_y + i, x, line)
+                    self.stdscr.addstr(start_y + i, title_x_offset, line)
                 except:
                     pass
 
-            # Draw menu
-            menu_start_y = start_y + len(title_lines) + 3
+            # Draw menu - center as a block
+            menu_start_y = start_y + len(title_lines) + 2
+
+            # Find longest menu option for centering
+            max_menu_width = max(len(opt) for opt in menu_options)
+            menu_x_offset = max(0, (curses.COLS - max_menu_width - 4) // 2)  # +4 for "> <"
+
             for i, option in enumerate(menu_options):
                 y = menu_start_y + i
-                x = (curses.COLS - len(option)) // 2
 
                 if i == selected:
                     try:
-                        self.stdscr.addstr(y, x, f"> {option} <", curses.A_REVERSE)
+                        self.stdscr.addstr(y, menu_x_offset, f"> {option} <", curses.A_REVERSE)
                     except:
                         pass
                 else:
                     try:
-                        self.stdscr.addstr(y, x, f"  {option}  ")
+                        self.stdscr.addstr(y, menu_x_offset + 2, option)
                     except:
                         pass
 
             # Draw footer
             footer = "Arrow keys to navigate | Enter to select"
             footer_y = curses.LINES - 2
-            footer_x = (curses.COLS - len(footer)) // 2
+            footer_x = max(0, (curses.COLS - len(footer)) // 2)
             try:
                 self.stdscr.addstr(footer_y, footer_x, footer, curses.A_DIM)
             except:
