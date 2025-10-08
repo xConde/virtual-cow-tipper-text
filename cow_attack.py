@@ -1,5 +1,6 @@
 from typing import Optional, Literal, TYPE_CHECKING
 import random
+from utils import safe_print
 
 if TYPE_CHECKING:
     from player import Player
@@ -48,8 +49,6 @@ class CowAttack:
 
         hit_chance = random.randint(0, 100)
         if hit_chance <= chosen_attack.accuracy:
-            from utils import safe_print
-
             if chosen_attack.damage:
                 player.hp -= chosen_attack.damage
                 safe_print(f"{cow.name} uses {chosen_attack.name} and deals {chosen_attack.damage} damage to {player.name}!")
