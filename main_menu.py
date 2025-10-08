@@ -68,24 +68,32 @@ class MainMenu:
                 except:
                     pass
 
-            # Draw menu - center as a block
+            # Draw menu - ALL items at same position
             menu_start_y = start_y + len(title_lines) + 2
 
-            # Find longest menu option for centering
-            max_menu_width = max(len(opt) for opt in menu_options)
-            menu_x_offset = max(0, (curses.COLS - max_menu_width - 4) // 2)  # +4 for "> <"
+            # Find longest menu option (including selection markers)
+            max_menu_width = max(len(opt) for opt in menu_options) + 4  # +4 for "> <"
+
+            # Calculate ONE x position for ALL menu items
+            menu_x = max(0, (curses.COLS - max_menu_width) // 2)
 
             for i, option in enumerate(menu_options):
                 y = menu_start_y + i
 
+                # ALL items drawn at same x position
+                # Pad to same width so they align perfectly
                 if i == selected:
+                    # Selected: > Item <
+                    padded_text = f"> {option} <".ljust(max_menu_width)
                     try:
-                        self.stdscr.addstr(y, menu_x_offset, f"> {option} <", curses.A_REVERSE)
+                        self.stdscr.addstr(y, menu_x, padded_text, curses.A_REVERSE)
                     except:
                         pass
                 else:
+                    # Unselected:   Item   (same width, just no > <)
+                    padded_text = f"  {option}  ".ljust(max_menu_width)
                     try:
-                        self.stdscr.addstr(y, menu_x_offset + 2, option)
+                        self.stdscr.addstr(y, menu_x, padded_text)
                     except:
                         pass
 
