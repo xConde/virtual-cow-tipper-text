@@ -84,23 +84,22 @@ class GameTerminal:
             self.stdscr.clrtoeol()
 
             if i == selected_index:
-                # Simple pointer: >    <  Item text
-                pointer = self.generate_pointer(len(item), self.WIDTH)
-                display_text = f"{pointer} {item}"
-
-                # Use draw() for margin support
+                # Simple pointer: >  Item text
+                display_text = f">  {item}"
                 x = self.LEFT_MARGIN
                 try:
-                    self.stdscr.addstr(y, x, display_text[:self.WIDTH - self.LEFT_MARGIN - self.RIGHT_MARGIN])
-                    # Highlight the item text
+                    # Just draw the text with highlight, no complex pointer
+                    self.stdscr.addstr(y, x, display_text)
                     self.stdscr.chgat(y, x, len(display_text), curses.A_REVERSE)
-                except:
-                    pass
+                except curses.error as e:
+                    # Debug: Print error to see what's wrong
+                    import sys
+                    print(f"Error drawing menu at y={y}, x={x}: {e}", file=sys.stderr)
             else:
                 # Unselected: just show item with margin
                 try:
-                    self.stdscr.addstr(y, self.LEFT_MARGIN, item)
-                except:
+                    self.stdscr.addstr(y, self.LEFT_MARGIN, f"   {item}")
+                except curses.error:
                     pass
 
         self.stdscr.refresh()
