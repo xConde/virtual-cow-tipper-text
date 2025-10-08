@@ -75,30 +75,36 @@ class GameTerminal:
         return f"{pointer_left}{spaces}{pointer_right}"
 
     def draw_menu(self, menu_items, selected_index=None):
-        """Draw menu with safe margins."""
+        """Draw menu with safe margins - FIXED to actually show items."""
         self.clear_area(self.MENU_Y_START, self.MENU_Y_END + 1)
+
+        # Calculate one x position for all items (centered)
+        max_item_width = max(len(item) for item in menu_items) if menu_items else 40
+        menu_x = max(self.LEFT_MARGIN, (self.WIDTH - max_item_width - 4) // 2)
 
         for i, item in enumerate(menu_items):
             y = self.MENU_Y_START + i
+
+            # Make sure y is within bounds
+            if y >= curses.LINES - 1:
+                break
+
             self.stdscr.move(y, 0)
             self.stdscr.clrtoeol()
 
             if i == selected_index:
-                # Simple pointer: >  Item text
-                display_text = f">  {item}"
-                x = self.LEFT_MARGIN
+                # Selected: > Item <
+                display_text = f"> {item} <"
                 try:
-                    # Just draw the text with highlight, no complex pointer
-                    self.stdscr.addstr(y, x, display_text)
-                    self.stdscr.chgat(y, x, len(display_text), curses.A_REVERSE)
-                except curses.error as e:
-                    # Debug: Print error to see what's wrong
-                    import sys
-                    print(f"Error drawing menu at y={y}, x={x}: {e}", file=sys.stderr)
+                    self.stdscr.addstr(y, menu_x, display_text)
+                    self.stdscr.chgat(y, menu_x, len(display_text), curses.A_REVERSE)
+                except curses.error:
+                    pass
             else:
-                # Unselected: just show item with margin
+                # Unselected:   Item   (aligned with selected)
+                display_text = f"  {item}  "
                 try:
-                    self.stdscr.addstr(y, self.LEFT_MARGIN, f"   {item}")
+                    self.stdscr.addstr(y, menu_x, display_text)
                 except curses.error:
                     pass
 
