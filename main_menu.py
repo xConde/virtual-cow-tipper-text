@@ -5,33 +5,16 @@ import curses
 import sys
 
 
-TITLE_ART_LARGE = r"""
- _   _ _      _               _    _____                _____ _
-| | | (_)    | |             | |  /  __ \              |_   _(_)
-| | | |_ _ __| |_ _   _  __ _| |  | /  \/ _____      __ | |  _ _ __  _ __   ___ _ __
-| | | | | '__| __| | | |/ _` | |  | |    / _ \ \ /\ / / | | | | '_ \| '_ \ / _ \ '__|
-\ \_/ / | |  | |_| |_| | (_| | |  | \__/\ (_) \ V  V /  | | | | |_) | |_) |  __/ |
- \___/|_|_|   \__|\__,_|\__,_|_|   \____/\___/ \_/\_/   \_/ |_| .__/| .__/ \___|_|
-                                                                | |   | |
-                                                                |_|   |_|
-"""
+TITLE_ART = """
 
-TITLE_ART_SMALL = r"""
- __     ___      _               _    ____               _____ _
- \ \   / (_)_ __| |_ _   _  __ _| |  / ___|_____      _|_   (_)_ __  _ __   ___ _ __
-  \ \ / /| | '__| __| | | |/ _` | | | |   / _ \ \ /\ / / | | | | '_ \| '_ \ / _ \ '__|
-   \ V / | | |  | |_| |_| | (_| | | | |__| (_) \ V  V /  | | | | |_) | |_) |  __/ |
-    \_/  |_|_|   \__|\__,_|\__,_|_|  \____\___/ \_/\_/   |_| |_| .__/| .__/ \___|_|
-                                                                |_|   |_|
-"""
+    ================================================
 
-TITLE_ART_MINIMAL = """
-+---------------------------------------+
-|                                       |
-|        VIRTUAL COW TIPPER             |
-|        Text-Based Roguelike           |
-|                                       |
-+---------------------------------------+
+            VIRTUAL COW TIPPER
+            ------------------
+            Text-Based Roguelike RPG
+
+    ================================================
+
 """
 
 
@@ -70,18 +53,8 @@ class MainMenu:
         while True:
             self.stdscr.clear()
 
-            # Choose title based on terminal width
-            # Use simple ASCII by default to avoid rendering issues
-            if curses.COLS >= 110:
-                title_art = TITLE_ART_LARGE
-            elif curses.COLS >= 95:
-                title_art = TITLE_ART_SMALL
-            else:
-                # Fallback to simple text (always works)
-                title_art = TITLE_ART_MINIMAL
-
-            # Draw title
-            title_lines = title_art.strip().split('\n')
+            # Use single reliable title for all sizes
+            title_lines = TITLE_ART.strip().split('\n')
             start_y = 2
             for i, line in enumerate(title_lines):
                 x = max(0, (curses.COLS - len(line)) // 2)
