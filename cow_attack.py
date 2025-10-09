@@ -41,28 +41,38 @@ class CowAttack:
         ]
 
     @classmethod
-    def cow_attack(cls, player: 'Player', cow: 'Cow') -> None:
-        """Execute a cow's attack against the player."""
+    def cow_attack(cls, player: 'Player', cow: 'Cow') -> str:
+        """Execute a cow's attack against the player. Returns attack message."""
         cow_combat_styles = cls.generate_cow_combat_styles(cow.strength)
         attack_weights = [25, 15, 18, 9, 9, 9, 9, 3, 2, 1]
         chosen_attack = random.choices(cow_combat_styles, weights=attack_weights, k=1)[0]
 
         hit_chance = random.randint(0, 100)
+        attack_msg = ""
+
         if hit_chance <= chosen_attack.accuracy:
             if chosen_attack.damage:
                 player.hp -= chosen_attack.damage
-                safe_print(f"{cow.name} uses {chosen_attack.name} and deals {chosen_attack.damage} damage to {player.name}!")
+                attack_msg = f"{cow.name} uses {chosen_attack.name} for {chosen_attack.damage} damage!"
+                safe_print(attack_msg)
 
             if chosen_attack.effect:
                 if chosen_attack.effect == "stun":
                     player.stunned_turns = chosen_attack.duration
-                    safe_print(f"{player.name} is stunned for {chosen_attack.duration} turns!")
+                    effect_msg = f"{player.name} is stunned for {chosen_attack.duration} turns!"
+                    safe_print(effect_msg)
+                    attack_msg += f" (Stun!)"
                 elif chosen_attack.effect == "heal":
-                    safe_print(f"{cow.name} heals for {chosen_attack.healing} HP!")
+                    heal_msg = f"{cow.name} heals for {chosen_attack.healing} HP!"
+                    safe_print(heal_msg)
                     cow.hp += chosen_attack.healing
-                    # Cap the cow's HP to its maximum HP
                     cow.hp = min(cow.hp, cow.max_hp)
+                    attack_msg += f" (Healed!)"
                 elif chosen_attack.effect == "power_up":
-                    safe_print(f"{cow.name} powers up")
+                    safe_print(f"{cow.name} powers up!")
+                    attack_msg += f" (Powered up!)"
         else:
-            safe_print(f"{cow.name} uses {chosen_attack.name} but misses {player.name}!")
+            attack_msg = f"{cow.name} misses!"
+            safe_print(attack_msg)
+
+        return attack_msg

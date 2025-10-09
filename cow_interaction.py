@@ -147,9 +147,15 @@ class CowInteraction:
                     break
             else:
                 safe_print("Invalid choice. Please enter a number between 1 and 4.")
-            
+
+            # Cow's turn (if still alive)
             if self.cow.hp > 0:
-                CowAttack.cow_attack(self.player, self.cow)
+                attack_msg = CowAttack.cow_attack(self.player, self.cow)
+                if attack_msg:
+                    combat_log.append(attack_msg)
+
+                safe_print("\n[Press any key to continue...]")
+                self.game_terminal.stdscr.getch()
                 
     def handle_shop(self) -> None:
         """Handle shop encounter (buy and sell items)."""
