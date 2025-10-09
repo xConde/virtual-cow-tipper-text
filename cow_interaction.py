@@ -337,3 +337,12 @@ class CowInteraction:
         sell_percentage = sell_percentages.get(cow_mood, SELL_PRICE_NEUTRAL)
 
         return max(SELL_PRICE_MINIMUM, int(base_value * sell_percentage))
+
+    def _create_hp_bar(self, current_hp: int, max_hp: int, label: str) -> str:
+        """Create visual HP bar."""
+        bar_width = 20
+        filled = int((current_hp / max_hp) * bar_width) if max_hp > 0 else 0
+        empty = bar_width - filled
+
+        hp_bar = '[' + ('=' * filled) + (' ' * empty) + ']'
+        return f"{label}: {hp_bar} {current_hp}/{max_hp} HP"
