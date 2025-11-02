@@ -1,0 +1,403 @@
+/* Main CSS file for Virtual Cow Tipper Textual UI */
+
+/* Global Styles */
+
+Screen {
+    background: $surface;
+    overflow-y: auto;
+}
+
+.screen-container {
+    align: center middle;
+    width: 100%;
+    height: 100%;
+}
+
+.screen-title {
+    text-align: center;
+    text-style: bold;
+    color: $primary;
+    margin: 1 0;
+    width: 100%;
+}
+
+.section-header {
+    text-style: bold;
+    color: $secondary;
+    margin: 1 0;
+}
+
+.panel-header {
+    background: $panel;
+    text-align: center;
+    text-style: bold;
+    padding: 0 1;
+    width: 100%;
+    height: 1;
+}
+
+/* Main Menu */
+
+#main_menu {
+    align: center middle;
+}
+
+.title-art {
+    text-align: center;
+    color: $primary;
+    text-style: bold;
+    margin: 2;
+}
+
+.menu-buttons {
+    align: center middle;
+    width: 30;
+    margin: 2;
+}
+
+.menu-buttons Button {
+    width: 100%;
+    margin: 1 0;
+}
+
+.footer-text {
+    text-align: center;
+    color: $text-muted;
+    margin-top: 2;
+}
+
+/* Game Screen */
+
+.game-screen {
+    padding: 0;
+    height: 100%;
+}
+
+.stats-panel {
+    dock: top;
+    height: 3;
+    background: $panel;
+    padding: 1;
+    align: left middle;
+}
+
+.stats-panel Label {
+    margin: 0 2;
+}
+
+#hp_display {
+    color: $success;
+}
+
+#cash_display {
+    color: $warning;
+}
+
+#floor_display {
+    color: $primary;
+}
+
+.game-area {
+    height: 100%;
+}
+
+.game-view {
+    width: 70%;
+    padding: 1;
+}
+
+.ascii-art {
+    height: 15;
+    border: solid $primary;
+    margin: 1;
+    padding: 1;
+    text-align: center;
+}
+
+.combat-log {
+    height: 10;
+    border: solid $surface-lighten-1;
+    margin: 1;
+    padding: 1;
+}
+
+.side-panel {
+    width: 30%;
+    border-left: solid $surface-lighten-1;
+    padding: 1;
+}
+
+.action-menu {
+    height: 15;
+    margin: 1;
+}
+
+.action-menu Button {
+    width: 100%;
+    margin: 0 0 1 0;
+}
+
+.info-text {
+    padding: 1;
+    margin: 1;
+}
+
+/* Combat Screen */
+
+.combat-screen {
+    align: center middle;
+    padding: 2;
+}
+
+.combat-area {
+    width: 60;
+    border: double $error;
+    padding: 2;
+}
+
+.hp-bars {
+    height: 5;
+    margin-bottom: 2;
+    align: center top;
+}
+
+.player-hp, .cow-hp {
+    width: 45%;
+    margin: 0 1;
+}
+
+.hp-label {
+    text-align: center;
+    text-style: bold;
+}
+
+.hp-text {
+    text-align: center;
+    margin-top: 0;
+}
+
+#player_hp_bar {
+    color: $success;
+}
+
+#cow_hp_bar {
+    color: $error;
+}
+
+.combat-log {
+    height: 15;
+    border: solid $surface-lighten-1;
+    margin: 2 0;
+}
+
+.combat-actions {
+    align: center middle;
+    margin-top: 2;
+}
+
+.combat-actions Button {
+    margin: 0 1;
+}
+
+/* Shop Screen */
+
+.shop-screen {
+    align: center middle;
+    padding: 2;
+}
+
+.cash-display {
+    text-align: center;
+    color: $warning;
+    text-style: bold;
+    margin: 1;
+}
+
+.shop-items {
+    width: 50;
+    height: 20;
+    border: solid $primary;
+    margin: 2;
+    padding: 1;
+}
+
+.shop-items Button {
+    width: 100%;
+    margin: 1 0;
+}
+
+/* ==================== Inventory Screen ==================== */
+
+.inventory-screen {
+    align: center middle;
+    padding: 2;
+}
+
+.inventory-layout {
+    width: 60;
+    height: 20;
+    margin: 2;
+}
+
+.equipped-panel, .items-panel {
+    width: 50%;
+    border: solid $surface-lighten-1;
+    padding: 1;
+}
+
+.equipped-panel Label, .items-panel Label {
+    margin: 1 0;
+}
+
+/* ==================== Pause Menu ==================== */
+
+.pause-menu {
+    background: $surface-darken-1;
+    border: double $warning;
+    padding: 2;
+    width: 30;
+    align: center middle;
+}
+
+.pause-title {
+    text-align: center;
+    text-style: bold;
+    color: $warning;
+    margin-bottom: 2;
+}
+
+.pause-menu Button {
+    width: 100%;
+    margin: 1 0;
+}
+
+/* ==================== Dialogue Screen ==================== */
+
+.dialogue-screen {
+    align: center middle;
+    padding: 2;
+}
+
+.dialogue-speaker {
+    text-style: bold;
+    color: $primary;
+    margin-bottom: 1;
+}
+
+.dialogue-text {
+    border: solid $surface-lighten-1;
+    padding: 2;
+    width: 50;
+    margin: 2;
+}
+
+.dialogue-choices {
+    margin-top: 2;
+}
+
+.dialogue-choices Button {
+    width: 40;
+    margin: 1 0;
+}
+
+/* ==================== Help Screen ==================== */
+
+.help-screen {
+    max-width: 70;
+    margin: 0 auto;
+    padding: 2;
+}
+
+.help-content {
+    padding: 2;
+}
+
+/* ==================== Career Screen ==================== */
+
+.career-screen {
+    align: center middle;
+    padding: 2;
+}
+
+.career-screen ScrollableContainer {
+    width: 50;
+    height: 20;
+    border: solid $primary;
+    padding: 2;
+    margin: 2;
+}
+
+.career-screen Label {
+    margin: 1 0;
+}
+
+/* ==================== Save/Load Screens ==================== */
+
+.save-screen, .load-screen {
+    align: center middle;
+    padding: 2;
+}
+
+.save-prompt {
+    background: $surface-darken-1;
+    border: double $warning;
+    padding: 2;
+    width: 40;
+    align: center middle;
+}
+
+.prompt-title {
+    text-align: center;
+    text-style: bold;
+    margin-bottom: 2;
+}
+
+/* ==================== Game Over / Victory ==================== */
+
+.game-over, .victory {
+    align: center middle;
+    padding: 2;
+}
+
+.game-over-title {
+    text-align: center;
+    text-style: bold;
+    color: $error;
+    font-size: 200%;
+    margin: 2;
+}
+
+.victory-title {
+    text-align: center;
+    text-style: bold;
+    color: $success;
+    font-size: 200%;
+    margin: 2;
+}
+
+.game-over Label, .victory Label {
+    text-align: center;
+    margin: 1;
+}
+
+.game-over Button, .victory Button {
+    margin: 2 1;
+}
+
+/* ==================== Animations ==================== */
+
+Button:hover {
+    background: $primary-lighten-1;
+}
+
+Button:focus {
+    text-style: bold;
+}
+
+/* ==================== Scrollbars ==================== */
+
+ScrollableContainer {
+    scrollbar-background: $surface;
+    scrollbar-color: $primary;
+    scrollbar-corner-color: $surface;
+}
