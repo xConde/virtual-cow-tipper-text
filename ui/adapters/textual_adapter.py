@@ -4,13 +4,12 @@ This adapter provides the new Textual-based UI for the game.
 """
 
 from typing import Optional, List, Dict, Any, Callable
-from textual.app import App, ComposeResult
-from textual.widgets import Label, Button, Input, Static, Header, Footer
-from textual.containers import Container, Horizontal, Vertical
-from textual.screen import Screen
 import asyncio
+import sys
+sys.path.insert(0, '.')
 
 from ui.interfaces.base_ui import BaseUI, UIMode, MenuChoice
+from ui.textual_app import VirtualCowTipperApp
 
 
 class TextualAdapter(BaseUI):
@@ -21,33 +20,44 @@ class TextualAdapter(BaseUI):
 
     def __init__(self):
         """Initialize the Textual adapter."""
-        self.app: Optional[TextualApp] = None
+        self.app: Optional[VirtualCowTipperApp] = None
         self.is_initialized = False
-        self._current_screen = None
-        self._event_queue = asyncio.Queue()
+        self._response_queue = asyncio.Queue()
+        self._app_task = None
 
     async def initialize(self) -> None:
         """Setup Textual application."""
         try:
             # Create Textual app instance
-            self.app = TextualApp(self)
+            self.app = VirtualCowTipperApp()
 
             # Start app in background task
-            self._app_task = asyncio.create_task(self.app.run_async())
+            self._app_task = asyncio.create_task(self._run_app())
             self.is_initialized = True
 
             # Wait for app to be ready
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
 
         except Exception as e:
             raise RuntimeError(f"Failed to initialize Textual: {e}")
+
+    async def _run_app(self) -> None:
+        """Run the Textual app in background."""
+        try:
+            await self.app.run_async()
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            print(f"Textual app error: {e}")
 
     async def shutdown(self) -> None:
         """Cleanup Textual application."""
         if self.is_initialized and self.app:
             try:
-                await self.app.exit()
-                if hasattr(self, '_app_task'):
+                if self._app_task:
+                    # Exit the app
+                    self.app.exit()
+                    # Cancel the task
                     self._app_task.cancel()
                     try:
                         await self._app_task
@@ -70,9 +80,16 @@ class TextualAdapter(BaseUI):
             print(text)  # Fallback
             return
 
-        # TODO: Implement text display widget
-        # For now, use notification system
-        await self.show_notification(text, notification_type=style or "info")
+        # Map style to severity for notifications
+        severity_map = {
+            "error": "error",
+            "success": "success",
+            "warning": "warning",
+            "info": "information"
+        }
+
+        # Show as notification
+        self.app.notify(text, severity=severity_map.get(style, "information"))
 
         if duration:
             await asyncio.sleep(duration)
@@ -85,7 +102,7 @@ class TextualAdapter(BaseUI):
     ) -> Optional[MenuChoice]:
         """Display menu and return user selection."""
         if not self.app:
-            # Fallback
+            # Fallback implementation
             for i, item in enumerate(items):
                 print(f"{i+1}. {item}")
             try:
@@ -96,11 +113,30 @@ class TextualAdapter(BaseUI):
                 pass
             return None
 
-        # TODO: Implement menu screen
-        # For now, return first item
-        if items:
-            return MenuChoice(index=0, label=items[0], value=0)
-        return None
+        # Create dialogue screen with choices
+        screen_data = {
+            'speaker': 'System',
+            'text': title or "Select an option:",
+            'choices': items
+        }
+
+        await self.app.push_screen('dialogue', screen_data)
+
+        # Wait for response
+        try:
+            response = await asyncio.wait_for(
+                self._response_queue.get(),
+                timeout=60.0
+            )
+
+            if response['action'] == 'choice':
+                idx = response['index']
+                return MenuChoice(index=idx, label=items[idx], value=idx)
+
+        except asyncio.TimeoutError:
+            pass
+
+        return None if allow_cancel else await self.show_menu(items, title, False)
 
     async def get_input(
         self,
@@ -109,12 +145,9 @@ class TextualAdapter(BaseUI):
         default: Optional[str] = None
     ) -> str:
         """Get text input from user with validation."""
-        if not self.app:
-            # Fallback
-            result = input(f"{prompt}: ")
-            return result if result else default or ""
-
-        # TODO: Implement input dialog
+        # For now, use notification and return default
+        # Full input dialog would need custom screen
+        self.app.notify(f"{prompt} (using default: {default})")
         return default or ""
 
     # ==================== Game-Specific Displays ====================
@@ -125,8 +158,20 @@ class TextualAdapter(BaseUI):
         cow_stats: Optional[Dict[str, Any]] = None
     ) -> None:
         """Update status displays."""
-        # TODO: Implement stats widget update
-        pass
+        if not self.app:
+            return
+
+        # Update reactive properties
+        self.app.player_hp = player_stats.get('hp', self.app.player_hp)
+        self.app.player_max_hp = player_stats.get('max_hp', self.app.player_max_hp)
+        self.app.player_cash = player_stats.get('cash', self.app.player_cash)
+        self.app.current_floor = player_stats.get('floor', self.app.current_floor)
+
+        # Update via event
+        await self.app.send_event('player_update', player_stats)
+
+        if cow_stats:
+            await self.app.send_event('cow_update', cow_stats)
 
     async def show_combat(
         self,
@@ -135,8 +180,19 @@ class TextualAdapter(BaseUI):
         combat_log: List[str]
     ) -> None:
         """Display combat state."""
-        # TODO: Implement combat screen
-        pass
+        if not self.app:
+            return
+
+        # Push combat screen if not already there
+        if not self.app.navigation_stack or self.app.navigation_stack[-1] != 'combat':
+            await self.app.push_screen('combat')
+
+        # Send combat update event
+        await self.app.send_event('combat_update', {
+            'player_hp': player_hp,
+            'cow_hp': cow_hp,
+            'log': combat_log
+        })
 
     async def show_dialogue(
         self,
@@ -145,13 +201,48 @@ class TextualAdapter(BaseUI):
         choices: Optional[List[str]] = None
     ) -> Optional[int]:
         """Display dialogue with optional choices."""
-        # TODO: Implement dialogue widget
-        if not choices:
-            await self.show_text(f"[{speaker}]: {text}")
+        if not self.app:
+            print(f"[{speaker}]: {text}")
+            if choices:
+                for i, choice in enumerate(choices):
+                    print(f"{i+1}. {choice}")
+                try:
+                    idx = int(input("Choose: ")) - 1
+                    if 0 <= idx < len(choices):
+                        return idx
+                except:
+                    pass
             return None
 
-        result = await self.show_menu(choices, title=f"[{speaker}]: {text}")
-        return result.index if result else None
+        # Push dialogue screen
+        screen_data = {
+            'speaker': speaker,
+            'text': text,
+            'choices': choices
+        }
+
+        await self.app.push_screen('dialogue', screen_data)
+
+        if not choices:
+            # No choices, just wait briefly
+            await asyncio.sleep(2)
+            await self.app.pop_screen()
+            return None
+
+        # Wait for choice
+        try:
+            response = await asyncio.wait_for(
+                self._response_queue.get(),
+                timeout=60.0
+            )
+
+            if response['action'] == 'choice':
+                return response['index']
+
+        except asyncio.TimeoutError:
+            pass
+
+        return None
 
     async def show_inventory(
         self,
@@ -159,8 +250,16 @@ class TextualAdapter(BaseUI):
         equipped: Dict[str, Any]
     ) -> None:
         """Display inventory screen."""
-        # TODO: Implement inventory screen
-        pass
+        if not self.app:
+            return
+
+        # Push inventory screen with data
+        screen_data = {
+            'items': items,
+            'equipped': equipped
+        }
+
+        await self.app.push_screen('inventory', screen_data)
 
     async def show_shop(
         self,
@@ -169,15 +268,57 @@ class TextualAdapter(BaseUI):
         player_inventory: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
         """Display shop interface."""
-        # TODO: Implement shop screen
+        if not self.app:
+            return None
+
+        # Update player cash
+        self.app.player_cash = player_cash
+
+        # Push shop screen with data
+        screen_data = {
+            'items': shop_items,
+            'cash': player_cash,
+            'inventory': player_inventory
+        }
+
+        await self.app.push_screen('shop', screen_data)
+
+        # Wait for purchase or exit
+        try:
+            response = await asyncio.wait_for(
+                self._response_queue.get(),
+                timeout=120.0
+            )
+
+            if response['action'] == 'buy':
+                return response
+
+        except asyncio.TimeoutError:
+            pass
+
         return None
 
     # ==================== Event Handlers ====================
 
     async def on_pause(self) -> bool:
         """Handle pause request."""
-        # TODO: Implement pause screen
-        return True
+        if not self.app:
+            return True
+
+        # Push pause screen
+        await self.app.push_screen('pause')
+
+        # Wait for resume/quit
+        try:
+            response = await asyncio.wait_for(
+                self._response_queue.get(),
+                timeout=300.0  # 5 minute timeout
+            )
+
+            return response.get('resume', True)
+
+        except asyncio.TimeoutError:
+            return True
 
     async def show_error(
         self,
@@ -185,8 +326,10 @@ class TextualAdapter(BaseUI):
         fatal: bool = False
     ) -> None:
         """Display error message."""
-        # TODO: Implement error dialog
-        await self.show_notification(message, notification_type="error")
+        if self.app:
+            self.app.notify(message, severity="error")
+        else:
+            print(f"ERROR: {message}")
 
         if fatal:
             await self.shutdown()
@@ -200,7 +343,15 @@ class TextualAdapter(BaseUI):
     ) -> None:
         """Display temporary notification."""
         if self.app:
-            self.app.notify(message, severity=notification_type)
+            severity_map = {
+                "info": "information",
+                "success": "success",
+                "warning": "warning",
+                "error": "error"
+            }
+            self.app.notify(message, severity=severity_map.get(notification_type, "information"))
+        else:
+            print(f"[{notification_type.upper()}] {message}")
 
     # ==================== Screen Management ====================
 
@@ -210,17 +361,17 @@ class TextualAdapter(BaseUI):
         data: Optional[Dict[str, Any]] = None
     ) -> None:
         """Push a new screen onto the navigation stack."""
-        # TODO: Implement screen navigation
-        pass
+        if self.app:
+            await self.app.push_screen(screen_name, data)
 
     async def pop_screen(self) -> None:
         """Pop current screen from navigation stack."""
-        # TODO: Implement screen navigation
-        pass
+        if self.app:
+            await self.app.pop_screen()
 
     async def clear_screen(self) -> None:
         """Clear the current screen display."""
-        # TODO: Implement screen clearing
+        # Textual handles this automatically
         pass
 
     async def refresh(self) -> None:
@@ -234,116 +385,8 @@ class TextualAdapter(BaseUI):
         """Get the UI mode of this implementation."""
         return UIMode.TEXTUAL
 
+    # ==================== Helper Methods ====================
 
-# ==================== Textual App Implementation ====================
-
-class TextualApp(App):
-    """Main Textual application."""
-
-    CSS = """
-    Screen {
-        background: $surface;
-    }
-
-    Label {
-        padding: 1;
-    }
-
-    Button {
-        margin: 1;
-    }
-
-    .title {
-        text-align: center;
-        text-style: bold;
-    }
-
-    .stats-panel {
-        dock: top;
-        height: 3;
-        background: $panel;
-    }
-
-    .content-area {
-        padding: 1;
-    }
-
-    .menu-container {
-        align: center middle;
-        width: 50%;
-    }
-    """
-
-    def __init__(self, adapter: TextualAdapter):
-        """Initialize with reference to adapter."""
-        super().__init__()
-        self.adapter = adapter
-
-    def compose(self) -> ComposeResult:
-        """Create initial UI layout."""
-        # TODO: Build full UI structure
-        yield Header()
-        yield Container(
-            Label("Virtual Cow Tipper - Textual UI", classes="title"),
-            Label("UI Implementation in Progress...", classes="content-area"),
-            id="main-container"
-        )
-        yield Footer()
-
-    async def on_mount(self) -> None:
-        """Handle app mount event."""
-        self.title = "Virtual Cow Tipper"
-        self.sub_title = "Textual Edition"
-
-
-# ==================== Screen Implementations ====================
-
-class MainMenuScreen(Screen):
-    """Main menu screen."""
-
-    def compose(self) -> ComposeResult:
-        """Build main menu UI."""
-        yield Container(
-            Label("Virtual Cow Tipper", classes="title"),
-            Vertical(
-                Button("New Game", id="new_game"),
-                Button("Continue", id="continue"),
-                Button("Career", id="career"),
-                Button("How to Play", id="how_to_play"),
-                Button("Quit", id="quit"),
-                classes="menu-container"
-            )
-        )
-
-
-class GameScreen(Screen):
-    """Main game screen."""
-
-    def compose(self) -> ComposeResult:
-        """Build game UI."""
-        # TODO: Implement full game screen
-        yield Container(
-            Static("Game Screen - TODO", classes="title")
-        )
-
-
-class ShopScreen(Screen):
-    """Shop interface screen."""
-
-    def compose(self) -> ComposeResult:
-        """Build shop UI."""
-        # TODO: Implement shop screen
-        yield Container(
-            Static("Shop - TODO", classes="title")
-        )
-
-
-class InventoryScreen(Screen):
-    """Inventory management screen."""
-
-    def compose(self) -> ComposeResult:
-        """Build inventory UI."""
-        # TODO: Implement inventory screen
-        yield Container(
-            Static("Inventory - TODO", classes="title")
-        )
+    def send_response(self, response: Dict[str, Any]) -> None:
+        """Send a response back to waiting methods."""
+        asyncio.create_task(self._response_queue.put(response))

@@ -14,8 +14,14 @@ sys.path.insert(0, '.')
 
 from ui.ui_factory import UIFactory
 from ui.interfaces.base_ui import UIMode
-from ui.adapters import CursesAdapter, TextualAdapter
+from ui.adapters import CursesAdapter
 from ui.game_ui_bridge import GameUIBridge
+
+# Try to import TextualAdapter if available
+try:
+    from ui.adapters import TextualAdapter
+except ImportError:
+    TextualAdapter = None
 
 
 async def main_async(ui_mode: UIMode = UIMode.CURSES):
@@ -27,7 +33,10 @@ async def main_async(ui_mode: UIMode = UIMode.CURSES):
     """
     # Register UI implementations
     UIFactory.register(UIMode.CURSES, CursesAdapter)
-    UIFactory.register(UIMode.TEXTUAL, TextualAdapter)
+
+    # Only register Textual if available
+    if TextualAdapter:
+        UIFactory.register(UIMode.TEXTUAL, TextualAdapter)
 
     # Create UI instance
     ui = UIFactory.create(ui_mode)
