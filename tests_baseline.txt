@@ -1,0 +1,356 @@
+============================================================
+VIRTUAL COW TIPPER - TEST SUITE
+============================================================
+
+============================================================
+Running: tests/test_cow_generation.py
+============================================================
+test_cow_properties_mood: PASSED
+test_cow_generation_scales_with_player: PASSED
+test_random_likeliness: PASSED
+
+All cow generation tests passed!
+
+
+============================================================
+Running: tests/test_item_factory.py
+============================================================
+test_weapon_creation: PASSED
+test_shield_creation: PASSED
+test_rarity_floor: PASSED
+test_weapon_damage_roll: PASSED
+test_shop_inventory: PASSED
+
+All ItemFactory tests passed!
+
+
+============================================================
+Running: tests/test_dialogue_manager.py
+============================================================
+============================================================
+DIALOGUE MANAGER TEST SUITE
+============================================================
+
+Testing all mood/response combinations...
+  friendly   / intro                : 'I'm going to be straight with you: I cou...'
+  friendly   / counter              : 'Just a tippin' cow, huh? Well, it's some...'
+  friendly   / graceful             : 'You just made my entire week. Possibly m...'
+  friendly   / dairy_bucket         : 'It's milking time! Enjoy the dairy goodn...'
+  friendly   / dairy_no_bucket      : 'I can't give you milk without a bucket!...'
+  friendly   / enraged_intro        : 'I'm in a bad moooood now!...'
+  friendly   / enraged_end          : 'You've got beef with me!...'
+  friendly   / shop_keeper_intro    : 'Welcome to the Cow-mmerce Store!...'
+  friendly   / shop_keeper_purchase : 'Cow-ngratulations on your purchase!...'
+  friendly   / shop_keeper_end      : 'Safe travels!...'
+  neutral    / intro                : 'Yeah?...'
+  neutral    / counter              : 'You know what, I'm not even mad. Just di...'
+  neutral    / graceful             : 'Okay, I wasn't expecting that level of g...'
+  neutral    / dairy_bucket         : 'I see you're prepared....'
+  neutral    / dairy_no_bucket      : 'You really thought you could milk me wit...'
+  neutral    / enraged_intro        : 'You've really done it now....'
+  neutral    / enraged_end          : 'Maybe next time you'll think twice....'
+  neutral    / shop_keeper_intro    : 'What can I mooove for you today?...'
+  neutral    / shop_keeper_purchase : 'An aMOOsing choice!...'
+  neutral    / shop_keeper_end      : 'Don't be a stranger, you're part of the ...'
+  upset      / intro                : 'I've had a DAY. Unless you're here to ma...'
+  upset      / counter              : 'You know what, fine. I don't have the en...'
+  upset      / graceful             : 'This doesn't fix my day, but it's a star...'
+  upset      / dairy_bucket         : 'I'm only sharing because you have a buck...'
+  upset      / dairy_no_bucket      : 'Find a bucket if you want some milk....'
+  upset      / enraged_intro        : 'You've really tipped me over the edge!...'
+  upset      / enraged_end          : 'Fine, you win!...'
+  upset      / shop_keeper_intro    : 'Shop's open. My patience is not. What do...'
+  upset      / shop_keeper_purchase : 'Fine. It's yours. Now leave....'
+  upset      / shop_keeper_end      : 'Leave....'
+
+test_cow_sayings_all_moods: PASSED
+
+test_approaches: PASSED (sampled 10 approaches)
+test_interruptions: PASSED
+test_cow_names: PASSED (got 10 unique names)
+test_fallback_for_missing_dialogue: PASSED
+test_context_variables: PASSED
+test_dialogue_variety: PASSED (7 unique responses from 10 calls)
+
+============================================================
+ALL DIALOGUE MANAGER TESTS PASSED!
+============================================================
+
+Dialogue system is working correctly.
+Your 558 lines of creative writing are intact and accessible!
+
+
+============================================================
+Running: tests/test_game_integration.py
+============================================================
+============================================================
+GAME INTEGRATION TEST SUITE
+============================================================
+
+test_all_imports: PASSED
+
+test_config_values: PASSED
+test_cow_generation_full: PASSED
+test_item_creation_full: PASSED
+  WHAM! TestHero connects with brutal force. 10 damage. TestCow staggers.
+test_player_combat: PASSED
+
+============================================================
+ALL INTEGRATION TESTS PASSED!
+============================================================
+
+All refactored systems work together correctly!
+Game is ready to run: python3 main.py
+
+
+============================================================
+Running: tests/test_save_load.py
+============================================================
+============================================================
+SAVE/LOAD SYSTEM TESTS
+============================================================
+
+
+Game saved to saves/game_save.json
+test_save_file_creation: PASSED
+
+Game saved to saves/game_save.json
+test_save_load_roundtrip: PASSED
+test_delete_save: PASSED
+test_load_nonexistent_save: PASSED
+
+============================================================
+ALL SAVE/LOAD TESTS PASSED!
+============================================================
+
+
+============================================================
+Running: tests/test_gameplay_simulation.py
+============================================================
+============================================================
+GAMEPLAY SIMULATION TEST SUITE
+Testing all systems work together with balance fixes
+============================================================
+
+============================================================
+EARLY GAME SCENARIO (Encounters 1-5)
+============================================================
+
+Starting: HP=20, Cash=$50
+
+--- Encounter 1 ---
+Cow: Buddy (neutral, Pack 1)
+  Stats: 3 STR, 30 HP, $63 reward
+  Type: REGULAR
+After: HP=20, Cash=$50
+
+--- Encounter 2 ---
+Cow: Millie (upset, Pack 5)
+  Stats: 4 STR, 20 HP, $30 reward
+  Type: REGULAR
+After: HP=20, Cash=$50
+
+--- Encounter 3 ---
+Cow: Polly (upset, Pack 5)
+  Stats: 4 STR, 20 HP, $37 reward
+  Type: SHOP
+After: HP=20, Cash=$50
+
+--- Encounter 4 ---
+Cow: Bessie (neutral, Pack 2)
+  Stats: 3 STR, 40 HP, $30 reward
+  Type: SHOP
+After: HP=20, Cash=$50
+
+--- Encounter 5 ---
+Cow: Penny (friendly, Pack 5)
+  Stats: 4 STR, 30 HP, $63 reward
+  Type: REGULAR
+After: HP=20, Cash=$50
+
+[OK] Early game survivable!
+
+============================================================
+HEALING MECHANICS TEST
+============================================================
+Starting HP: 50
+
+1. Health Potion:
+Healer uses Health Potion and restores 20 HP!
+   After potion: 70 HP [OK]
+
+2. Rest:
+   After rest: 80 HP (+10) [OK]
+
+3. Dairy Milk:
+   After milking: 85 HP (+5) [OK]
+
+4. HP Cap:
+   HP capped at: 100 [OK]
+
+[OK] All healing mechanics working!
+
+============================================================
+COMBAT BALANCE TEST (Late Game)
+============================================================
+
+Player: HP=80, Cash=$1000
+Cow: Camus (STR: 14, HP: 28)
+Player damage: ~71
+Cow HP: 28
+Hits to kill: 0.4
+
+[OK] Combat balanced! Player can win late game fights!
+
+============================================================
+ECONOMY BALANCE TEST
+============================================================
+
+Player cash: $500
+Shop items:
+  random item: $32
+  random weapon: $48
+  random shield: $64
+  health potion: $50
+  greater health potion: $80
+
+Cow reward: $48
+Items per cow: 1.5
+
+[OK] Economy balanced! Can afford items from cow rewards!
+
+============================================================
+AGGRO CAP TEST
+============================================================
+
+With $5000 cash:
+Aggro encounters: 55/100 (55%)
+[OK] Aggro capped at 50.0% (was 65%+)
+
+============================================================
+SAVE/LOAD WITH POTIONS TEST
+============================================================
+
+Game saved to saves/game_save.json
+Inventory preserved: 2 items
+[OK] Save/load works with new potion system!
+
+============================================================
+ALL GAMEPLAY TESTS PASSED!
+============================================================
+
+[OK] Game is balanced and playable
+[OK] All healing methods work
+[OK] Combat is fair
+[OK] Economy is sustainable
+[OK] Save/load preserves state
+
+Game is ready for real gameplay testing!
+
+
+============================================================
+Running: tests/test_meta_progression.py
+============================================================
+============================================================
+META-PROGRESSION TEST SUITE
+============================================================
+
+test_career_stats_creation: PASSED
+test_unlock_checking: PASSED
+test_starting_bonuses: PASSED
+test_run_stats_accumulation: PASSED
+test_multiple_unlocks: PASSED (5 unlocks)
+test_save_load_career: PASSED
+
+============================================================
+ALL META-PROGRESSION TESTS PASSED!
+============================================================
+
+[OK] Career system working
+[OK] Unlocks trigger correctly
+[OK] Bonuses apply to new runs
+[OK] Stats persist across sessions
+
+Meta-progression makes every run valuable!
+
+
+============================================================
+Running: tests/test_crash_scenarios.py
+============================================================
+============================================================
+CRASH SCENARIO TESTING
+============================================================
+Testing all imports...
+[OK] All imports successful (no circular dependencies)
+
+Testing inventory operations...
+  Test does not have Minor Health Potion in their inventory.
+  [OK] Using item not in inventory doesn't crash
+  update_inventory failed to add Minor Health Potion.
+  update_inventory failed to add Minor Health Potion.
+  update_inventory failed to add Minor Health Potion.
+  update_inventory failed to add Minor Health Potion.
+  update_inventory failed to add Minor Health Potion.
+  [OK] Inventory caps at 8 (no overflow)
+  update_inventory failed to remove Test.
+  [OK] Removing missing item doesn't crash
+Test uses Minor Health Potion and restores 0 HP!
+  [OK] Potion at full HP doesn't overflow
+
+Testing cow generation edge cases...
+  [OK] Cow generation works with $0 player
+  [OK] Cow generation works with 1 HP player
+  [OK] Cow generation works with wealthy player
+
+Testing save/load edge cases...
+  [OK] Load with no save returns None (doesn't crash)
+
+Game saved to saves/game_save.json
+  [OK] Save with empty inventory works
+
+Testing combat edge cases...
+  WHAM! Fighter connects with brutal force. 5 damage. Test staggers.
+  [OK] Damage doesn't cause negative HP
+  The strike connects with a sickening crunch. 0 damage dealt.
+  [OK] Dead player can still execute actions (death check happens after)
+
+Testing shop edge cases...
+  [OK] Shop generates with $0 player
+  [OK] Upset shop doesn't crash
+  [OK] Wealthy player shop generates correctly
+
+Testing floor system...
+  Floor 1 complete at encounter 10
+  Floor 2 complete at encounter 20
+  [OK] Floor system logic correct (no off-by-one)
+
+============================================================
+ALL CRASH SCENARIOS TESTED - SAFE!
+============================================================
+
+[OK] No circular dependencies
+[OK] Inventory operations safe
+[OK] Cow generation handles edge cases
+[OK] Save/load robust
+[OK] Combat math safe
+[OK] Shop generation safe
+[OK] Floor system correct
+
+Game is crash-resistant and ready for demo!
+
+
+============================================================
+TEST SUMMARY
+============================================================
+  PASS   - tests/test_cow_generation.py
+  PASS   - tests/test_item_factory.py
+  PASS   - tests/test_dialogue_manager.py
+  PASS   - tests/test_game_integration.py
+  PASS   - tests/test_save_load.py
+  PASS   - tests/test_gameplay_simulation.py
+  PASS   - tests/test_meta_progression.py
+  PASS   - tests/test_crash_scenarios.py
+
+Results: 8/8 test suites passed
+
+ALL TESTS PASSED! Game is ready to play.
