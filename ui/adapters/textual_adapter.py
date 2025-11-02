@@ -31,6 +31,9 @@ class TextualAdapter(BaseUI):
             # Create Textual app instance
             self.app = VirtualCowTipperApp()
 
+            # Set up response callback
+            self.app.response_callback = self.send_response
+
             # Start app in background task
             self._app_task = asyncio.create_task(self._run_app())
             self.is_initialized = True
@@ -44,9 +47,13 @@ class TextualAdapter(BaseUI):
     async def _run_app(self) -> None:
         """Run the Textual app in background."""
         try:
-            await self.app.run_async()
-        except asyncio.CancelledError:
-            pass
+            # Textual apps run synchronously, we need a different approach
+            # Run in thread to avoid blocking
+            import threading
+            self._app_thread = threading.Thread(target=self.app.run, daemon=True)
+            self._app_thread.start()
+            # Give app time to start
+            await asyncio.sleep(1)
         except Exception as e:
             print(f"Textual app error: {e}")
 
@@ -120,7 +127,7 @@ class TextualAdapter(BaseUI):
             'choices': items
         }
 
-        await self.app.push_screen('dialogue', screen_data)
+        self.app.push_screen('dialogue', screen_data)
 
         # Wait for response
         try:
@@ -185,7 +192,7 @@ class TextualAdapter(BaseUI):
 
         # Push combat screen if not already there
         if not self.app.navigation_stack or self.app.navigation_stack[-1] != 'combat':
-            await self.app.push_screen('combat')
+            self.app.push_screen('combat')
 
         # Send combat update event
         await self.app.send_event('combat_update', {
@@ -221,12 +228,12 @@ class TextualAdapter(BaseUI):
             'choices': choices
         }
 
-        await self.app.push_screen('dialogue', screen_data)
+        self.app.push_screen('dialogue', screen_data)
 
         if not choices:
             # No choices, just wait briefly
             await asyncio.sleep(2)
-            await self.app.pop_screen()
+            self.app.pop_screen()
             return None
 
         # Wait for choice
@@ -259,7 +266,7 @@ class TextualAdapter(BaseUI):
             'equipped': equipped
         }
 
-        await self.app.push_screen('inventory', screen_data)
+        self.app.push_screen('inventory', screen_data)
 
     async def show_shop(
         self,
@@ -281,7 +288,7 @@ class TextualAdapter(BaseUI):
             'inventory': player_inventory
         }
 
-        await self.app.push_screen('shop', screen_data)
+        self.app.push_screen('shop', screen_data)
 
         # Wait for purchase or exit
         try:
@@ -306,7 +313,7 @@ class TextualAdapter(BaseUI):
             return True
 
         # Push pause screen
-        await self.app.push_screen('pause')
+        self.app.push_screen('pause')
 
         # Wait for resume/quit
         try:
@@ -362,12 +369,12 @@ class TextualAdapter(BaseUI):
     ) -> None:
         """Push a new screen onto the navigation stack."""
         if self.app:
-            await self.app.push_screen(screen_name, data)
+            self.app.push_screen(screen_name, data)
 
     async def pop_screen(self) -> None:
         """Pop current screen from navigation stack."""
         if self.app:
-            await self.app.pop_screen()
+            self.app.pop_screen()
 
     async def clear_screen(self) -> None:
         """Clear the current screen display."""

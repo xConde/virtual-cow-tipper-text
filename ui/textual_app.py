@@ -33,7 +33,7 @@ class VirtualCowTipperApp(App):
     Manages screens, themes, and global application state.
     """
 
-    CSS_PATH = "styles/main.css"
+    CSS_PATH = "ui/styles/main.css"
     TITLE = "Virtual Cow Tipper"
     SUB_TITLE = "Textual Edition"
 
@@ -61,6 +61,7 @@ class VirtualCowTipperApp(App):
         self.game_state = {}
         self.event_queue = asyncio.Queue()
         self.event_handlers = {}
+        self.response_callback = None  # For sending responses back to adapter
 
     def compose(self) -> ComposeResult:
         """Create the application layout."""
@@ -70,7 +71,7 @@ class VirtualCowTipperApp(App):
     async def on_mount(self) -> None:
         """Handle application mount."""
         # Start with main menu
-        await self.push_screen("main_menu")
+        self.push_screen("main_menu")
 
         # Start event processing
         asyncio.create_task(self._process_events())
@@ -79,32 +80,32 @@ class VirtualCowTipperApp(App):
         """Quit the application."""
         if self.game_active:
             # Show save prompt
-            await self.push_screen("save_prompt")
+            self.push_screen("save_prompt")
         else:
             self.exit()
 
     async def action_back(self) -> None:
         """Go back to previous screen."""
         if len(self.navigation_stack) > 1:
-            await self.pop_screen()
+            self.pop_screen()
 
     async def action_help(self) -> None:
         """Show help screen."""
-        await self.push_screen("help")
+        self.push_screen("help")
 
     async def action_save(self) -> None:
         """Save the game."""
         if self.game_active:
-            await self.push_screen("save_game")
+            self.push_screen("save_game")
 
     async def action_load(self) -> None:
         """Load a saved game."""
-        await self.push_screen("load_game")
+        self.push_screen("load_game")
 
     async def action_pause(self) -> None:
         """Pause the game."""
         if self.game_active:
-            await self.push_screen("pause")
+            self.push_screen("pause")
 
     # ==================== Event Management ====================
 
@@ -176,23 +177,28 @@ class VirtualCowTipperApp(App):
         }
         return screens.get(name, Screen)
 
-    async def push_screen(self, name: str, data: Dict[str, Any] = None) -> None:
+    def push_screen(self, name: str, data: Dict[str, Any] = None) -> None:
         """Push a new screen onto the stack."""
         screen_class = self.get_screen_class(name)
         screen = screen_class(data=data) if data else screen_class()
         self.navigation_stack.append(name)
-        await super().push_screen(screen)
+        super().push_screen(screen)
 
-    async def pop_screen(self) -> None:
+    def pop_screen(self) -> None:
         """Pop the current screen."""
         if self.navigation_stack:
             self.navigation_stack.pop()
-        await super().pop_screen()
+        super().pop_screen()
 
-    async def switch_screen(self, name: str, data: Dict[str, Any] = None) -> None:
+    def switch_screen(self, name: str, data: Dict[str, Any] = None) -> None:
         """Switch to a different screen (replace current)."""
-        await self.pop_screen()
-        await self.push_screen(name, data)
+        self.pop_screen()
+        self.push_screen(name, data)
+
+    def send_response(self, response: Dict[str, Any]) -> None:
+        """Send a response back to the adapter."""
+        if self.response_callback:
+            self.response_callback(response)
 
 
 # ==================== Screen Implementations ====================
@@ -242,13 +248,13 @@ class MainMenuScreen(BaseGameScreen):
         button_id = event.button.id
 
         if button_id == "new_game":
-            await self.app.push_screen("game")
+            self.app.push_screen("game")
         elif button_id == "continue_game":
-            await self.app.push_screen("load_game")
+            self.app.push_screen("load_game")
         elif button_id == "career":
-            await self.app.push_screen("career")
+            self.app.push_screen("career")
         elif button_id == "help":
-            await self.app.push_screen("help")
+            self.app.push_screen("help")
         elif button_id == "settings":
             self.notify("Settings not yet implemented", severity="warning")
         elif button_id == "quit":
@@ -356,15 +362,15 @@ class GameScreen(BaseGameScreen):
         button_id = event.button.id
 
         if button_id == "action_approach":
-            await self.app.push_screen("combat")
+            self.app.push_screen("combat")
         elif button_id == "action_inventory":
-            await self.app.push_screen("inventory")
+            self.app.push_screen("inventory")
         elif button_id == "action_shop":
-            await self.app.push_screen("shop")
+            self.app.push_screen("shop")
         elif button_id == "action_rest":
             self._rest()
         elif button_id == "action_save_quit":
-            await self.app.push_screen("save_prompt")
+            self.app.push_screen("save_prompt")
 
     def _rest(self) -> None:
         """Handle rest action."""
@@ -419,7 +425,7 @@ class CombatScreen(BaseGameScreen):
             log.write_line("You brace for impact...")
         elif event.button.id == "combat_run":
             log.write_line("You flee from the cow!")
-            await self.app.pop_screen()
+            self.app.pop_screen()
 
 
 class ShopScreen(BaseGameScreen):
@@ -443,7 +449,7 @@ class ShopScreen(BaseGameScreen):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle shop purchases."""
         if event.button.id == "exit_shop":
-            await self.app.pop_screen()
+            self.app.pop_screen()
         elif event.button.id.startswith("item_"):
             self.notify("Purchase functionality coming soon!", severity="warning")
 
@@ -474,7 +480,7 @@ class InventoryScreen(BaseGameScreen):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle inventory actions."""
         if event.button.id == "back":
-            await self.app.pop_screen()
+            self.app.pop_screen()
 
 
 class PauseScreen(BaseGameScreen):
@@ -499,14 +505,14 @@ class PauseScreen(BaseGameScreen):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle pause menu options."""
         if event.button.id == "resume":
-            await self.app.pop_screen()
+            self.app.pop_screen()
         elif event.button.id == "save":
-            await self.app.push_screen("save_game")
+            self.app.push_screen("save_game")
         elif event.button.id == "main_menu":
             self.app.game_active = False
             # Clear screen stack and go to main menu
             while len(self.app.navigation_stack) > 1:
-                await self.app.pop_screen()
+                self.app.pop_screen()
         elif event.button.id == "quit":
             self.app.exit()
 
@@ -551,7 +557,7 @@ Good luck, cow tipper!
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle back button."""
         if event.button.id == "back":
-            await self.app.pop_screen()
+            self.app.pop_screen()
 
 
 class CareerScreen(BaseGameScreen):
@@ -577,7 +583,7 @@ class CareerScreen(BaseGameScreen):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle back button."""
         if event.button.id == "back":
-            await self.app.pop_screen()
+            self.app.pop_screen()
 
 
 class DialogueScreen(BaseGameScreen):
@@ -603,11 +609,12 @@ class DialogueScreen(BaseGameScreen):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle dialogue choices."""
         if event.button.id == "continue":
-            await self.app.pop_screen()
+            self.app.pop_screen()
         elif event.button.id.startswith("choice_"):
             choice_idx = int(event.button.id.split("_")[1])
-            # TODO: Send choice back to game logic
-            await self.app.pop_screen()
+            # Send choice back to game logic
+            self.app.send_response({'action': 'choice', 'index': choice_idx})
+            self.app.pop_screen()
 
 
 class SaveGameScreen(BaseGameScreen):
@@ -644,7 +651,7 @@ class LoadGameScreen(BaseGameScreen):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle load actions."""
         if event.button.id == "back":
-            await self.app.pop_screen()
+            self.app.pop_screen()
 
 
 class SavePromptScreen(BaseGameScreen):
@@ -666,7 +673,7 @@ class SavePromptScreen(BaseGameScreen):
         elif event.button.id == "quit":
             self.app.exit()
         elif event.button.id == "cancel":
-            await self.app.pop_screen()
+            self.app.pop_screen()
 
 
 class GameOverScreen(BaseGameScreen):
@@ -686,7 +693,7 @@ class GameOverScreen(BaseGameScreen):
         if event.button.id == "main_menu":
             self.app.game_active = False
             while len(self.app.navigation_stack) > 1:
-                await self.app.pop_screen()
+                self.app.pop_screen()
         elif event.button.id == "quit":
             self.app.exit()
 
@@ -708,7 +715,7 @@ class VictoryScreen(BaseGameScreen):
         if event.button.id == "main_menu":
             self.app.game_active = False
             while len(self.app.navigation_stack) > 1:
-                await self.app.pop_screen()
+                self.app.pop_screen()
         elif event.button.id == "quit":
             self.app.exit()
 
