@@ -11,6 +11,20 @@ from textual.containers import Container, Horizontal, Vertical, ScrollableContai
 from textual.reactive import reactive
 from typing import Optional, Dict, Any, List
 import asyncio
+import sys
+sys.path.insert(0, '.')
+
+from ui.ascii_art import (
+    TITLE_ART_COMPACT,
+    get_cow_art,
+    SHOP_BANNER,
+    COMBAT_BANNER,
+    VICTORY_ART,
+    GAME_OVER_ART,
+    get_item_icon,
+    get_status_icon,
+    get_mood_indicator
+)
 
 
 class VirtualCowTipperApp(App):
@@ -208,12 +222,7 @@ class MainMenuScreen(BaseGameScreen):
     def compose(self) -> ComposeResult:
         """Create main menu layout."""
         yield Container(
-            Static("""
-╔═══════════════════════════════════════╗
-║       VIRTUAL COW TIPPER              ║
-║       Text-Based Roguelike            ║
-╚═══════════════════════════════════════╝
-            """, classes="title-art"),
+            Static(TITLE_ART_COMPACT, classes="title-art"),
             Vertical(
                 Button("New Game", id="new_game", variant="primary"),
                 Button("Continue", id="continue_game"),
@@ -252,11 +261,11 @@ class GameScreen(BaseGameScreen):
     def compose(self) -> ComposeResult:
         """Create game screen layout."""
         with Container(classes="game-screen"):
-            # Top panel - Stats
+            # Top panel - Stats with icons
             with Horizontal(classes="stats-panel"):
-                yield Label(f"HP: {self.app.player_hp}/{self.app.player_max_hp}", id="hp_display")
-                yield Label(f"Cash: ${self.app.player_cash}", id="cash_display")
-                yield Label(f"Floor: {self.app.current_floor}", id="floor_display")
+                yield Label(f"{get_status_icon('hp')}HP: {self.app.player_hp}/{self.app.player_max_hp}", id="hp_display")
+                yield Label(f"{get_status_icon('cash')}Cash: ${self.app.player_cash}", id="cash_display")
+                yield Label(f"{get_status_icon('floor')}Floor: {self.app.current_floor}", id="floor_display")
                 yield Label("", id="weapon_display")
                 yield Label("", id="shield_display")
 
@@ -264,7 +273,7 @@ class GameScreen(BaseGameScreen):
             with Horizontal(classes="game-area"):
                 # Left panel - Game view
                 with Vertical(classes="game-view"):
-                    yield Static("", id="cow_art", classes="ascii-art")
+                    yield Static(get_cow_art("normal"), id="cow_art", classes="ascii-art cow-art")
                     yield Log(id="combat_log", classes="combat-log")
 
                 # Right panel - Actions/Info
@@ -295,19 +304,44 @@ class GameScreen(BaseGameScreen):
         await self._start_game()
 
     def _update_hp(self, hp: int) -> None:
-        """Update HP display."""
+        """Update HP display with animation."""
         label = self.query_one("#hp_display", Label)
-        label.update(f"HP: {hp}/{self.app.player_max_hp}")
+        label.update(f"{get_status_icon('hp')}HP: {hp}/{self.app.player_max_hp}")
+
+        # Add animation class for low HP
+        if hp < self.app.player_max_hp * 0.3:
+            label.add_class("hp-critical")
+        else:
+            label.remove_class("hp-critical")
 
     def _update_cash(self, cash: int) -> None:
         """Update cash display."""
         label = self.query_one("#cash_display", Label)
-        label.update(f"Cash: ${cash}")
+        label.update(f"{get_status_icon('cash')}Cash: ${cash}")
 
     def _update_floor(self, floor: int) -> None:
         """Update floor display."""
         label = self.query_one("#floor_display", Label)
-        label.update(f"Floor: {floor}")
+        label.update(f"{get_status_icon('floor')}Floor: {floor}")
+        label.add_class("floor-change")
+
+    def update_cow_art(self, cow_type: str = "normal", mood: str = "neutral") -> None:
+        """Update the cow ASCII art display."""
+        cow_display = self.query_one("#cow_art", Static)
+        art = get_cow_art(cow_type)
+
+        # Add mood indicator
+        if mood:
+            art += f"\n    Mood: {get_mood_indicator(mood)}"
+
+        cow_display.update(art)
+
+        # Add animation class based on type
+        cow_display.remove_class("cow-aggressive", "cow-happy")
+        if cow_type == "aggressive":
+            cow_display.add_class("cow-aggressive")
+        elif cow_type == "happy":
+            cow_display.add_class("cow-happy")
 
     async def _start_game(self) -> None:
         """Initialize and start the game."""
@@ -349,6 +383,7 @@ class CombatScreen(BaseGameScreen):
     def compose(self) -> ComposeResult:
         """Create combat screen layout."""
         with Container(classes="combat-screen"):
+            yield Static(COMBAT_BANNER, classes="combat-banner")
             # Combat area
             with Vertical(classes="combat-area"):
                 # HP Bars
@@ -393,7 +428,7 @@ class ShopScreen(BaseGameScreen):
     def compose(self) -> ComposeResult:
         """Create shop layout."""
         with Container(classes="shop-screen"):
-            yield Static("=== SHOP ===", classes="screen-title")
+            yield Static(SHOP_BANNER, classes="shop-banner")
             yield Label(f"Your cash: ${self.app.player_cash}", id="shop_cash", classes="cash-display")
 
             with ScrollableContainer(classes="shop-items"):
@@ -640,7 +675,7 @@ class GameOverScreen(BaseGameScreen):
     def compose(self) -> ComposeResult:
         """Create game over screen."""
         with Container(classes="game-over"):
-            yield Static("GAME OVER", classes="game-over-title")
+            yield Static(GAME_OVER_ART, classes="game-over-title")
             yield Label(self.data.get('message', 'You have been defeated!'))
             yield Label(f"Score: {self.data.get('score', 0)}")
             yield Button("Main Menu", id="main_menu", variant="primary")
@@ -662,7 +697,7 @@ class VictoryScreen(BaseGameScreen):
     def compose(self) -> ComposeResult:
         """Create victory screen."""
         with Container(classes="victory"):
-            yield Static("VICTORY!", classes="victory-title")
+            yield Static(VICTORY_ART, classes="victory-title")
             yield Label(self.data.get('message', 'You have triumphed!'))
             yield Label(f"Final Score: {self.data.get('score', 0)}")
             yield Button("Main Menu", id="main_menu", variant="success")

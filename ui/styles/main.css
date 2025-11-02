@@ -1,5 +1,8 @@
 /* Main CSS file for Virtual Cow Tipper Textual UI */
 
+/* Import animations */
+@import "animations.css";
+
 /* Global Styles */
 
 Screen {
@@ -47,6 +50,7 @@ Screen {
     color: $primary;
     text-style: bold;
     margin: 2;
+    animation: fade-in 1s;
 }
 
 .menu-buttons {
@@ -108,10 +112,25 @@ Screen {
 
 .ascii-art {
     height: 15;
-    border: solid $primary;
+    border: double $primary;
+    border-title: "[ COW ENCOUNTER ]";
     margin: 1;
     padding: 1;
     text-align: center;
+}
+
+.cow-art {
+    animation: bounce 3s infinite;
+}
+
+.cow-aggressive {
+    color: $error;
+    animation: shake 0.5s infinite;
+}
+
+.cow-happy {
+    color: $success;
+    animation: bounce 1s infinite;
 }
 
 .combat-log {
