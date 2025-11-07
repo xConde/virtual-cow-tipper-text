@@ -141,3 +141,131 @@ REST_HEAL_AMOUNT = 10  # Heal when resting
 POTION_MINOR_PRICE = 30   # Heals 10 HP
 POTION_NORMAL_PRICE = 50  # Heals 20 HP
 POTION_GREATER_PRICE = 80 # Heals 40 HP
+
+# ============================================================================
+# UI PROMPTS - Standardized prompt messages for consistent UX
+# ============================================================================
+
+# Generic continuation prompts
+PROMPT_CONTINUE = "[Continue...]"
+PROMPT_ANY_KEY = "[Press any key to continue...]"
+PROMPT_BEGIN = "[Press any key to begin...]"
+PROMPT_TRY_AGAIN = "[Press any key to try again...]"
+
+# Combat-specific prompts
+PROMPT_CONTINUE_TO_COW_TURN = "[Continue to cow's turn...]"
+PROMPT_VICTORY = "[Victory!]"
+PROMPT_ESCAPING = "[Escaping...]"
+
+# Mini-game prompts
+PROMPT_ROLL_DICE = "[Press ENTER to roll the dice...]"
+PROMPT_SEE_RESULT = "[Press ENTER to see result...]"
+PROMPT_BROWSE_ITEMS = "[Browse items...]"
+PROMPT_CONTINUE_SHOPPING = "[Continue shopping...]"
+PROMPT_CONTINUE_ADVENTURE = "[Continue adventure...]"
+
+# ============================================================================
+# MINI-GAMES - Configuration for mini-game mechanics
+# ============================================================================
+
+# Dice Rolling Game
+DICE_FACES = 6
+DICE_COUNT = 2
+DICE_WIN_THRESHOLD = 7  # Need to roll 7+ to win
+
+# Mini-Game Scoring
+MINI_GAME_WIN_SCORE = 1.0
+MINI_GAME_LOSS_SCORE = -0.5
+QUICK_TIP_SCORE = 0.5
+QUICK_TIP_PROFIT_MULTIPLIER = 1.5
+
+# Cow Interaction Scoring
+LEAVE_COW_PENALTY = -1.0
+DICE_GAME_WIN_MULTIPLIER = 2  # Player gets bet back + profit (2x total)
+
+# ============================================================================
+# COW ATTACK PARAMETERS - Individual attack balance values
+# ============================================================================
+
+# Headbutt - Basic reliable attack
+COW_ATTACK_HEADBUTT_DAMAGE_MIN = 3
+COW_ATTACK_HEADBUTT_DAMAGE_BASE = 2
+COW_ATTACK_HEADBUTT_ACCURACY = 85
+
+# Hoof Kick - Higher damage, less accurate
+COW_ATTACK_HOOF_KICK_DAMAGE_MIN = 5
+COW_ATTACK_HOOF_KICK_DAMAGE_BASE = 4
+COW_ATTACK_HOOF_KICK_ACCURACY = 60
+
+# Tail Whip - Weak but very accurate
+COW_ATTACK_TAIL_WHIP_DAMAGE_MIN = 1
+COW_ATTACK_TAIL_WHIP_DAMAGE_BASE = 1
+COW_ATTACK_TAIL_WHIP_STRENGTH_DIVISOR = 2
+COW_ATTACK_TAIL_WHIP_ACCURACY = 95
+
+# Stunning Bellow - Stun effect
+COW_ATTACK_STUNNING_BELLOW_DURATION = 1
+COW_ATTACK_STUNNING_BELLOW_ACCURACY = 75
+
+# Paralyzing Stare - Variable stun duration
+COW_ATTACK_PARALYZING_STARE_MIN_DURATION = 1
+COW_ATTACK_PARALYZING_STARE_MAX_DURATION = 3
+COW_ATTACK_PARALYZING_STARE_ACCURACY = 60
+
+# Milk Rejuvenation - Cow self-heal
+COW_ATTACK_MILK_REJUV_HEAL_MIN = 3
+COW_ATTACK_MILK_REJUV_HEAL_BASE = 3
+COW_ATTACK_MILK_REJUV_STRENGTH_MULTIPLIER = 0.5
+COW_ATTACK_MILK_REJUV_ACCURACY = 100
+
+# Power-up Snort - Strength boost
+COW_ATTACK_POWER_UP_ACCURACY = 100
+
+# Moo of Doom - Rare powerful attack
+COW_ATTACK_MOO_DOOM_DAMAGE_MIN = 4
+COW_ATTACK_MOO_DOOM_DAMAGE_BASE = 4
+COW_ATTACK_MOO_DOOM_STRENGTH_MULTIPLIER = 1.5
+COW_ATTACK_MOO_DOOM_ACCURACY = 65
+
+# Haymaker - Very rare, very strong
+COW_ATTACK_HAYMAKER_DAMAGE_MIN = 6
+COW_ATTACK_HAYMAKER_DAMAGE_BASE = 5
+COW_ATTACK_HAYMAKER_STRENGTH_MULTIPLIER = 1.7
+COW_ATTACK_HAYMAKER_ACCURACY = 75
+
+# Bull Rush - Legendary attack
+COW_ATTACK_BULL_RUSH_DAMAGE_MIN = 5
+COW_ATTACK_BULL_RUSH_DAMAGE_BASE = 5
+COW_ATTACK_BULL_RUSH_STRENGTH_MULTIPLIER = 2.0
+COW_ATTACK_BULL_RUSH_ACCURACY = 80
+
+# ============================================================================
+# ITEM CONFIGURATION - Healing, rewards, and item balance
+# ============================================================================
+
+# Health Potion Healing Amounts
+POTION_MINOR_HEAL = 10
+POTION_NORMAL_HEAL = 20
+POTION_GREATER_HEAL = 40
+
+# Liquid Gold Economy
+LIQUID_GOLD_CASH_MULTIPLIER = 10  # Cash value per 50 player cash
+
+# Shop Progression Thresholds
+SHOP_GREATER_POTION_CASH_THRESHOLD = 200  # Cash needed to unlock greater potions
+
+# Item Stat Calculation
+ITEM_MEDIAN_STAT_DIVISOR = 3  # Used for upgrade comparison
+
+# Rarity Stat Floor Multipliers
+RARITY_FLOOR_MULTIPLIER_COMMON = 1.0
+RARITY_FLOOR_MULTIPLIER_UNCOMMON = 1.2
+RARITY_FLOOR_MULTIPLIER_MAGIC = 1.5
+RARITY_FLOOR_MULTIPLIER_RARE = 2.0
+RARITY_FLOOR_MULTIPLIER_LEGENDARY = 2.5
+
+# ============================================================================
+# ITEM DURABILITY - Cowbell and item breaking mechanics
+# ============================================================================
+
+COWBELL_BREAK_CASH_DIVISOR = 20  # Cash scaling for break chance (cash // 20)

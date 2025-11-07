@@ -1,12 +1,13 @@
 # Local development assistance (never commit)
 .ai/
 
-# Save files
-saves/
+# Save files (but keep example files)
+saves/*
+!saves/dev_save.example.json
 game_save.json
 
-# Career stats (meta-progression) - can optionally commit this
-# career_stats.json
+# Career stats (user's personal progress)
+career_stats.json
 
 # Python
 __pycache__/
@@ -17,6 +18,7 @@ __pycache__/
 
 # Virtual environments
 venv/
+venv_textual/
 env/
 ENV/
 
@@ -29,3 +31,17 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Performance/profiling data (generated during development)
+*.stats
+*_baseline.txt
+performance_baseline.txt
+tests_baseline.txt
+curses_profile.stats
+
+# Claude Code settings (local configuration)
+.claude/settings.local.json
+
+# Test output files (generated)
+test_output/
+*.log

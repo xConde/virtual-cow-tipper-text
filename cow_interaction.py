@@ -53,16 +53,18 @@ class CowInteraction:
         if is_dairy:
             if cow_bell:
                 break_chance = COWBELL_BREAK_CHANCE_BASE + int(self.player.cash) // 20 / 100
-                safe_print(f'Your cowbell helps attract the cow.')
+                bell_msg = 'Your cowbell helps attract the cow.'
                 if random.random() < break_chance:
-                    safe_print('The cowbell breaks in the process.')
+                    bell_msg += '\n\nThe cowbell breaks in the process.'
                     self.player.inventory.remove(cow_bell)
-            else:
-                safe_print('You hear a dairy cow mooing in the distance.')
+
+                self.game_terminal.draw_dialog(bell_msg)
+                self.pause_with_prompt("[Continue...]")
         return is_dairy
 
     def handle_dairy(self) -> None:
         """Handle dairy cow encounter (requires bucket to milk)."""
+        # Cow introduction already shown in game.py player_turn()
         bucket = self.get_item_from_inventory(Bucket)
         if bucket:
             from game_config import DAIRY_COW_HEAL_AMOUNT, PLAYER_MAX_HP
@@ -76,133 +78,202 @@ class CowInteraction:
             self.player.hp = min(self.player.hp + DAIRY_COW_HEAL_AMOUNT, PLAYER_MAX_HP)
             healed = self.player.hp - old_hp
 
-            safe_print(f"You milk {self.cow.name} with your bucket and obtain liquid gold.")
+            # Show dairy interaction results
+            dairy_msg = f"Dairy Cow Milked!\n\nYou milk {self.cow.name} and obtain liquid gold."
             if healed > 0:
-                safe_print(f"The fresh milk restores {healed} HP! (HP: {self.player.hp})")
-            self.cow.print_response(self.cow.name, 'dairy_bucket')
+                dairy_msg += f"\n\nHP restored: +{healed} (now {self.player.hp} HP)"
+
+            self.game_terminal.draw_dialog(dairy_msg)
+
+            # Pause
+            self.pause_with_prompt("[Press any key to continue...]")
         else:
-            safe_print(f"You encounter a dairy cow named {self.cow.name}, but you don't have a bucket to milk it.")
-            self.cow.print_response(self.cow.name, 'dairy_no_bucket')
+            no_bucket_msg = (
+                f"Dairy Cow - No Bucket\n\n"
+                f"You encounter {self.cow.name}, but you don't have a bucket to milk it.\n\n"
+                f"Find a bucket at a shop to milk dairy cows!"
+            )
+            self.game_terminal.draw_dialog(no_bucket_msg)
+
+            # Pause
+            self.pause_with_prompt("[Press any key to continue...]")
+
         self.game_instance.destroy_cow()
 
     def handle_combat(self) -> None:
         """Handle combat encounter with aggressive cow."""
-        safe_print(f"A combat with '{self.cow.name}' has started!")
+        self.game_terminal.draw_dialog(self.cow.approach)
         self.game_terminal.set_cow_stats(self.cow.get_combat_stats())
 
         cow_strength = self.cow.strength
 
         while self.player.hp > 0 and self.cow.hp > 0:
-            # Check if player is stunned
             if self.player.stunned_turns > 0:
-                safe_print(f"{self.player.name} is stunned and cannot act! ({self.player.stunned_turns} turns remaining)")
+                stun_msg = f"Stunned! You can't act!\n({self.player.stunned_turns} turns remaining)\n\n"
                 self.player.stunned_turns -= 1
-                CowAttack.cow_attack(self.player, self.cow)
+
+                attack_msg = CowAttack.cow_attack(self.player, self.cow)
+                if attack_msg:
+                    stun_msg += attack_msg
+
+                self.game_terminal.draw_dialog(stun_msg)
+                self.pause_with_prompt("[Continue...]")
                 continue
 
             actions = {
                 "attack": "Attack",
-                "check_inventory": "Check inventory",
-                "use_item": "Use an item from inventory",
+                "inventory": "Inventory",
                 "flee": "Flee"
             }
 
             choice = self.handle_menu_choice(actions)
 
-            if choice in range(1, 5):
+            if choice in range(1, 4):
                 choice = int(choice)
                 if choice == 1:
-                    self.player.deal_damage(self.cow)
+                    damage_dealt, flavor_text = self.player.deal_damage(self.cow)
+
+                    if flavor_text:
+                        damage_msg = flavor_text
+                        if self.cow.hp <= 0:
+                            damage_msg += f"\n\n{self.cow.name} is defeated!"
+                        else:
+                            damage_msg += f"\n\n{self.cow.name}: {self.cow.hp} HP remaining"
+                    else:
+                        damage_msg = f"{self.player.name} attacks {self.cow.name}!"
+                        if self.cow.hp <= 0:
+                            damage_msg += f"\n\n{self.cow.name} is defeated!"
+                        else:
+                            damage_msg += f"\n\n{self.cow.name}: {self.cow.hp} HP remaining"
+
+                    self.game_terminal.draw_dialog(damage_msg)
+                    self.pause_with_prompt("[Continue to cow's turn...]")
+
                     if self.cow.hp <= 0:
                         from game_config import COMBAT_CASH_MULTIPLIER, COMBAT_ITEM_DROP_CHANCE
 
-                        # FIX 5: Combat rewards 2x cash!
                         cash_reward = int(self.cow.cash * COMBAT_CASH_MULTIPLIER)
 
                         self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_WIN)
                         self.player.update_cash(cash_reward)
                         self.game_instance.stats.cows_defeated += 1
 
-                        victory_msg = f"You defeat {self.cow.name}. You gain ${cash_reward}!"
-                        safe_print(victory_msg)
+                        victory_msg = f"=== VICTORY ===\nYou defeat {self.cow.name}!\n\nRewards:\n  Cash: +${cash_reward}"
 
-                        # FIX 5: Item drops from combat!
                         import random
                         if random.random() < COMBAT_ITEM_DROP_CHANCE:
                             from item_factory import ItemFactory
                             drop = ItemFactory.create_random_item(less_likely=True)
                             self.player.inventory.append(drop)
-                            safe_print(f"{self.cow.name} dropped: {drop.name}!")
+                            victory_msg += f"\n  Item Drop: {drop.name}!"
 
                         self.game_terminal.draw_dialog(victory_msg)
-                        self.cow.print_response(self.cow.name, 'enraged_end')
+                        self.pause_with_prompt("[Victory!]")
                         break
                 elif choice == 2:
                     self.player.check_inventory()
                 elif choice == 3:
-                    self.player.use_item()
-                elif choice == 4:
                     self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_FLEE)
-                    safe_print("You flee from the combat.")
+                    flee_msg = f"Fled!\n\nYou escape from {self.cow.name}."
+                    self.game_terminal.draw_dialog(flee_msg)
+                    self.pause_with_prompt("[Escaping...]")
                     break
             else:
-                safe_print("Invalid choice. Please enter a number between 1 and 4.")
+                error_msg = "Invalid choice. Please enter 1, 2, or 3."
+                self.game_terminal.draw_dialog(error_msg)
+                self.game_terminal.stdscr.refresh()
 
-            # Cow's turn (if still alive)
             if self.cow.hp > 0:
                 attack_msg = CowAttack.cow_attack(self.player, self.cow)
                 if attack_msg:
-                    combat_log.append(attack_msg)
-
-                safe_print("\n[Press any key to continue...]")
-                self.game_terminal.stdscr.getch()
+                    self.game_terminal.draw_dialog(attack_msg)
+                    self.pause_with_prompt("[Continue...]")
                 
     def handle_shop(self) -> None:
         """Handle shop encounter (buy and sell items)."""
-        safe_print(f'You enter a shop run by a cow named {self.cow.name} who is currently {self.cow.mood}.')
-        self.cow.print_response(self.cow.name, 'shop_keeper_intro', False)
+        starting_cash = self.player.cash
+        purchases = []
+        sales = []
         lucky_chance = SHOP_LUCKY_CHANCE_UPSET if self.cow.mood == 'upset' else SHOP_LUCKY_CHANCE_FRIENDLY
         isLucky = random.random() < lucky_chance
-        if (self.cow.mood == 'friendly' and isLucky):
-            safe_print(f"The shop owner is very welcoming and shows you all the items in their shop with a smile.")
-        elif (self.cow.mood == 'upset' and isLucky):
-            safe_print(f"{self.cow.name} grudgingly charges extra, but you're feeling lucky.")
+
+        greeting_msg = f"{self.cow.name}'s Shop\n\n"
+        if self.cow.mood == 'friendly' and isLucky:
+            greeting_msg += "The shop owner greets you warmly!"
+        elif self.cow.mood == 'upset' and isLucky:
+            greeting_msg += f"{self.cow.name} grudgingly serves you."
+        else:
+            greeting_msg += f"Welcome to the shop. ({self.cow.mood} mood)"
+
+        self.game_terminal.draw_dialog(greeting_msg)
+        self.pause_with_prompt("[Browse items...]")
+
+        saved_shop_greeting = greeting_msg
+
         while True:
             available_items = get_shop_items(self.cow.mood, self.player.cash, isLucky)
+            num_items = len(available_items)
+
             item_strings = []
             for i, item in enumerate(available_items):
                 item_name = item['label'] if self.cow.mood != 'friendly' else item['item'].name
                 price = item["price"]
                 item_strings.append(f"{i + 1}. {item_name} - ${price}")
-            item_strings.append("4. Sell items")
-            item_strings.append("5. Leave the shop")
+
+            item_strings.append(f"{num_items + 1}. Sell items")
+            item_strings.append(f"{num_items + 2}. Leave the shop")
 
             menu_items = item_strings
             choice = self.game_terminal.get_menu_choice(menu_items)
-            if choice in range(1, 6):
+
+            if choice in range(1, num_items + 3):
                 choice = int(choice)
-                if choice <= 3:
-                    # Buy item
+                if choice <= num_items:
                     item_choice = available_items[choice - 1]
-                item_price = item_choice['price']
-                if self.player.cash >= item_price:
-                    self.player.update_cash(-item_price)
-                    score = PACK_SCORE_SHOP_BASE + int(item_choice['price'] // PACK_SCORE_SHOP_EXPENSIVE_BONUS)
-                    self.game_instance.update_cow_scores(self.cow, score)
-                    self.player.update_inventory(item_choice['item'], "add")
-                    self.player.display_info()
-                    self.cow.print_response(self.cow.name, 'shop_keeper_purchase', False)
-                    if item_choice['item'].type in ['weapon', 'shield']:
-                        safe_print(f"You purchased a {item_choice['item'].stats()} for ${item_price}.")
+                    item_price = item_choice['price']
+                    if self.player.cash >= item_price:
+                        self.player.update_cash(-item_price)
+                        self.player.update_inventory(item_choice['item'], "add")
+                        self.player.display_info()
+
+                        item_name = item_choice['item'].name
+                        purchases.append((item_name, item_price))
+                        total_spent = sum(price for _, price in purchases)
+                        if item_choice['item'].type in ['weapon', 'shield']:
+                            item_display = item_choice['item'].stats()
+                        else:
+                            item_display = item_choice['item'].name
+
+                        purchase_msg = (
+                            f"Purchased: {item_display}\n"
+                            f"Paid: ${item_price} | Remaining: ${self.player.cash}\n\n"
+                            f"Visit Total: {len(purchases)} items | ${total_spent} spent"
+                        )
+
+                        self.game_terminal.draw_dialog(purchase_msg)
+                        self.pause_with_prompt("[Continue shopping...]")
+
+                        self.game_terminal.draw_dialog(saved_shop_greeting)
                     else:
-                        safe_print(f"You purchased {item_choice['item'].name} for ${item_price}.")
-                    safe_print(f"Remaining cash: ${self.player.cash}\n")
-                elif choice == 4:
-                    # Sell items (your TODO!)
-                    safe_print("\n=== Sell Items ===")
+                        error_msg = (
+                            f"Not Enough Cash\n\n"
+                            f"Item costs: ${item_price}\n"
+                            f"You have: ${self.player.cash}\n\n"
+                            f"Come back when you have more cash!"
+                        )
+                        self.game_terminal.draw_dialog(error_msg)
+
+                        self.pause_with_prompt("[Continue shopping...]")
+
+                        self.game_terminal.draw_dialog(saved_shop_greeting)
+                elif choice == num_items + 1:
                     sellable = [item for item in self.player.inventory if hasattr(item, 'stats')]
                     if not sellable:
-                        safe_print("You have no items to sell.")
+                        no_items_msg = "No items to sell.\n\nYou don't have any sellable items."
+                        self.game_terminal.draw_dialog(no_items_msg)
+                        self.pause_with_prompt("[Continue shopping...]")
+
+                        self.game_terminal.draw_dialog(saved_shop_greeting)
                         continue
 
                     sell_menu = [f"{i+1}. {item.name} - ${self._calculate_sell_price(item, self.cow.mood)}"
@@ -215,97 +286,169 @@ class CowInteraction:
                         sell_price = self._calculate_sell_price(sold_item, self.cow.mood)
                         self.player.update_inventory(sold_item, "remove")
                         self.player.update_cash(sell_price)
-                        safe_print(f"You sold {sold_item.name} for ${sell_price}.")
-                        self.cow.print_response(self.cow.name, 'shop_keeper_purchase', False)
-                elif choice == 5:
-                    self.cow.print_response(self.cow.name, 'shop_keeper_end')
+                        self.player.display_info()
+
+                        sales.append((sold_item.name, sell_price))
+                        total_earned = sum(price for _, price in sales)
+                        sale_msg = (
+                            f"Sold: {sold_item.name}\n"
+                            f"Received: ${sell_price} | Balance: ${self.player.cash}\n\n"
+                            f"Visit Total: {len(sales)} sold | ${total_earned} earned"
+                        )
+                        self.game_terminal.draw_dialog(sale_msg)
+                        self.pause_with_prompt("[Continue shopping...]")
+
+                        self.game_terminal.draw_dialog(saved_shop_greeting)
+                    else:
+                        cancel_msg = "Sale cancelled."
+                        self.game_terminal.draw_dialog(cancel_msg)
+                        self.pause_with_prompt("[Continue shopping...]")
+
+                        self.game_terminal.draw_dialog(saved_shop_greeting)
+                elif choice == num_items + 2:
+                    # Calculate total shop score based on transactions
+                    total_shop_score = 0
+                    for item_name, price in purchases:
+                        total_shop_score += PACK_SCORE_SHOP_BASE + int(price // PACK_SCORE_SHOP_EXPENSIVE_BONUS)
+
+                    # Leave the shop with visit summary
+                    if purchases or sales:
+                        exit_msg = f"Leaving {self.cow.name}'s Shop\n\n"
+
+                        if purchases:
+                            exit_msg += f"Purchased: {len(purchases)} items\n"
+                            for item_name, price in purchases:
+                                exit_msg += f"  • {item_name} (${price})\n"
+
+                        if sales:
+                            exit_msg += f"\nSold: {len(sales)} items\n"
+                            for item_name, price in sales:
+                                exit_msg += f"  • {item_name} (${price})\n"
+
+                        total_spent = sum(price for _, price in purchases)
+                        total_earned = sum(price for _, price in sales)
+                        net_change = total_earned - total_spent
+
+                        exit_msg += f"\nCash: ${starting_cash} → ${self.player.cash}"
+                        if net_change < 0:
+                            exit_msg += f" (spent ${abs(net_change)})"
+                        elif net_change > 0:
+                            exit_msg += f" (profit ${net_change})"
+                    else:
+                        exit_msg = f"Leaving {self.cow.name}'s Shop\n\nYou browsed but didn't transact."
+
+                    self.game_terminal.draw_dialog(exit_msg)
+                    self.pause_with_prompt("[Continue adventure...]")
+
+                    # Update pack scores based on total shop interaction
+                    if total_shop_score > 0:
+                        self.cow.likeliness += total_shop_score
+                        for queued_cow in self.game_instance.cows:
+                            queued_cow.likeliness += total_shop_score
+                        self.game_instance.cow_packs[self.cow.pack] += total_shop_score
+
                     self.game_instance.destroy_cow()
                     return
-                else:
-                    safe_print("You don't have enough cash for that item.\n")
             else:
-                safe_print("Invalid choice. Please enter a number between 1 and 4.")
+                error_msg = f"Invalid choice. Please select 1-{num_items + 2}."
+                self.game_terminal.draw_dialog(error_msg)
+                self.pause_with_prompt("[Try again...]")
+
+                self.game_terminal.draw_dialog(saved_shop_greeting)
 
     def handle_tip_or_leave(self) -> None:
         """Handle regular cow encounter (tip for mini-game or leave)."""
         self.game_terminal.set_cow_stats(self.cow.get_mood_status())
         self.cow.print_response(self.cow.name, 'intro', False)
-
-        # FIX 2: Make mini-games OPTIONAL!
         actions = {
-            "play_mini_game": f"Tip {self.cow.name} (play mini-game)",
-            "quick_tip": f"Quick tip ${self.cow.req_amount} (skip mini-game)",
+            "play_mini_game": f"Play mini-game with {self.cow.name}",
             "leave": "Leave"
         }
 
         choice = self.handle_menu_choice(actions)
 
-        if choice == "1":
-            # Play mini-game (original flow)
-            min_bet = self.cow.req_amount
-            max_bet = min(self.player.cash, self.cow.req_amount * random.randint(2,5))
+        if choice == 1:
+            tip_amount = self.cow.req_amount
+            game_msg = (
+                f"Dice Rolling Game!\n\n"
+                f"{self.cow.name} challenges you to a game of chance.\n"
+                f"Bet: ${tip_amount}\n\n"
+                f"Roll two dice - get 7 or higher to win!\n"
+                f"(7-12 wins, 2-6 loses)"
+            )
+            self.game_terminal.draw_dialog(game_msg)
+            self.pause_with_prompt("[Press ENTER to roll the dice...]")
+            rolling_msg = (
+                f"Rolling the dice...\n\n"
+                f"🎲 🎲\n\n"
+                f"The dice tumble..."
+            )
+            self.game_terminal.draw_dialog(rolling_msg)
+            self.pause_with_prompt("[Press ENTER to see result...]")
 
-            actions = {
-                "bet min": f"Bet ${min_bet}",
-                "bet max": f"Bet ${max_bet}"
-            }
+            self.player.update_cash(-tip_amount)
+            die1 = random.randint(1, 6)
+            die2 = random.randint(1, 6)
+            total = die1 + die2
+            won = total >= 7
 
-            choice = self.handle_menu_choice(actions, f"How much do you want to bet for the mini-game?")
-            bet_amount = min_bet if choice == "1" else max_bet
-            self.player.update_cash(-bet_amount)
-            cow_games_instance = CowGames(self.player, self.cow)
-            reward = cow_games_instance.play_random_mini_game(bet_amount)
+            if won:
+                profit = tip_amount
+                self.player.update_cash(tip_amount * 2)  # Get bet back + profit
 
-            if reward > bet_amount:
-                win_amount = round(reward - bet_amount, 2)
-                safe_print(f"Congratulations! You won ${win_amount}!")
-                self.player.update_cash(reward)
+                win_msg = (
+                    f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
+                    f"YOU WIN!\n\n"
+                    f"The dice favor you!\n"
+                    f"Profit: +${profit}"
+                )
+                self.game_terminal.draw_dialog(win_msg)
 
-                if win_amount >= bet_amount * 1.5:
-                    score = 2
-                elif win_amount >= bet_amount * 0.5:
-                    score = 1
-                else:
-                    score = 0.5
-
+                score = 1
                 self.cow.likeliness += score
-                self.game_instance.update_cow_scores(self.cow, score)
-
-            else:
-                loss_amount = bet_amount - reward
-                self.player.update_cash(reward)
-
-                if loss_amount >= bet_amount * 0.5:
-                    score = -0.5
-                else:
-                    score = -1
-
-                self.cow.likeliness += score
-                self.game_instance.update_cow_scores(self.cow, score)
-
-        elif choice == "2":
-            # NEW: Quick tip option (skip mini-game)
-            quick_tip = self.cow.req_amount
-            if self.player.cash >= quick_tip:
-                self.player.update_cash(-quick_tip)
-                reward = int(quick_tip * 1.5)  # Small profit for tipping
-                self.player.update_cash(reward)
-                score = 0.5
-                self.cow.likeliness += score
-                safe_print(f"You tip {self.cow.name} ${quick_tip}. They appreciate it.")
-                safe_print(f"You gain ${reward - quick_tip} (modest profit, no mini-game)")
                 self.game_instance.update_cow_scores(self.cow, score)
             else:
-                safe_print(f"You don't have ${quick_tip} for a quick tip.")
-                return
+                loss_msg = (
+                    f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
+                    f"You Lose\n\n"
+                    f"Not lucky this time.\n"
+                    f"Lost: ${tip_amount}"
+                )
+                self.game_terminal.draw_dialog(loss_msg)
 
-        elif choice == "3":
-            safe_print(f"You decided to leave {self.cow.name}.")
+                score = -0.5
+                self.cow.likeliness += score
+                self.game_instance.update_cow_scores(self.cow, score)
+
+            self.pause_with_prompt("[Press any key to continue...]")
+
+        elif choice == 2:
+            leave_msg = (
+                f"Leaving {self.cow.name}\n\n"
+                f"You decided to leave.\n"
+                f"The cow seems disappointed but understanding."
+            )
+            self.game_terminal.draw_dialog(leave_msg)
+
             score = -1  # Less harsh penalty for leaving
             self.cow.likeliness += score
             self.game_instance.update_cow_scores(self.cow, score)
+            self.pause_with_prompt("[Press any key to continue...]")
         else:
-            safe_print("Please enter a number between 1 and 3.")
+            error_msg = f"Invalid choice. Please select 1 or 2."
+            self.game_terminal.draw_dialog(error_msg)
+            self.pause_with_prompt("[Press any key to try again...]")
+            return self.handle_tip_or_leave()
+
+    def pause_with_prompt(self, prompt_text="[Continue...]"):
+        """Show a pause prompt and wait for key, with menu area cleared."""
+        self.game_terminal.clear_area(self.game_terminal.MENU_Y_START, self.game_terminal.MENU_Y_END)
+        self.game_terminal.clear_area(self.game_terminal.PROMPT_INPUT_Y)
+
+        prompt_y = self.game_terminal.PROMPT_INPUT_Y
+        self.game_terminal.stdscr.addstr(prompt_y, 2, prompt_text)
+        self.game_terminal.stdscr.refresh()
+        self.game_terminal.stdscr.getch()
 
     def handle_menu_choice(self, actions, prompt=None):
         menu_items = [f"{i + 1}. {action}" for i, action in enumerate(actions.values())]

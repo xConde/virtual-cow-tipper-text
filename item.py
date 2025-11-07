@@ -22,12 +22,20 @@ class Potion(Item):
         self.type = 'potion'
 
     def use(self, player):
-        """Use potion to restore HP."""
+        """
+        Use potion to restore HP.
+
+        Returns:
+            True if potion was used (HP not full), False if HP already at max
+        """
+        from game_config import PLAYER_MAX_HP
+
         if self.stat == 'hp':
+            if player.hp >= PLAYER_MAX_HP:
+                return False
+
             old_hp = player.hp
-            player.hp = min(player.hp + self.boost_amount, 100)  # Cap at 100
-            healed = player.hp - old_hp
-            print(f"{player.name} uses {self.name} and restores {healed} HP!")
+            player.hp = min(player.hp + self.boost_amount, PLAYER_MAX_HP)
             return True
         return False
 

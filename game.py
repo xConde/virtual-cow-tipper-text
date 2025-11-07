@@ -10,6 +10,7 @@ from dialogue_manager import DialogueManager
 from models import GameStats
 from save_manager import SaveManager
 from career_stats import CareerStats, Unlock
+from utils import safe_print
 from game_config import (
     COW_QUEUE_SIZE,
     NUM_COW_PACKS,
@@ -60,11 +61,44 @@ class VirtualCowTipper:
         if load_save:
             self._load_saved_game()
 
+    def _show_game_introduction(self, loaded_game: bool = False) -> None:
+        """Show welcome message and game introduction."""
+        self.game_terminal.clear_screen()
+        self.game_terminal.stdscr.refresh()
+        self.player.display_info()
+
+        if loaded_game:
+            inventory_count = len(self.player.inventory)
+
+            intro_msg = (
+                f"Welcome back, {self.player.name}!\n\n"
+                f"Progress:\n"
+                f"  Floor {self.current_floor} - Encounter #{self.encounters_this_floor + 1}\n"
+                f"  Cows Defeated: {self.stats.cows_defeated}\n"
+                f"  Inventory: {inventory_count}/8 items"
+            )
+        else:
+            intro_msg = (
+                f"Welcome to the Cow Towers, {self.player.name}!\n\n"
+                f"Ascend the tower by defeating cows and trading wisely.\n\n"
+                f"Starting: HP {self.player.hp} | Cash ${self.player.cash}\n\n"
+                f"Controls: Arrows/Numbers to navigate | SPACE/ENTER to select\n\n"
+                f"Let's begin your adventure!"
+            )
+
+        self.game_terminal.draw_dialog(intro_msg)
+        self._pause_with_prompt("[Press any key to begin...]")
+
+        self.game_terminal.clear_screen()
+        self.game_terminal.stdscr.refresh()
+
     def start(self) -> None:
         """Main game loop."""
+        if not hasattr(self, 'showed_intro'):
+            self._show_game_introduction()
+            self.showed_intro = True
+
         while self.running:
-            self.game_terminal.clear_screen()
-            self.game_terminal.refresh()
             self.player.display_info()
             self.player_turn()
             self.check_end_conditions()
@@ -84,8 +118,22 @@ class VirtualCowTipper:
             self.cows.append(self.generate_cow())
 
     def destroy_cow(self):
+        """Clean up current cow and increment encounter tracking."""
         self.game_terminal.set_cow_stats('')
         self.cow = None
+        self.encounters_this_floor += 1
+
+        if self.encounters_this_floor >= self.encounters_per_floor:
+            self.advance_floor()
+
+    def advance_floor(self):
+        """Advance to the next floor and reset encounter counter."""
+        self.current_floor += 1
+        self.encounters_this_floor = 0
+
+        floor_msg = f"=== FLOOR {self.current_floor} REACHED ===\n\nYou ascend to the next level!"
+        self.game_terminal.draw_dialog(floor_msg)
+        self._pause_with_prompt("[Press any key to continue...]")
 
     def update_cow_scores(self, defeated_cow: Cow, score: float):
         """Update pack reputation and queued cow likeliness based on interaction outcome."""
@@ -98,13 +146,49 @@ class VirtualCowTipper:
         if not self.cow:
             self.spawn_cow()
 
-            # Show tutorial tip before first encounter
+            self.game_terminal.clear_screen()
+            self.game_terminal.stdscr.refresh()
+            self.player.display_info()
+
+            encounter_num = self.encounters_this_floor + 1
+            if self.cow.is_aggro:
+                cow_type = "Aggressive Cow"
+                behavior = "AGGRESSIVE"
+                behavior_desc = f"{self.cow.name} looks hostile and ready to fight!"
+            elif self.cow.is_shop:
+                cow_type = "Shop Keeper"
+                behavior = "SHOP KEEPER"
+                behavior_desc = f"{self.cow.name} runs a shop here."
+            else:
+                cow_type = "Peaceful Cow"
+                behavior = "NEUTRAL"
+                behavior_desc = f"{self.cow.name} seems curious about you."
+
             if self.first_encounter:
-                from tutorial import show_first_encounter_tip
-                self.game_terminal.close_game_terminal()
-                show_first_encounter_tip()
-                self.game_terminal = GameTerminal()  # Reinitialize
+                intro_msg = f"Floor {self.current_floor} - Encounter #1\n\n"
+                intro_msg += f"{self.cow.approach}\n\n"
+                if self.cow.is_aggro:
+                    intro_msg += f"Prepare to fight!\n\n"
+                elif self.cow.is_shop:
+                    intro_msg += f"A shop! You can buy items here.\n\n"
+                else:
+                    intro_msg += f"Looks friendly. You could tip or interact.\n\n"
+
+                intro_msg += f"TIP: Arrows/Numbers navigate | SPACE/ENTER select"
                 self.first_encounter = False
+            else:
+                intro_msg = f"Floor {self.current_floor} - Encounter #{encounter_num}\n\n"
+                intro_msg += f"{self.cow.approach}"
+            if self.cow.is_aggro:
+                cow_header = f"{self.cow.name} | HP {self.cow.hp} | STR {self.cow.strength} - HOSTILE"
+            elif self.cow.is_shop:
+                cow_header = f"{self.cow.name} | Shop ({self.cow.mood})"
+            else:
+                cow_header = f"{self.cow.name} | {self.cow.mood.title()}"
+            self.game_terminal.set_cow_stats(cow_header)
+
+            self.game_terminal.draw_dialog(intro_msg)
+            self._pause_with_prompt("[Press any key to continue...]")
 
             # Easter egg: Lucky 777
             from easter_eggs import check_lucky_number
@@ -117,18 +201,16 @@ class VirtualCowTipper:
                     "HP" if self.player.hp == 77 else "Cash"
                 )
                 self.game_terminal = GameTerminal()
-
-        self.cow.get_approach()
+                # Redraw the intro after easter egg
+                self.game_terminal.draw_dialog(intro_msg)
+                self.game_terminal.stdscr.refresh()
 
         # Easter egg: Meta-dialogue (1% chance)
         from easter_eggs import get_meta_dialogue
         meta = get_meta_dialogue()
         if meta:
-            # Use draw_dialog for proper margins
             self.game_terminal.draw_dialog(f"[The cow pauses and looks at you] \"{meta}\" [It continues as normal]")
-            self.game_terminal.refresh()
-            # Use getch instead of input (curses mode)
-            self.game_terminal.stdscr.getch()
+            self._pause_with_prompt("[Press any key to continue...]")
 
         is_interrupted = self.get_interruption()
         if is_interrupted:
@@ -138,36 +220,57 @@ class VirtualCowTipper:
         actions = {
             "approach the cow": lambda: CowInteraction(self, self.player, self.cow).interact(),
             "rest": self._rest,
-            "check inventory": lambda: self.player.check_inventory(),
-            "use an item from inventory": self.player.use_item,
-            "save and quit": self.quit_with_save,
+            "inventory": lambda: self.player.check_inventory(),
+            "quit": self.quit_with_save,
         }
 
+        menu_items = [f"{i+1}. {action}" for i, action in enumerate(actions.keys())]
+        choice = self.game_terminal.get_menu_choice(menu_items)
+
+        if choice in range(1, len(actions) + 1):
+            action_name = list(actions.keys())[choice - 1]
+            action_func = actions[action_name]
+
+            try:
+                action_func()
+            except Exception as e:
+                safe_print(f"Error executing action: {e}")
+                import traceback
+                traceback.print_exc()
+
     def _rest(self) -> None:
-        """Rest to recover HP (skip cow encounter)."""
+        """Rest to recover HP. Only skips cow if healing occurs."""
         from game_config import REST_HEAL_AMOUNT, PLAYER_MAX_HP
+
+        if self.player.hp >= PLAYER_MAX_HP:
+            saved_dialog = self.game_terminal.save_dialog_state()
+
+            rest_msg = (
+                f"Already at Full HP!\n\n"
+                f"{self.player.name}, you're already at maximum health.\n\n"
+                f"No need to rest right now.\n\n"
+                f"The cow waits patiently..."
+            )
+            self.game_terminal.draw_dialog(rest_msg)
+            self._pause_with_prompt("[Press any key to continue...]")
+
+            self.game_terminal.restore_dialog_state(saved_dialog)
+            return
 
         old_hp = self.player.hp
         self.player.hp = min(self.player.hp + REST_HEAL_AMOUNT, PLAYER_MAX_HP)
         healed = self.player.hp - old_hp
 
-        print(f"\n{self.player.name} rests and recovers {healed} HP.")
-        print(f"Current HP: {self.player.hp}/{PLAYER_MAX_HP}")
-        print("The cow wanders off while you rest...")
-
-        # Skip this cow, generate new one
+        rest_msg = (
+            f"=== RESTING ===\n\n"
+            f"{self.player.name} takes a moment to rest.\n"
+            f"HP restored: +{healed}\n"
+            f"Current HP: {self.player.hp}/{PLAYER_MAX_HP}\n\n"
+            f"The cow wanders off while you rest..."
+        )
+        self.game_terminal.draw_dialog(rest_msg)
         self.destroy_cow()
-        input("\nPress Enter to continue...")
-        while True:
-            menu_items = [f"{i+1}. {action.capitalize()}" for i, action in enumerate(actions.keys())]
-            choice = self.game_terminal.get_menu_choice(menu_items)
-            if choice in range(1, len(actions.keys())+1):
-                action_name = list(actions.keys())[int(choice) - 1]
-                try:
-                    actions[action_name](self.cow)
-                except TypeError:
-                    actions[action_name]()
-                return
+        self._pause_with_prompt("[Press any key to continue...]")
     
     def get_interruption(self) -> Optional[str]:
         """Check for random interruption event (10% chance)."""
@@ -261,6 +364,25 @@ class VirtualCowTipper:
         print(f"  Mini-Games Won: {self.stats.mini_games_won}")
         print(f"  Legendary Items Found: {self.stats.legendary_items_found}")
 
+    def _pause_with_prompt(self, prompt_text: str = "[Continue...]"):
+        """
+        Show a pause prompt and wait for keypress, with menu hidden.
+
+        This is a helper method to maintain consistent pause behavior across game.py.
+        It follows the same pattern as CowInteraction.pause_with_prompt().
+        """
+        # Clear menu area so it doesn't show during pause
+        self.game_terminal.clear_area(self.game_terminal.MENU_Y_START, self.game_terminal.MENU_Y_END)
+
+        # Clear prompt area first to remove any old text
+        self.game_terminal.clear_area(self.game_terminal.PROMPT_INPUT_Y)
+
+        # Show prompt
+        prompt_y = self.game_terminal.PROMPT_INPUT_Y
+        self.game_terminal.stdscr.addstr(prompt_y, 2, prompt_text)
+        self.game_terminal.stdscr.refresh()
+        self.game_terminal.stdscr.getch()
+
     def _restart_game(self) -> None:
         """Reset game state for new run."""
         # Delete old save before restarting
@@ -274,7 +396,8 @@ class VirtualCowTipper:
 
     def save_game(self) -> bool:
         """Save current game state."""
-        return SaveManager.save_game(self.player, self.stats, self.cow_packs)
+        return SaveManager.save_game(self.player, self.stats, self.cow_packs,
+                                     self.current_floor, self.encounters_this_floor)
 
     def _load_saved_game(self) -> None:
         """Load game state from save file."""
@@ -283,30 +406,41 @@ class VirtualCowTipper:
             print("No save file found or load failed.")
             return
 
-        # Restore player
         SaveManager.restore_player(self.player, save_data)
-
-        # Restore stats
         SaveManager.restore_stats(self.stats, save_data)
 
-        # Restore pack scores
         self.cow_packs = save_data['cow_packs']
+        self.current_floor = save_data.get('current_floor', 1)
+        self.encounters_this_floor = save_data.get('encounters_this_floor', 0)
 
-        print(f"\nGame loaded from {save_data['timestamp']}")
-        print(f"Welcome back, {self.player.name}!")
-        input("\nPress Enter to continue...")
+        self.showed_intro = True
+        self._show_game_introduction(loaded_game=True)
 
     def quit_with_save(self) -> None:
         """Quit game with option to save."""
-        print("\n" + "="*60)
-        print("Quitting game...")
-        save_choice = input("Save your progress? (y/n): ").strip().lower()
+        saved_dialog = self.game_terminal.save_dialog_state()
 
-        if save_choice == 'y':
+        quit_msg = f"Quitting Game\n\nSave your progress?"
+        self.game_terminal.draw_dialog(quit_msg)
+
+        menu_items = ["1. Save and quit", "2. Quit without saving", "3. Cancel (back to game)"]
+        choice = self.game_terminal.get_menu_choice(menu_items, "Select an option:")
+
+        if choice == 1:
             if self.save_game():
-                print("Progress saved! You can continue later.")
+                success_msg = "Progress Saved!\n\nYou can continue later.\n\nSee you next time!"
+                self.game_terminal.draw_dialog(success_msg)
+                self._pause_with_prompt("[Press any key to exit...]")
+                self.game_terminal.close_game_terminal()
+                self.running = False
             else:
-                print("Save failed.")
-
-        self.game_terminal.close_game_terminal()
-        self.running = False
+                error_msg = "Save Failed!\n\nUnable to save progress.\n\nQuitting anyway..."
+                self.game_terminal.draw_dialog(error_msg)
+                self._pause_with_prompt("[Press any key to exit...]")
+                self.game_terminal.close_game_terminal()
+                self.running = False
+        elif choice == 2:
+            self.game_terminal.close_game_terminal()
+            self.running = False
+        else:
+            self.game_terminal.restore_dialog_state(saved_dialog)

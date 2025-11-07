@@ -114,7 +114,7 @@ class Cow:
         """Display cow's approach (already shown via draw_dialog)."""
         # Don't use print() - it bypasses terminal margins!
         self.game_terminal.draw_dialog(self.approach)
-        self.game_terminal.refresh()
+        # draw_dialog already called stdscr.refresh(), don't call game_terminal.refresh()!
 
     def print_response(self, cow_name, response_type, gap=True):
         """Print cow response - only use draw_dialog to avoid duplication."""

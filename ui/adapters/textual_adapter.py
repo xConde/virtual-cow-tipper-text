@@ -50,7 +50,13 @@ class TextualAdapter(BaseUI):
             # Textual apps run synchronously, we need a different approach
             # Run in thread to avoid blocking
             import threading
-            self._app_thread = threading.Thread(target=self.app.run, daemon=True)
+
+            def run_app():
+                """Run app with proper terminal control."""
+                # Ensure app takes full control of terminal
+                self.app.run(inline=False, headless=False)
+
+            self._app_thread = threading.Thread(target=run_app, daemon=True)
             self._app_thread.start()
             # Give app time to start
             await asyncio.sleep(1)
@@ -120,6 +126,11 @@ class TextualAdapter(BaseUI):
                 pass
             return None
 
+        # Pop any existing dialogue screens to prevent stacking
+        while self.app.navigation_stack and 'dialogue' in self.app.navigation_stack:
+            self.app.pop_screen()
+            await asyncio.sleep(0.05)
+
         # Create dialogue screen with choices
         screen_data = {
             'speaker': 'System',
@@ -152,10 +163,24 @@ class TextualAdapter(BaseUI):
         default: Optional[str] = None
     ) -> str:
         """Get text input from user with validation."""
-        # For now, use notification and return default
-        # Full input dialog would need custom screen
-        self.app.notify(f"{prompt} (using default: {default})")
-        return default or ""
+        # Use dialogue screen with a single "Continue" option
+        # The user will see the prompt and use the default for now
+        # A proper input screen would require a custom TextInput widget
+
+        if not self.app:
+            return default or ""
+
+        # Show dialogue with information about using default
+        choices = [f"Continue as '{default}'", "Use default name"]
+        choice = await self.show_menu(
+            choices,
+            title=prompt,
+            allow_cancel=False
+        )
+
+        # For now, always return the default
+        # A full implementation would need a custom input screen
+        return default or "Player"
 
     # ==================== Game-Specific Displays ====================
 
@@ -220,6 +245,11 @@ class TextualAdapter(BaseUI):
                 except:
                     pass
             return None
+
+        # Pop any existing dialogue screens to prevent stacking
+        while self.app.navigation_stack and 'dialogue' in self.app.navigation_stack:
+            self.app.pop_screen()
+            await asyncio.sleep(0.05)
 
         # Push dialogue screen
         screen_data = {

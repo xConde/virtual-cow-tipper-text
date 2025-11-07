@@ -54,25 +54,21 @@ class CowAttack:
             if chosen_attack.damage:
                 player.hp -= chosen_attack.damage
                 attack_msg = f"{cow.name} uses {chosen_attack.name} for {chosen_attack.damage} damage!"
-                safe_print(attack_msg)
 
             if chosen_attack.effect:
                 if chosen_attack.effect == "stun":
                     player.stunned_turns = chosen_attack.duration
-                    effect_msg = f"{player.name} is stunned for {chosen_attack.duration} turns!"
-                    safe_print(effect_msg)
-                    attack_msg += f" (Stun!)"
+                    # Add stun info to attack message
+                    attack_msg += f"\n{player.name} is stunned for {chosen_attack.duration} turns!"
                 elif chosen_attack.effect == "heal":
-                    heal_msg = f"{cow.name} heals for {chosen_attack.healing} HP!"
-                    safe_print(heal_msg)
                     cow.hp += chosen_attack.healing
                     cow.hp = min(cow.hp, cow.max_hp)
-                    attack_msg += f" (Healed!)"
+                    # Add heal info to attack message
+                    attack_msg += f"\n{cow.name} heals for {chosen_attack.healing} HP!"
                 elif chosen_attack.effect == "power_up":
-                    safe_print(f"{cow.name} powers up!")
-                    attack_msg += f" (Powered up!)"
+                    # Add power up info to attack message
+                    attack_msg += f"\n{cow.name} powers up! Strength increased!"
         else:
             attack_msg = f"{cow.name} misses!"
-            safe_print(attack_msg)
 
         return attack_msg

@@ -39,6 +39,13 @@ if USE_TEXTUAL:
     # Use the new Textual UI with game integration
     print("Starting Virtual Cow Tipper with Textual UI...")
 
+    # Clear terminal before starting
+    import subprocess
+    try:
+        subprocess.call(['clear'] if os.name == 'posix' else ['cls'], shell=True)
+    except:
+        print("\033[2J\033[H")  # ANSI escape codes to clear screen
+
     # Import and run the Textual game adapter
     from game_textual_integration import TextualGameAdapter
     import asyncio

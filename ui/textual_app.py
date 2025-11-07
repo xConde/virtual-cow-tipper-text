@@ -37,6 +37,13 @@ class VirtualCowTipperApp(App):
     TITLE = "Virtual Cow Tipper"
     SUB_TITLE = "Textual Edition"
 
+    DEFAULT_CSS = """
+    Screen {
+        background: $surface;
+        overflow: hidden;
+    }
+    """
+
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit", priority=True),
         Binding("escape", "back", "Back", show=False),
@@ -70,8 +77,13 @@ class VirtualCowTipperApp(App):
 
     async def on_mount(self) -> None:
         """Handle application mount."""
-        # Start with main menu
-        self.push_screen("main_menu")
+        # Clear and set solid background for entire application
+        self.screen.styles.background = "$surface"
+        self.screen.styles.overflow_x = "hidden"
+        self.screen.styles.overflow_y = "hidden"
+
+        # Don't automatically push main_menu - let the game control flow via dialogue screens
+        # The game will use show_menu() to display options
 
         # Start event processing
         asyncio.create_task(self._process_events())
@@ -587,24 +599,46 @@ class CareerScreen(BaseGameScreen):
 
 
 class DialogueScreen(BaseGameScreen):
-    """Dialogue interaction screen."""
+    """Dialogue interaction screen - fully modal overlay."""
+
+    DEFAULT_CSS = """
+    DialogueScreen {
+        /* Full screen coverage */
+        width: 100%;
+        height: 100%;
+        background: black 90%;
+        layer: overlay;
+        align: center middle;
+        overflow: hidden;
+    }
+    """
 
     def compose(self) -> ComposeResult:
-        """Create dialogue screen."""
+        """Create dialogue screen with opaque background."""
         speaker = self.data.get('speaker', 'Unknown')
         text = self.data.get('text', '...')
         choices = self.data.get('choices', [])
 
-        with Container(classes="dialogue-screen"):
-            yield Static(f"[{speaker}]", classes="dialogue-speaker")
-            yield Static(text, classes="dialogue-text")
+        # Full-screen wrapper with opaque black background
+        with Container(classes="dialogue-screen-wrapper"):
+            # Inner dialogue box with content
+            with Container(classes="dialogue-screen"):
+                # Speaker name
+                if speaker and speaker != "System":
+                    yield Static(f"╔═══ {speaker} ═══╗", classes="dialogue-speaker")
 
-            if choices:
-                with Vertical(classes="dialogue-choices"):
-                    for i, choice in enumerate(choices):
-                        yield Button(choice, id=f"choice_{i}")
-            else:
-                yield Button("Continue", id="continue", variant="primary")
+                # Dialogue text
+                yield Static(text, classes="dialogue-text")
+
+                # Choices or continue button
+                if choices:
+                    with Vertical(classes="dialogue-choices"):
+                        for i, choice in enumerate(choices):
+                            # Don't add numbers if the choice already has them
+                            choice_text = choice if choice[0].isdigit() else f"{i+1}. {choice}"
+                            yield Button(choice_text, id=f"choice_{i}", variant="primary")
+                else:
+                    yield Button("[ Continue ]", id="continue", variant="success")
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle dialogue choices."""

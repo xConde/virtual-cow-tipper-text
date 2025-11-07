@@ -167,9 +167,7 @@ class EasterEggRewards:
     def developer_encounter():
         """Special encounter when using developer's name."""
         print(f"\n{'='*40}")
-        print("DEVELOPER COW ENCOUNTERED!")
+        print("🎁 Developer Bonus!")
         print(f"{'='*40}")
-        print("A cow that looks suspiciously like it's been coding...")
-        print('"Oh, it\'s YOU. The one who brought me into existence."')
-        print('"I\'ve been waiting in context.py!"')
-        print('"Here, take this legendary item as thanks for finishing the game."')
+        print('"Oh, it\'s YOU. The one who created me!"')
+        print('"Take this legendary item as thanks."')

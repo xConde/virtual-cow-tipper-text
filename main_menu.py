@@ -20,10 +20,18 @@ class MainMenu:
 
     def __init__(self):
         self.stdscr = curses.initscr()
+
+        # Clear the screen immediately to prevent bleed-through
+        self.stdscr.clear()
+        self.stdscr.refresh()
+
         curses.noecho()
         curses.cbreak()
         curses.curs_set(0)
         self.stdscr.keypad(True)
+
+        # Final clear after setup
+        self.stdscr.clear()
 
     def show(self) -> str:
         """
@@ -40,9 +48,8 @@ class MainMenu:
         menu_options = [
             "1. New Game",
             "2. Continue" if has_save else "2. Continue (No save found)",
-            "3. Career Progress",
-            "4. How to Play",
-            "5. Quit"
+            "3. How to Play",
+            "4. Quit"
         ]
 
         selected = 0
@@ -112,8 +119,8 @@ class MainMenu:
                 selected = (selected - 1) % len(menu_options)
             elif key == curses.KEY_DOWN:
                 selected = (selected + 1) % len(menu_options)
-            elif key == ord('\n') or key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5')]:
-                if key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5')]:
+            elif key == ord('\n') or key == ord(' ') or key in [ord('1'), ord('2'), ord('3'), ord('4')]:
+                if key in [ord('1'), ord('2'), ord('3'), ord('4')]:
                     selected = int(chr(key)) - 1
 
                 # Map selection to action
@@ -121,7 +128,7 @@ class MainMenu:
                     # Continue option but no save - do nothing
                     continue
 
-                actions = ['new_game', 'continue', 'career', 'how_to_play', 'quit']
+                actions = ['new_game', 'continue', 'how_to_play', 'quit']
                 return actions[selected]
 
     def show_career_progress(self):
