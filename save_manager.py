@@ -11,16 +11,31 @@ from models import PlayerState, GameStats
 
 SAVE_DIR = "saves"
 SAVE_FILE = "game_save.json"
+DEV_SAVE_FILE = "dev_save.json"  # Development testing save
 
 
 class SaveManager:
     """Manages game state persistence."""
 
     @staticmethod
-    def get_save_path() -> str:
-        """Get full path to save file."""
+    def get_save_path(dev_mode: bool = False) -> str:
+        """
+        Get full path to save file.
+
+        Args:
+            dev_mode: If True, use dev_save.json for testing
+
+        Returns:
+            Path to save file
+        """
         os.makedirs(SAVE_DIR, exist_ok=True)
-        return os.path.join(SAVE_DIR, SAVE_FILE)
+        filename = DEV_SAVE_FILE if dev_mode else SAVE_FILE
+        return os.path.join(SAVE_DIR, filename)
+
+    @staticmethod
+    def dev_save_exists() -> bool:
+        """Check if dev save file exists."""
+        return os.path.exists(os.path.join(SAVE_DIR, DEV_SAVE_FILE))
 
     @staticmethod
     def save_exists() -> bool:
@@ -28,7 +43,7 @@ class SaveManager:
         return os.path.exists(SaveManager.get_save_path())
 
     @staticmethod
-    def save_game(player, game_stats, cow_packs: Dict[int, float]) -> bool:
+    def save_game(player, game_stats, cow_packs: Dict[int, float], current_floor: int = 1, encounters_this_floor: int = 0) -> bool:
         """
         Save current game state to disk.
 
@@ -101,6 +116,8 @@ class SaveManager:
                 'player': player_data,
                 'stats': stats_data,
                 'cow_packs': {str(k): v for k, v in cow_packs.items()},  # JSON needs string keys
+                'current_floor': current_floor,
+                'encounters_this_floor': encounters_this_floor,
             }
 
             # Write to file
@@ -138,6 +155,8 @@ class SaveManager:
                 'player': save_data['player'],
                 'stats': save_data['stats'],
                 'cow_packs': cow_packs,
+                'current_floor': save_data.get('current_floor', 1),
+                'encounters_this_floor': save_data.get('encounters_this_floor', 0),
                 'timestamp': save_data.get('timestamp', 'Unknown'),
             }
 

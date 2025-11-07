@@ -1,5 +1,6 @@
 from typing import Optional, Literal, TYPE_CHECKING
 import random
+from utils import safe_print
 
 if TYPE_CHECKING:
     from player import Player
@@ -40,28 +41,34 @@ class CowAttack:
         ]
 
     @classmethod
-    def cow_attack(cls, player: 'Player', cow: 'Cow') -> None:
-        """Execute a cow's attack against the player."""
+    def cow_attack(cls, player: 'Player', cow: 'Cow') -> str:
+        """Execute a cow's attack against the player. Returns attack message."""
         cow_combat_styles = cls.generate_cow_combat_styles(cow.strength)
         attack_weights = [25, 15, 18, 9, 9, 9, 9, 3, 2, 1]
         chosen_attack = random.choices(cow_combat_styles, weights=attack_weights, k=1)[0]
 
         hit_chance = random.randint(0, 100)
+        attack_msg = ""
+
         if hit_chance <= chosen_attack.accuracy:
             if chosen_attack.damage:
                 player.hp -= chosen_attack.damage
-                print(f"{cow.name} uses {chosen_attack.name} and deals {chosen_attack.damage} damage to {player.name}!")
+                attack_msg = f"{cow.name} uses {chosen_attack.name} for {chosen_attack.damage} damage!"
 
             if chosen_attack.effect:
                 if chosen_attack.effect == "stun":
                     player.stunned_turns = chosen_attack.duration
-                    print(f"{player.name} is stunned for {chosen_attack.duration} turns!")
+                    # Add stun info to attack message
+                    attack_msg += f"\n{player.name} is stunned for {chosen_attack.duration} turns!"
                 elif chosen_attack.effect == "heal":
-                    print(f"{cow.name} heals for {chosen_attack.healing} HP!")
                     cow.hp += chosen_attack.healing
-                    # Cap the cow's HP to its maximum HP
                     cow.hp = min(cow.hp, cow.max_hp)
+                    # Add heal info to attack message
+                    attack_msg += f"\n{cow.name} heals for {chosen_attack.healing} HP!"
                 elif chosen_attack.effect == "power_up":
-                    print(f"{cow.name} powers up")
+                    # Add power up info to attack message
+                    attack_msg += f"\n{cow.name} powers up! Strength increased!"
         else:
-            print(f"{cow.name} uses {chosen_attack.name} but misses {player.name}!")
+            attack_msg = f"{cow.name} misses!"
+
+        return attack_msg

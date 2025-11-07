@@ -11,7 +11,7 @@ CONTROLS
 --------
   ↑/↓ or W/S    - Navigate menus
   1-9           - Quick select menu options
-  Enter         - Confirm selection
+  Enter/Space   - Confirm selection
   ESC           - Pause menu
 
 
@@ -46,9 +46,8 @@ COMBAT
 
   Actions:
     1. Attack       - Deal damage to cow
-    2. Inventory    - View your items
-    3. Use Item     - Consume tools/potions
-    4. Flee         - Escape (damages pack reputation)
+    2. Inventory    - View, equip weapons/shields, use potions
+    3. Flee         - Escape (damages pack reputation)
 
 
 ITEMS
@@ -84,7 +83,8 @@ TIPS
   • Buy cow bell for easy dairy farming
   • Sell excess weapons/shields for cash
   • Friendly shop cows give best deals
-  • Watch your HP - no healing items yet!
+  • Use 'rest' to heal +10 HP between encounters
+  • Open inventory anytime to equip better gear
 
 
 Press any key to return...

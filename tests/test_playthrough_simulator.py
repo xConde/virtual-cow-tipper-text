@@ -159,42 +159,42 @@ def simulate_full_playthrough():
 
     # 1. Victory achievable?
     if stats.cows_defeated >= 50 or stats.cash_earned >= 5000:
-        print("✓ Victory achieved (game is winnable)")
+        print("[OK] Victory achieved (game is winnable)")
         fun_score += 1
     else:
         print("✗ No victory (balance issue!)")
 
     # 2. Didn't die?
     if player.hp > 0:
-        print("✓ Survived without dying (healing works)")
+        print("[OK] Survived without dying (healing works)")
         fun_score += 1
     else:
         print("✗ Died (healing insufficient!)")
 
     # 3. Encounter variety?
     if all(count > 0 for count in variety_check.values()):
-        print(f"✓ Encountered all types (variety present)")
+        print(f"[OK] Encountered all types (variety present)")
         fun_score += 1
     else:
         print("✗ Missing encounter types (too repetitive)")
 
     # 4. Healing available?
     if potions_bought > 0 or healing_used > 0:
-        print(f"✓ Healing used ({healing_used} HP, prevents death spiral)")
+        print(f"[OK] Healing used ({healing_used} HP, prevents death spiral)")
         fun_score += 1
     else:
         print("✗ No healing used (might indicate issue)")
 
     # 5. Upgrades found?
     if weapons_upgraded > 0:
-        print(f"✓ Found upgrades ({weapons_upgraded} weapons, progression feels good)")
+        print(f"[OK] Found upgrades ({weapons_upgraded} weapons, progression feels good)")
         fun_score += 1
     else:
         print("✗ No upgrades (progression might feel flat)")
 
     # 6. Pacing reasonable?
     if 30 <= encounters <= 55:
-        print(f"✓ Good pacing ({encounters} encounters, 1-2 hours)")
+        print(f"[OK] Good pacing ({encounters} encounters, 1-2 hours)")
         fun_score += 1
     elif encounters < 30:
         print(f"⚠ Too fast ({encounters} encounters, might feel rushed)")
@@ -204,14 +204,14 @@ def simulate_full_playthrough():
 
     # 7. Economy worked?
     if player.cash > 0:
-        print(f"✓ Economy sustainable (ended with ${player.cash})")
+        print(f"[OK] Economy sustainable (ended with ${player.cash})")
         fun_score += 1
     else:
         print("✗ Ran out of money (economy broken)")
 
     # 8. HP management interesting?
     if 20 < player.hp < 80:
-        print(f"✓ HP management mattered (ended at {player.hp}, had to heal)")
+        print(f"[OK] HP management mattered (ended at {player.hp}, had to heal)")
         fun_score += 1
     elif player.hp >= 80:
         print(f"⚠ Too easy (ended at {player.hp}, barely needed healing)")
@@ -254,7 +254,7 @@ def test_dialogue_variety():
         print(f"  {i}. {intro[:65]}...")
 
     assert unique >= 8, f"Should have at least 8 unique intros (got {unique})"
-    print("\n✓ Dialogue has good variety (won't feel repetitive)")
+    print("\n[OK] Dialogue has good variety (won't feel repetitive)")
 
 
 def test_pacing_at_different_wealth_levels():
@@ -291,13 +291,13 @@ def test_pacing_at_different_wealth_levels():
 
         # Balance check
         if player_dmg > props.strength * 1.5:
-            print(f"  ✓ Combat favors player (should be fun)")
+            print(f"  [OK] Combat favors player (should be fun)")
         elif player_dmg > props.strength:
-            print(f"  ✓ Combat is fair (challenging but winnable)")
+            print(f"  [OK] Combat is fair (challenging but winnable)")
         else:
             print(f"  ⚠ Combat might be too hard")
 
-    print("\n✓ Pacing scales appropriately")
+    print("\n[OK] Pacing scales appropriately")
 
 
 if __name__ == "__main__":
@@ -316,8 +316,8 @@ if __name__ == "__main__":
     print("\n" + "="*70)
     print("SIMULATOR COMPLETE")
     print("="*70)
-    print("\n✓ Game is balanced")
-    print("✓ Dialogue is varied")
-    print("✓ Pacing is good")
-    print("✓ Victory is achievable")
+    print("\n[OK] Game is balanced")
+    print("[OK] Dialogue is varied")
+    print("[OK] Pacing is good")
+    print("[OK] Victory is achievable")
     print("\nGame is ready for real players!")

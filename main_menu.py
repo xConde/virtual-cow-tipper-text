@@ -5,15 +5,13 @@ import curses
 import sys
 
 
-TITLE_ART = r"""
- _   _ _      _               _    _____                _____ _
-| | | (_)    | |             | |  /  __ \              |_   _(_)
-| | | |_ _ __| |_ _   _  __ _| |  | /  \/ _____      __ | |  _ _ __  _ __   ___ _ __
-| | | | | '__| __| | | |/ _` | |  | |    / _ \ \ /\ / / | | | | '_ \| '_ \ / _ \ '__|
-\ \_/ / | |  | |_| |_| | (_| | |  | \__/\ (_) \ V  V /  | | | | |_) | |_) |  __/ |
- \___/|_|_|   \__|\__,_|\__,_|_|   \____/\___/ \_/\_/   \_/ |_| .__/| .__/ \___|_|
-                                                                | |   | |
-                                                                |_|   |_|
+TITLE_ART = """
++---------------------------------------+
+|                                       |
+|        VIRTUAL COW TIPPER             |
+|        Text-Based Roguelike           |
+|                                       |
++---------------------------------------+
 """
 
 
@@ -22,10 +20,18 @@ class MainMenu:
 
     def __init__(self):
         self.stdscr = curses.initscr()
+
+        # Clear the screen immediately to prevent bleed-through
+        self.stdscr.clear()
+        self.stdscr.refresh()
+
         curses.noecho()
         curses.cbreak()
         curses.curs_set(0)
         self.stdscr.keypad(True)
+
+        # Final clear after setup
+        self.stdscr.clear()
 
     def show(self) -> str:
         """
@@ -42,9 +48,8 @@ class MainMenu:
         menu_options = [
             "1. New Game",
             "2. Continue" if has_save else "2. Continue (No save found)",
-            "3. Career Progress",
-            "4. How to Play",
-            "5. Quit"
+            "3. How to Play",
+            "4. Quit"
         ]
 
         selected = 0
@@ -52,37 +57,54 @@ class MainMenu:
         while True:
             self.stdscr.clear()
 
-            # Draw title
+            # Use single reliable title for all sizes
             title_lines = TITLE_ART.strip().split('\n')
+
+            # Calculate center based on longest line
+            max_title_width = max(len(line) for line in title_lines)
+            title_x_offset = max(0, (curses.COLS - max_title_width) // 2)
+
             start_y = 2
             for i, line in enumerate(title_lines):
-                x = max(0, (curses.COLS - len(line)) // 2)
+                # Don't re-center each line - use consistent offset
                 try:
-                    self.stdscr.addstr(start_y + i, x, line)
+                    self.stdscr.addstr(start_y + i, title_x_offset, line)
                 except:
                     pass
 
-            # Draw menu
-            menu_start_y = start_y + len(title_lines) + 3
+            # Draw menu - ALL items at same position
+            menu_start_y = start_y + len(title_lines) + 2
+
+            # Find longest menu option (including selection markers)
+            max_menu_width = max(len(opt) for opt in menu_options) + 4  # +4 for "> <"
+
+            # Calculate ONE x position for ALL menu items
+            menu_x = max(0, (curses.COLS - max_menu_width) // 2)
+
             for i, option in enumerate(menu_options):
                 y = menu_start_y + i
-                x = (curses.COLS - len(option)) // 2
 
+                # ALL items drawn at same x position
+                # Pad to same width so they align perfectly
                 if i == selected:
+                    # Selected: > Item <
+                    padded_text = f"> {option} <".ljust(max_menu_width)
                     try:
-                        self.stdscr.addstr(y, x, f"> {option} <", curses.A_REVERSE)
+                        self.stdscr.addstr(y, menu_x, padded_text, curses.A_REVERSE)
                     except:
                         pass
                 else:
+                    # Unselected:   Item   (same width, just no > <)
+                    padded_text = f"  {option}  ".ljust(max_menu_width)
                     try:
-                        self.stdscr.addstr(y, x, f"  {option}  ")
+                        self.stdscr.addstr(y, menu_x, padded_text)
                     except:
                         pass
 
             # Draw footer
-            footer = "Arrow keys to navigate | Enter to select | Created 2023"
+            footer = "Arrow keys to navigate | Enter to select"
             footer_y = curses.LINES - 2
-            footer_x = (curses.COLS - len(footer)) // 2
+            footer_x = max(0, (curses.COLS - len(footer)) // 2)
             try:
                 self.stdscr.addstr(footer_y, footer_x, footer, curses.A_DIM)
             except:
@@ -97,8 +119,8 @@ class MainMenu:
                 selected = (selected - 1) % len(menu_options)
             elif key == curses.KEY_DOWN:
                 selected = (selected + 1) % len(menu_options)
-            elif key == ord('\n') or key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5')]:
-                if key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5')]:
+            elif key == ord('\n') or key == ord(' ') or key in [ord('1'), ord('2'), ord('3'), ord('4')]:
+                if key in [ord('1'), ord('2'), ord('3'), ord('4')]:
                     selected = int(chr(key)) - 1
 
                 # Map selection to action
@@ -106,7 +128,7 @@ class MainMenu:
                     # Continue option but no save - do nothing
                     continue
 
-                actions = ['new_game', 'continue', 'career', 'how_to_play', 'quit']
+                actions = ['new_game', 'continue', 'how_to_play', 'quit']
                 return actions[selected]
 
     def show_career_progress(self):

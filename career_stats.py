@@ -284,7 +284,7 @@ class CareerStats:
         if self.unlocks:
             for unlock_id in self.unlocks:
                 unlock_info = Unlock.UNLOCK_DATA[unlock_id]
-                print(f"  ✓ {unlock_info['name']}: {unlock_info['description']}")
+                print(f"  [OK] {unlock_info['name']}: {unlock_info['description']}")
         else:
             print("  (None yet - keep playing to unlock bonuses!)")
 

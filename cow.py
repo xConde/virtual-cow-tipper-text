@@ -111,13 +111,17 @@ class Cow:
         return DialogueManager.get_cow_saying(self.mood, response_type)
 
     def get_approach(self):
-        print(f'\n{self.approach}')
+        """Display cow's approach (already shown via draw_dialog)."""
+        # Don't use print() - it bypasses terminal margins!
         self.game_terminal.draw_dialog(self.approach)
-        self.game_terminal.refresh()
+        # draw_dialog already called stdscr.refresh(), don't call game_terminal.refresh()!
 
     def print_response(self, cow_name, response_type, gap=True):
-        print(f"{cow_name}: {self.get_response(response_type)}" + ('\n' if gap else ''))
-        self.game_terminal.draw_dialog(self.get_response(response_type))
+        """Print cow response - only use draw_dialog to avoid duplication."""
+        response = self.get_response(response_type)
+        # Only use draw_dialog (handles margins via curses)
+        # Don't print() - that would duplicate the text
+        self.game_terminal.draw_dialog(f"{cow_name}: {response}")
         
     def get_combat_stats(self):
         hp_str = f"{self.hp}/{self.max_hp}" if self.hp != self.max_hp else f"{self.hp}"

@@ -5,7 +5,7 @@ class PauseMenu:
     def __init__(self, game_terminal):
         self.game_terminal = game_terminal
         self.dialog_history = game_terminal.dialog_history
-        self.KEY_UP, self.KEY_DOWN, self.KEY_ENTER, self.KEY_ESCAPE, self.NUM_OFFSET = game_terminal.get_key_variables()
+        self.KEY_UP, self.KEY_DOWN, self.KEY_ENTER, self.KEY_SPACE, self.KEY_ESCAPE, self.NUM_OFFSET = game_terminal.get_key_variables()
 
     def pause(self):
         self.game_terminal.stdscr.clear()
@@ -70,14 +70,20 @@ class PauseMenu:
         self.game_terminal.stdscr.addstr(0, start_x, title, curses.A_BOLD)
 
     def get_pause_menu_key_actions(self, selected_index, menu_items):
-        KEY_UP, KEY_DOWN, KEY_ENTER, KEY_ESCAPE, _ = self.game_terminal.get_key_variables()
+        KEY_UP, KEY_DOWN, KEY_ENTER, KEY_SPACE, KEY_ESCAPE, _ = self.game_terminal.get_key_variables()
 
+        # Build key actions dict
+        # KEY_ENTER is a list, KEY_SPACE is a single value
         key_actions = {
             KEY_UP: lambda: (selected_index - 1) % len(menu_items),
             KEY_DOWN: lambda: (selected_index + 1) % len(menu_items),
-            KEY_ENTER: lambda: None,
+            KEY_SPACE: lambda: None,
             KEY_ESCAPE: lambda: None,
         }
+
+        # Add all enter key variants
+        for enter_code in KEY_ENTER:
+            key_actions[enter_code] = lambda: None
 
         return key_actions
 

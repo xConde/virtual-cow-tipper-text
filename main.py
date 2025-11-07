@@ -1,9 +1,21 @@
 from game import VirtualCowTipper
 from main_menu import MainMenu
+import os
+import sys
 
 
 def main():
     """Main entry point with menu system."""
+    # Clear terminal before starting to prevent text bleed-through
+    try:
+        if os.name == 'nt':
+            os.system('cls')
+        else:
+            os.system('clear')
+    except:
+        # Fallback to ANSI escape codes
+        print("\033[2J\033[H", end='', flush=True)
+
     menu = MainMenu()
 
     try:
@@ -54,20 +66,19 @@ def main():
 
                 # Ask if player wants tutorial
                 print("\n" + "="*60)
-                show_tutorial = input("First time playing? Show tutorial? (y/n): ").strip().lower() == 'y'
+                tutorial_response = input("First time playing? Show tutorial? (y/n): ").strip().lower()
+                # Default to 'n' if empty (just pressed enter)
+                show_tutorial = tutorial_response == 'y' if tutorial_response else False
 
                 if show_tutorial:
                     from tutorial import show_tutorial as display_tutorial
                     display_tutorial()
 
-                player_name = input('\nEnter your name: ')
+                # Get player name with default
+                player_name_input = input('\nEnter your name: ').strip()
+                player_name = player_name_input if player_name_input else "Adventurer"
 
-                # Easter egg: Developer cow
-                from easter_eggs import check_developer_name, EasterEggRewards
-                if check_developer_name(player_name):
-                    EasterEggRewards.developer_encounter()
-                    input("\nPress Enter to start...")
-
+                # Start game directly (no easter egg)
                 game = VirtualCowTipper(player_name, show_tutorial=show_tutorial)
                 game.start()
 
