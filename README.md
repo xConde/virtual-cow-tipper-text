@@ -1,197 +1,109 @@
 # Virtual Cow Tipper
 
-```
-     ____________________
-    < No bull, just code >
-     --------------------
-      \   ^__^
-       \  (oo)\_______
-          (__)\       )\/\
-              ||----w |
-              ||     ||
-```
+*Moo!*
 
-A terminal-based roguelike RPG with strategic depth and absurdist humor.
+Text-based roguelike. Climb the Cow Towers. Survive encounters. Build your reputation.
 
-## Overview
+---
 
-Virtual Cow Tipper is a Python-based roguelike featuring a unique pack reputation system, meta-progression mechanics, and procedural encounters. Players navigate a world where cows run shops, engage in combat, and participate in mini-games.
+## Quick Start
 
-**Core Features:**
-- Pack reputation system affecting future encounters
-- Meta-progression with persistent unlocks
-- Turn-based combat with strategic choices
-- Dynamic difficulty scaling
-- Save/load functionality
-
-## Installation
-
-### Requirements
-- Python 3.10 or higher
-- Terminal with curses support (included in standard library)
-
-### Setup
 ```bash
-git clone <repository-url>
-cd virtual-cow-tipper-text
 python3 main.py
 ```
 
-No external dependencies required.
+**Requires**: Python 3.7+
 
 ---
 
-## Game Mechanics
+## Gameplay
 
-## How to Play
+**Encounter Types**:
+- **Combat** - Fight or flee aggressive cows
+- **Shop** - Buy weapons, sell loot, get stronger
+- **Dairy** - Milk cows for valuable resources (need bucket)
+- **Mini-Game** - Bet on dice, choose your stakes, win cash
 
-### Goal
-Survive by earning cash and maintaining your HP. Encounter various cows, each with unique personalities and challenges. Build your reputation with different cow packs to influence future encounters.
+**Progression**:
+- 10 encounters per floor
+- Advance floors automatically
+- Build reputation with 6 cow packs
+- Interactive inventory (equip gear, use potions)
 
-### Controls
+**Strategy**:
+- Friendly packs = easier encounters
+- Upset packs = harder enemies
+- Choose which packs to befriend
 
-**Menu Navigation:**
-- Arrow keys (↑/↓) - Navigate menus
-- Number keys (1-4) - Quick select options
-- Enter - Confirm selection
-- ESC - Pause menu
+---
 
-### Game Mechanics
+## Controls
 
-#### Cow Encounters
-Each cow belongs to one of 6 packs and has a mood (upset/neutral/friendly):
+- **Navigate**: Arrows or Numbers
+- **Select**: SPACE or ENTER
+- **Pause**: ESC
 
-- **Aggressive Cows** - Fight or flee. Victory earns cash and improves pack reputation
-- **Shop Cows** - Buy weapons, shields, and tools. Mood affects prices
-- **Dairy Cows** - Milk with a bucket to obtain valuable Liquid Gold
-- **Regular Cows** - Tip to play mini-games for rewards
+---
 
-#### Pack Reputation System
-- **Win against a pack** - Future cows from that pack are friendlier
-- **Lose to a pack** - Future cows from that pack are more hostile
-- **Strategic depth** - Choose which packs to befriend
+## New Features (2025-11-08)
 
-#### Combat
-- **Base damage** - Scales with your cash (2-8 + cash/25)
-- **Weapon damage** - Scaled by rarity (common → legendairy)
-- **Shield defense** - Reduces incoming damage
-- **Stun effects** - Some cow attacks stun you for multiple turns
+**Enhanced Mini-Games**:
+- Choose your bet: Cautious / Normal / Bold
+- Friendly cows: Cheaper bets, easier odds (6+ to win)
+- Rematch system: Double-or-nothing after losses
+- Bets scale with floor, cash, and encounter progress
 
-#### Items & Rarity
-- **5 Rarity Tiers:** Common, Uncommon, Magic, Rare, Legendairy
-- **10 Weapon Types:** Dagger → Godsword
-- **10 Shield Types:** Buckler → Aegis
-- **Special Tools:** Cow Bell (attract dairy cows), Bucket (milk cows)
+**Balance**:
+- Multi-factor bet scaling (floor 40%, cash 40%, encounter 20%)
+- Smooth progression throughout game
+- Personality affects difficulty and rewards
 
-#### Shop Mechanics
-- **Buy items** - Prices scale with your wealth
-- **Sell items** - Get 50-70% value (mood-dependent)
-- **Mood matters** - Upset cows charge 2x, Friendly cows pay more
-
-#### Mini-Games
-- **Tipping Bar** - Timing challenge, stop arrow at target
-- **Cow Race** - Pick a cow and watch them race
-- **Guessing Game** - Guess the cow's favorite number (hot/cold hints)
-
-### Win/Lose Conditions
-
-**Game Over:**
-- HP reaches 0
-- Cash reaches 0
-
-**Victory:** (To be implemented)
-- Defeat 50 cows
-- Earn $5000
-- Collect a full legendairy set
-
-### Core Systems
-
-**Pack Reputation:**
-Each cow belongs to one of 6 packs. Your interactions affect future encounters:
-- Defeating or befriending a pack improves relations
-- Fleeing or angering a pack increases hostility
-- Strategic choice: which packs to cultivate relationships with
-
-**Meta-Progression:**
-Career statistics persist across runs, unlocking permanent bonuses:
-- 11 unlockable upgrades (increased HP, starting cash, equipment, etc.)
-- Defeats contribute to long-term progress
-- Encourages multiple playthroughs
-
-**Encounter Types:**
-- Combat encounters (aggressive cows)
-- Shop encounters (buy/sell equipment)
-- Dairy encounters (resource gathering)
-- Mini-game encounters (optional gambling)
-
-**Progression:**
-- Floor-based structure (10 encounters per floor)
-- Choice of rewards between floors
-- Dynamic difficulty scaling
-- Multiple victory conditions
-
+---
 
 ## Development
 
-### Run Tests
+**Test Scenarios** (5 pre-configured game states):
 ```bash
-python3 run_tests.py
+# New player
+cp saves/scenarios/early_game.json saves/game_save.json
+
+# Equipped warrior
+cp saves/scenarios/mid_game_equipped.json saves/game_save.json
+
+# End-game tycoon
+cp saves/scenarios/late_game_rich.json saves/game_save.json
+
+# Then: python3 main.py → Continue
 ```
 
-All 28 tests should pass.
+**Dev Save Auto-Replenishes**:
+- Delete `saves/game_save.json` anytime
+- Game auto-restores from template on startup
+- Reliable testing workflow
 
-### Project Structure
-```
-virtual-cow-tipper-text/
-├── main.py              # Entry point
-├── game.py              # Game loop and state
-├── player.py            # Player stats and actions
-├── cow.py               # Cow generation and behavior
-├── cow_interaction.py   # Interaction handlers (combat, shop, dairy, tip)
-├── cow_attack.py        # Combat system
-├── cow_games.py         # Mini-games
-├── item.py              # Item classes
-├── item_factory.py      # Item generation
-├── models.py            # Dataclasses
-├── game_config.py       # All game balance constants
-├── dialogue_manager.py  # Centralized dialogue system
-├── terminal/            # Curses UI
-│   ├── game_terminal.py
-│   ├── pause_menu.py
-│   └── dialog_history.py
-├── assets/
-│   └── context.py       # All dialogue text
-└── tests/               # Unit tests
-```
-
-## Technical Details
-
-- **Language:** Python 3.10+
-- **UI:** curses (terminal-based)
-- **Architecture:** Object-oriented, factory pattern, dataclasses
-- **Testing:** 44 unit tests
-- **Lines of Code:** ~5,600
-
-## Development
-
-### Running Tests
-```bash
-python3 run_tests.py
-```
-
-### Project Structure
-Clean separation of concerns with dedicated modules for game logic, dialogue management, item generation, and save/load functionality.
+**Documentation**:
+- `CHANGELOG.md` - Recent changes
+- `.claude/` - Code patterns and project context
+- `.archive/` - Detailed session notes
 
 ---
 
-## Credits
+## Project Structure
 
-Created by Ed Conde
+**Core**:
+- `game.py` - Main loop, encounters, floor system
+- `cow_interaction.py` - Combat, shop, mini-games, dairy
+- `player.py` - Inventory, stats, equipment
+- `game_config.py` - All balance constants
 
-## License
+**Systems**:
+- `item.py` / `item_factory.py` - Items and generation
+- `dialogue_manager.py` - Centralized dialogue
+- `save_manager.py` - Save/load functionality
+- `terminal/` - Curses UI wrapper
 
-Personal project - Educational use only
+**Alternative UI**: `main_textual.py` for modern Textual UI (optional)
 
 ---
 
-*Run the game:* `python3 main.py`
+*Virtual Cow Tipper - Climb the tower. Survive. Moo.*
