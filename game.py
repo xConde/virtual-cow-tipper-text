@@ -79,11 +79,12 @@ class VirtualCowTipper:
             )
         else:
             intro_msg = (
-                f"Welcome to the Cow Towers, {self.player.name}!\n\n"
-                f"Ascend the tower by defeating cows and trading wisely.\n\n"
-                f"Starting: HP {self.player.hp} | Cash ${self.player.cash}\n\n"
-                f"Controls: Arrows/Numbers to navigate | SPACE/ENTER to select\n\n"
-                f"Let's begin your adventure!"
+                f"The Cow Towers\n\n"
+                f"{self.player.name}, you stand at the base.\n\n"
+                f"Climb the tower. Survive the encounters.\n"
+                f"Build your reputation.\n\n"
+                f"HP: {self.player.hp}  |  Cash: ${self.player.cash}\n\n"
+                f"Arrows or numbers to select. SPACE or ENTER to confirm."
             )
 
         self.game_terminal.draw_dialog(intro_msg)
@@ -167,14 +168,16 @@ class VirtualCowTipper:
             if self.first_encounter:
                 intro_msg = f"Floor {self.current_floor} - Encounter #1\n\n"
                 intro_msg += f"{self.cow.approach}\n\n"
-                if self.cow.is_aggro:
-                    intro_msg += f"Prepare to fight!\n\n"
-                elif self.cow.is_shop:
-                    intro_msg += f"A shop! You can buy items here.\n\n"
-                else:
-                    intro_msg += f"Looks friendly. You could tip or interact.\n\n"
 
-                intro_msg += f"TIP: Arrows/Numbers navigate | SPACE/ENTER select"
+                if self.cow.is_aggro:
+                    intro_msg += "The cow is hostile."
+                elif self.cow.is_shop:
+                    intro_msg += "The cow runs a shop."
+                else:
+                    intro_msg += "The cow seems amenable to a wager."
+
+                intro_msg += "\n\nYour options will be presented below."
+
                 self.first_encounter = False
             else:
                 intro_msg = f"Floor {self.current_floor} - Encounter #{encounter_num}\n\n"

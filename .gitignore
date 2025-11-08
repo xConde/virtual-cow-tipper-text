@@ -1,9 +1,12 @@
 # Local development assistance (never commit)
 .ai/
 
-# Save files (but keep example files)
+# Save files (but keep example files and scenarios)
 saves/*
 !saves/dev_save.example.json
+!saves/scenarios/
+!saves/scenarios/*.json
+!saves/scenarios/*.md
 game_save.json
 
 # Career stats (user's personal progress)

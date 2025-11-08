@@ -74,7 +74,7 @@ class Cow:
 
         return CowProperties(
             name=DialogueManager.get_cow_name(),
-            req_amount=(random.randint(COW_TIP_REQUIREMENT_MIN, COW_TIP_REQUIREMENT_MAX) + 5 * player.cash % COW_TIP_CASH_SCALING),
+            req_amount=(random.randint(COW_TIP_REQUIREMENT_MIN, COW_TIP_REQUIREMENT_MAX) + (player.cash // COW_TIP_CASH_SCALING)),
             likeliness=likeliness,
             strength=strength,
             hp=hp,

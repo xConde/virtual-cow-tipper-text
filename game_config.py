@@ -118,7 +118,12 @@ COW_HP_CASH_MODULO = 20
 
 COW_TIP_REQUIREMENT_MIN = 3
 COW_TIP_REQUIREMENT_MAX = 12
-COW_TIP_CASH_SCALING = 25
+COW_TIP_CASH_SCALING = 100
+
+# Mini-Game Bet Scaling (Multi-Factor Balance)
+MINI_GAME_FLOOR_MULTIPLIER = 2        # Floor component: (floor - 1) * 2
+MINI_GAME_CASH_DIVISOR = 100          # Cash component: cash // 100
+# Encounter component: int((encounters / 10) * floor)
 
 # Sell Price Calculation
 SELL_PRICE_VALUE_MULTIPLIER = 30  # median_stat * 30 = rough value
@@ -182,6 +187,28 @@ QUICK_TIP_PROFIT_MULTIPLIER = 1.5
 # Cow Interaction Scoring
 LEAVE_COW_PENALTY = -1.0
 DICE_GAME_WIN_MULTIPLIER = 2  # Player gets bet back + profit (2x total)
+
+# ============================================================================
+# ENHANCED MINI-GAME - Betting and Rematch System
+# ============================================================================
+
+# Bet Multipliers (3 tiers)
+MINI_GAME_CAUTIOUS_MULTIPLIER = 0.5   # 50% of base - play it safe
+MINI_GAME_NORMAL_MULTIPLIER = 1.0     # 100% of base - standard bet
+MINI_GAME_BOLD_MULTIPLIER = 2.0       # 200% of base - high risk/reward
+
+# Personality-Based Adjustments
+MINI_GAME_FRIENDLY_BET_REDUCTION = 0.8     # 20% cheaper bets
+MINI_GAME_FRIENDLY_WIN_THRESHOLD = 6        # Easier to win (6+ instead of 7+)
+MINI_GAME_UPSET_BET_INCREASE = 1.3          # 30% more expensive bets
+MINI_GAME_NEUTRAL_WIN_THRESHOLD = 7         # Standard difficulty
+
+# Enhanced Scoring System
+MINI_GAME_WIN_SCORE_BASE = 0.5
+MINI_GAME_WIN_SCORE_PER_BET_MULTIPLIER = 1.0  # Bonus for bigger bets
+MINI_GAME_LOSS_SCORE = -0.5
+MINI_GAME_REMATCH_WIN_SCORE = 0.0      # Break even (neutral)
+MINI_GAME_REMATCH_LOSS_SCORE = -1.5    # Heavy penalty for double loss
 
 # ============================================================================
 # COW ATTACK PARAMETERS - Individual attack balance values

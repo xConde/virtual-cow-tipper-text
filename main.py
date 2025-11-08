@@ -2,10 +2,28 @@ from game import VirtualCowTipper
 from main_menu import MainMenu
 import os
 import sys
+import shutil
+
+
+def ensure_dev_save_exists():
+    """Auto-replenish dev save if missing (for reliable testing)."""
+    save_path = "saves/game_save.json"
+    template_path = "saves/dev_save.example.json"
+
+    # If no save exists and template exists, auto-copy
+    if not os.path.exists(save_path) and os.path.exists(template_path):
+        try:
+            shutil.copy(template_path, save_path)
+            # Silent replenishment - user will see "Continue" option
+        except Exception:
+            pass  # Fail silently if can't copy
 
 
 def main():
     """Main entry point with menu system."""
+    # Ensure dev save is always available
+    ensure_dev_save_exists()
+
     # Clear terminal before starting to prevent text bleed-through
     try:
         if os.name == 'nt':

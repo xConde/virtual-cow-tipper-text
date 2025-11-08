@@ -147,7 +147,6 @@ class CowInteraction:
                             damage_msg += f"\n\n{self.cow.name}: {self.cow.hp} HP remaining"
 
                     self.game_terminal.draw_dialog(damage_msg)
-                    self.pause_with_prompt("[Continue to cow's turn...]")
 
                     if self.cow.hp <= 0:
                         from game_config import COMBAT_CASH_MULTIPLIER, COMBAT_ITEM_DROP_CHANCE
@@ -168,8 +167,10 @@ class CowInteraction:
                             victory_msg += f"\n  Item Drop: {drop.name}!"
 
                         self.game_terminal.draw_dialog(victory_msg)
-                        self.pause_with_prompt("[Victory!]")
+                        self.pause_with_prompt("[Press any key to continue...]")
                         break
+                    else:
+                        self.pause_with_prompt("[Continue to cow's turn...]")
                 elif choice == 2:
                     self.player.check_inventory()
                 elif choice == 3:
@@ -356,6 +357,151 @@ class CowInteraction:
 
                 self.game_terminal.draw_dialog(saved_shop_greeting)
 
+    def _select_bet_amount(self, base_amount: int) -> Optional[int]:
+        """
+        Let player choose bet amount with multi-factor balanced scaling.
+
+        Factors: Floor progression (40%), Cash wealth (40%), Encounter progress (20%)
+
+        Returns:
+            Bet amount, or None if cancelled
+        """
+        from game_config import (
+            MINI_GAME_CAUTIOUS_MULTIPLIER,
+            MINI_GAME_NORMAL_MULTIPLIER,
+            MINI_GAME_BOLD_MULTIPLIER,
+            MINI_GAME_FRIENDLY_BET_REDUCTION,
+            MINI_GAME_UPSET_BET_INCREASE,
+            MINI_GAME_FLOOR_MULTIPLIER,
+            MINI_GAME_CASH_DIVISOR,
+            COW_TIP_REQUIREMENT_MIN
+        )
+
+        # Multi-factor bet scaling
+        floor_component = (self.game_instance.current_floor - 1) * MINI_GAME_FLOOR_MULTIPLIER
+        encounter_pct = self.game_instance.encounters_this_floor / 10
+        encounter_component = int(encounter_pct * self.game_instance.current_floor)
+        cash_component = self.player.cash // MINI_GAME_CASH_DIVISOR
+
+        base_amount = COW_TIP_REQUIREMENT_MIN + floor_component + encounter_component + cash_component
+
+        # Adjust for personality (applied to final amount)
+        if self.cow.mood == 'friendly':
+            base_amount = int(base_amount * MINI_GAME_FRIENDLY_BET_REDUCTION)
+        elif self.cow.mood == 'upset':
+            base_amount = int(base_amount * MINI_GAME_UPSET_BET_INCREASE)
+
+        cautious = int(base_amount * MINI_GAME_CAUTIOUS_MULTIPLIER)
+        normal = base_amount
+        bold = int(base_amount * MINI_GAME_BOLD_MULTIPLIER)
+
+        # Build bet selection message with personality flavor
+        mood_text = ""
+        if self.cow.mood == 'friendly':
+            mood_text = f"\n{self.cow.name} seems friendly - lower stakes!"
+        elif self.cow.mood == 'upset':
+            mood_text = f"\n{self.cow.name} wants higher stakes!"
+
+        bet_msg = f"Choose Your Bet{mood_text}\n\nHow much do you want to wager?"
+
+        self.game_terminal.draw_dialog(bet_msg)
+
+        # Ensure all bet amounts are integers (round appropriately)
+        cautious = max(1, cautious)  # Minimum $1
+        normal = max(1, normal)
+        bold = max(2, bold)
+
+        # Build menu with affordability indicators
+        menu_items = []
+        if self.player.cash >= cautious:
+            menu_items.append(f"1. Cautious (${cautious}) - Play it safe")
+        else:
+            menu_items.append(f"1. Cautious (${cautious}) - Need ${cautious - self.player.cash} more")
+
+        if self.player.cash >= normal:
+            menu_items.append(f"2. Normal (${normal}) - Standard bet")
+        else:
+            menu_items.append(f"2. Normal (${normal}) - Need ${normal - self.player.cash} more")
+
+        if self.player.cash >= bold:
+            menu_items.append(f"3. Bold (${bold}) - High risk, high reward!")
+        else:
+            menu_items.append(f"3. Bold (${bold}) - Need ${bold - self.player.cash} more")
+
+        menu_items.append("4. Cancel")
+
+        choice = self.game_terminal.get_menu_choice(menu_items, "Select bet:")
+
+        # Map choice to bet amount and validate
+        if choice <= 3:
+            bet_amounts = [cautious, normal, bold]
+            bet_amount = bet_amounts[choice - 1]
+
+            if self.player.cash >= bet_amount:
+                return bet_amount
+            else:
+                error_msg = f"Insufficient Funds\n\nNeed ${bet_amount}, you have ${self.player.cash}\n\nPlease choose a different bet or cancel."
+                self.game_terminal.draw_dialog(error_msg)
+                self.pause_with_prompt("[Press any key...]")
+                return None  # Return to encounter menu
+
+        return None  # Cancelled
+
+    def _offer_rematch(self, bet_amount: int, original_mood: str) -> bool:
+        """
+        Offer rematch after loss with personality-driven dialogue.
+
+        Returns:
+            True if player wants rematch, False otherwise
+        """
+        # Cow mood shifts to upset
+        mood_shift_msg = ""
+        if original_mood == 'friendly':
+            mood_shift_msg = f"\n\n{self.cow.name} doesn't look so friendly anymore..."
+        elif original_mood == 'neutral':
+            mood_shift_msg = f"\n\n{self.cow.name} is getting competitive..."
+
+        # Check if player can afford rematch
+        if self.player.cash < bet_amount:
+            from game_config import MINI_GAME_LOSS_SCORE
+
+            broke_msg = (
+                f"Out of Cash!{mood_shift_msg}\n\n"
+                f"{self.cow.name} wanted a rematch, but you can't afford it.\n\n"
+                f"You walk away defeated..."
+            )
+            self.game_terminal.draw_dialog(broke_msg)
+            self.pause_with_prompt("[Press any key...]")
+
+            # Apply loss penalty before leaving
+            self.cow.likeliness += MINI_GAME_LOSS_SCORE
+            self.game_instance.update_cow_scores(self.cow, MINI_GAME_LOSS_SCORE)
+
+            return False
+
+        rematch_msg = (
+            f"Rematch Offer{mood_shift_msg}\n\n"
+            f"{self.cow.name}: 'Want to win it back?'\n\n"
+            f"Double-or-nothing: Bet ${bet_amount} again!"
+        )
+
+        self.game_terminal.draw_dialog(rematch_msg)
+
+        menu_items = [
+            f"1. Rematch (bet ${bet_amount} again)",
+            "2. Walk away (accept loss)"
+        ]
+
+        choice = self.game_terminal.get_menu_choice(menu_items, "Your decision:")
+
+        # Shift cow mood for rematch
+        if choice == 1:
+            self.cow.mood = 'upset'
+            self.game_terminal.set_cow_stats(f"{self.cow.name} | Angry")
+            return True
+
+        return False
+
     def handle_tip_or_leave(self) -> None:
         """Handle regular cow encounter (tip for mini-game or leave)."""
         self.game_terminal.set_cow_stats(self.cow.get_mood_status())
@@ -368,13 +514,35 @@ class CowInteraction:
         choice = self.handle_menu_choice(actions)
 
         if choice == 1:
-            tip_amount = self.cow.req_amount
+            from game_config import (
+                MINI_GAME_FRIENDLY_WIN_THRESHOLD,
+                MINI_GAME_NEUTRAL_WIN_THRESHOLD
+            )
+
+            original_mood = self.cow.mood
+
+            # Step 1: Select bet amount
+            bet_amount = self._select_bet_amount(self.cow.req_amount)
+            if bet_amount is None:
+                return
+
+            # Determine win threshold based on personality
+            win_threshold = MINI_GAME_FRIENDLY_WIN_THRESHOLD if self.cow.mood == 'friendly' else MINI_GAME_NEUTRAL_WIN_THRESHOLD
+
+            # Step 2: Show game intro with personality
+            if self.cow.mood == 'friendly':
+                flavor = "I'll go easy on you!"
+            elif self.cow.mood == 'upset':
+                flavor = "You better not waste my time!"
+            else:
+                flavor = "May the odds be with you!"
+
             game_msg = (
                 f"Dice Rolling Game!\n\n"
-                f"{self.cow.name} challenges you to a game of chance.\n"
-                f"Bet: ${tip_amount}\n\n"
-                f"Roll two dice - get 7 or higher to win!\n"
-                f"(7-12 wins, 2-6 loses)"
+                f"{self.cow.name}: \"{flavor}\"\n"
+                f"Bet: ${bet_amount}\n\n"
+                f"Roll two dice - get {win_threshold} or higher to win!\n"
+                f"({win_threshold}-12 wins, 2-{win_threshold-1} loses)"
             )
             self.game_terminal.draw_dialog(game_msg)
             self.pause_with_prompt("[Press ENTER to roll the dice...]")
@@ -386,15 +554,22 @@ class CowInteraction:
             self.game_terminal.draw_dialog(rolling_msg)
             self.pause_with_prompt("[Press ENTER to see result...]")
 
-            self.player.update_cash(-tip_amount)
+            # Step 3: Roll dice
+            self.player.update_cash(-bet_amount)
             die1 = random.randint(1, 6)
             die2 = random.randint(1, 6)
             total = die1 + die2
-            won = total >= 7
+            won = total >= win_threshold
 
+            # Step 4: Show result and handle outcome
             if won:
-                profit = tip_amount
-                self.player.update_cash(tip_amount * 2)  # Get bet back + profit
+                from game_config import (
+                    MINI_GAME_WIN_SCORE_BASE,
+                    MINI_GAME_WIN_SCORE_PER_BET_MULTIPLIER
+                )
+
+                profit = bet_amount
+                self.player.update_cash(bet_amount * 2)
 
                 win_msg = (
                     f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
@@ -404,23 +579,90 @@ class CowInteraction:
                 )
                 self.game_terminal.draw_dialog(win_msg)
 
-                score = 1
+                # Scaled reputation based on bet size
+                bet_multiplier = bet_amount / self.cow.req_amount
+                score = MINI_GAME_WIN_SCORE_BASE + (bet_multiplier * MINI_GAME_WIN_SCORE_PER_BET_MULTIPLIER)
                 self.cow.likeliness += score
                 self.game_instance.update_cow_scores(self.cow, score)
+
+                self.pause_with_prompt("[Press any key to continue...]")
+
             else:
+                # LOSS - Show result and offer rematch
+                from game_config import (
+                    MINI_GAME_LOSS_SCORE,
+                    MINI_GAME_REMATCH_WIN_SCORE,
+                    MINI_GAME_REMATCH_LOSS_SCORE
+                )
+
                 loss_msg = (
                     f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
                     f"You Lose\n\n"
                     f"Not lucky this time.\n"
-                    f"Lost: ${tip_amount}"
+                    f"Lost: ${bet_amount}"
                 )
                 self.game_terminal.draw_dialog(loss_msg)
+                self.pause_with_prompt("[Press any key...]")
 
-                score = -0.5
-                self.cow.likeliness += score
-                self.game_instance.update_cow_scores(self.cow, score)
+                # Offer rematch
+                wants_rematch = self._offer_rematch(bet_amount, original_mood)
 
-            self.pause_with_prompt("[Press any key to continue...]")
+                if wants_rematch:
+                    # REMATCH GAME
+                    rematch_intro = (
+                        f"Rematch!\n\n"
+                        f"{self.cow.name} deals again.\n"
+                        f"Bet: ${bet_amount}\n\n"
+                        f"Win: Break even (+${bet_amount})\n"
+                        f"Lose: Double loss (-${bet_amount} more)"
+                    )
+                    self.game_terminal.draw_dialog(rematch_intro)
+                    self.pause_with_prompt("[Press ENTER to roll...]")
+
+                    # Rematch roll
+                    self.player.update_cash(-bet_amount)
+                    die1 = random.randint(1, 6)
+                    die2 = random.randint(1, 6)
+                    total = die1 + die2
+                    rematch_won = total >= win_threshold
+
+                    if rematch_won:
+                        # WIN REMATCH - Break even
+                        self.player.update_cash(bet_amount * 2)
+
+                        rematch_win_msg = (
+                            f"🎲 Rematch: {die1} + {die2} = {total} 🎲\n\n"
+                            f"REMATCH WIN!\n\n"
+                            f"You got your ${bet_amount} back!\n"
+                            f"Final result: Break even (±$0)"
+                        )
+                        self.game_terminal.draw_dialog(rematch_win_msg)
+
+                        # Neutral score
+                        self.game_instance.update_cow_scores(self.cow, MINI_GAME_REMATCH_WIN_SCORE)
+
+                        self.pause_with_prompt("[Press any key to continue...]")
+
+                    else:
+                        # LOSE REMATCH - Double loss
+                        rematch_loss_msg = (
+                            f"🎲 Rematch: {die1} + {die2} = {total} 🎲\n\n"
+                            f"REMATCH LOST!\n\n"
+                            f"{self.cow.name} takes your money.\n"
+                            f"Total lost: ${bet_amount * 2}"
+                        )
+                        self.game_terminal.draw_dialog(rematch_loss_msg)
+
+                        # Heavy penalty
+                        self.cow.likeliness += MINI_GAME_REMATCH_LOSS_SCORE
+                        self.game_instance.update_cow_scores(self.cow, MINI_GAME_REMATCH_LOSS_SCORE)
+
+                        self.pause_with_prompt("[Press any key to continue...]")
+
+                else:
+                    # Declined rematch - just accept the loss
+                    self.cow.likeliness += MINI_GAME_LOSS_SCORE
+                    self.game_instance.update_cow_scores(self.cow, MINI_GAME_LOSS_SCORE)
 
         elif choice == 2:
             leave_msg = (

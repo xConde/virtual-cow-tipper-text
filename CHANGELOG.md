@@ -4,6 +4,34 @@ Recent changes to Virtual Cow Tipper.
 
 ---
 
+## 2025-11-08 - Enhanced Mini-Game System
+
+### Added
+- **Bet selection system** - Choose cautious/normal/bold bets (3 tiers)
+- **Personality-based betting** - Friendly cows: cheaper bets, easier odds (6+ to win)
+- **Rematch mechanics** - Double-or-nothing after losses, mood shifts
+- **Scaled reputation** - Bigger bets earn more reputation (+1.0 to +2.5)
+- **Balanced bet scaling** - Multi-factor formula: Floor (40%) + Cash (40%) + Encounter (20%)
+- **Test scenario system** - 5 pre-configured game states in `saves/scenarios/`
+- **Auto-replenish dev save** - game_save.json auto-restored if deleted (reliable testing)
+- **Redesigned tutorial** - Minimal, atmospheric style (Fallout-inspired), no hand-holding
+
+### Fixed
+- Combat victory prompt now consistent (`[Press any key to continue...]`)
+- Combat defeating blow only shows "Continue to cow's turn..." if cow survives
+- Mini-game bet calculation fixed (operator precedence bug)
+- Bet scaling improved (25 → 100 for better game progression)
+- Rematch offer cleaned up (simpler, clearer dialogue)
+
+### Technical
+- 14 new mini-game constants in game_config.py
+- 150+ lines of mini-game enhancements
+- **Balanced bet formula**: Floor (40%) + Cash (40%) + Encounter (20%)
+- Comprehensive QA: 8 paths verified, 2 gaps fixed
+- Test scenarios committed for reproducible testing
+
+---
+
 ## 2025-11-05 - Quality & Organization Improvements
 
 ### Documentation Consolidation ✅
