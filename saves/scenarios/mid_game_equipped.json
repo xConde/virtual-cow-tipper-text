@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-11-08T12:00:00",
+  "player": {
+    "name": "Warrior",
+    "hp": 80,
+    "cash": 300,
+    "stunned_turns": 0,
+    "inventory": [
+      {
+        "type": "weapon",
+        "name": "Iron Sword",
+        "min_damage": 6,
+        "max_damage": 10,
+        "rarity": "common",
+        "scale": 2
+      },
+      {
+        "type": "tool",
+        "name": "Cow Bell"
+      },
+      {
+        "type": "tool",
+        "name": "Bucket"
+      }
+    ],
+    "weapon": {
+      "name": "Steel Sword",
+      "min_damage": 8,
+      "max_damage": 14,
+      "rarity": "uncommon",
+      "scale": 3
+    },
+    "shield": {
+      "name": "Wooden Shield",
+      "min_defence": 3,
+      "max_defence": 6,
+      "rarity": "common",
+      "scale": 2
+    }
+  },
+  "stats": {
+    "cows_defeated": 15,
+    "cows_fled_from": 2,
+    "total_damage_dealt": 300,
+    "total_damage_taken": 80,
+    "cash_earned": 800,
+    "cash_spent": 200,
+    "items_purchased": 5,
+    "items_sold": 2,
+    "mini_games_won": 8,
+    "mini_games_lost": 3,
+    "legendary_items_found": 0,
+    "dairy_cows_milked": 4,
+    "shops_visited": 3
+  },
+  "cow_packs": {
+    "1": 3.5,
+    "2": -1.5,
+    "3": 5.0,
+    "4": 0.0,
+    "5": 2.0,
+    "6": -0.5
+  },
+  "current_floor": 2,
+  "encounters_this_floor": 5
+}

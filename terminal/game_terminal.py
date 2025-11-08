@@ -4,38 +4,68 @@ from .pause_menu import PauseMenu
 from .dialog_history import DialogHistory
 
 class GameTerminal:
-    WIDTH = 100
+    WIDTH = 85  # Reduced from 100 to create natural margins for print() text
     HEIGHT = 30
+    LEFT_MARGIN = 2   # Add left margin for readability
+    RIGHT_MARGIN = 2  # Add right margin
 
+    # Header section (top)
     PLAYER_INFO_Y = 0
     COW_INFO_Y = 0
     COW_INFO_X = 50
     TITLE_Y = 2
     SEPARATOR_Y = 4
+
+    # Main content area (reorganized for left-aligned flow)
+    DIALOG_Y_START = 6   # Dialogue starts right after separator
+    DIALOG_Y_END = 16    # Compact dialogue area (10 lines) - leave room for menu
+
+    # Art section (optional, overlaps with dialogue area)
+    ART_Y_START = 6
+    ART_Y_END = 16
     PAUSE_DIALOG_LINES = 5
 
-    ART_Y_START = 5
-    ART_Y_END = 19
-
-    DIALOG_Y_START = 20
-    DIALOG_Y_END = DIALOG_Y_START + 1
-
-    INSTRUCTIONS_Y_START = 22
+    # Instructions area
+    INSTRUCTIONS_Y_START = 17
     INSTRUCTIONS_Y_END = INSTRUCTIONS_Y_START + 1
 
-    PROMPT_INPUT_Y = 24
+    # Input/menu section (bottom)
+    PROMPT_INPUT_Y = 18
 
-    MENU_Y_START = 25
-    MENU_Y_END = MENU_Y_START + 3
+    MENU_Y_START = 19
+    MENU_Y_END = MENU_Y_START + 6  # 7 lines for menu options
 
     def __init__(self, title="Virtual Cow Tipper"):
         self.title = title
         self.stdscr = curses.initscr()
+
+        # Clear the screen immediately to prevent bleed-through
+        self.stdscr.clear()
+        self.stdscr.refresh()
+
         curses.noecho()
         curses.cbreak()
         curses.curs_set(0)
         self.stdscr.keypad(True)
-        self.stdscr.resize(self.HEIGHT, self.WIDTH)
+
+        # Use full terminal size instead of fixed resize
+        # This prevents bleed-through from terminal content
+        max_height, max_width = self.stdscr.getmaxyx()
+
+        # Adjust our constants to fit the actual terminal
+        self.HEIGHT = min(self.HEIGHT, max_height)
+        self.WIDTH = min(self.WIDTH, max_width)
+
+        # Set background character to fill entire screen
+        try:
+            self.stdscr.bkgd(' ', curses.A_NORMAL)
+        except:
+            pass
+
+        # Clear entire terminal, not just our window
+        self.stdscr.clear()
+        self.stdscr.refresh()
+
         self.show_art = False
         self.player_stats = ''
         self.player_weapon = ''
@@ -45,58 +75,82 @@ class GameTerminal:
         self.pause_menu = PauseMenu(self)
 
     def draw(self, y, x, text, custom_attr=0, align='left'):
+        """Draw text with margin consideration."""
+        # Apply left margin
+        x = x + self.LEFT_MARGIN
+
         if align == 'right':
-            x = self.WIDTH - len(text) - 3
-        self.stdscr.addstr(y, x, text, custom_attr)
+            x = self.WIDTH - len(text) - self.RIGHT_MARGIN
+
+        # Truncate text if it would exceed right margin
+        max_width = self.WIDTH - self.LEFT_MARGIN - self.RIGHT_MARGIN
+        if len(text) > max_width:
+            text = text[:max_width - 3] + "..."
+
+        try:
+            self.stdscr.addstr(y, x, text, custom_attr)
+        except:
+            pass  # Ignore if out of bounds
 
     def generate_pointer(self, menu_item_length, total_width):
-        min_spaces_between = 8
-        min_equal_symbols = 8
+        """Generate menu pointer - simplified to prevent wrapping."""
+        # Use simple arrows instead of long equal signs
+        # This prevents the wrap issue you're seeing
         pointer_left = ">"
         pointer_right = "<"
-        spaces_between = " " * min_spaces_between
+        spaces = " " * 4
 
-        half_width = total_width // 2
-        left_padding = half_width - menu_item_length // 2 - len(pointer_left) - min_spaces_between // 2 - min_equal_symbols
-        right_padding = total_width - half_width - menu_item_length // 2 - len(pointer_right) - min_spaces_between // 2 - min_equal_symbols
-
-        if left_padding > 0:
-            equal_symbols_left = "=" * (min_equal_symbols + left_padding)
-        else:
-            equal_symbols_left = "=" * min_equal_symbols
-            spaces_between = " " * max(min_spaces_between + left_padding, 0)
-
-        if right_padding > 0:
-            equal_symbols_right = "=" * (min_equal_symbols + right_padding)
-        else:
-            equal_symbols_right = "=" * min_equal_symbols
-            spaces_between = " " * max(min_spaces_between - 1, 0)
-
-        return equal_symbols_left + pointer_left + spaces_between + pointer_right + equal_symbols_right
+        return f"{pointer_left}{spaces}{pointer_right}"
 
     def draw_menu(self, menu_items, selected_index=None):
+        """Draw menu with safe margins - FIXED to actually show items."""
         self.clear_area(self.MENU_Y_START, self.MENU_Y_END + 1)
+
+        # Calculate one x position for all items (centered)
+        max_item_width = max(len(item) for item in menu_items) if menu_items else 40
+        menu_x = max(self.LEFT_MARGIN, (self.WIDTH - max_item_width - 4) // 2)
+
         for i, item in enumerate(menu_items):
-            self.stdscr.move(self.MENU_Y_START + i, 0)
+            y = self.MENU_Y_START + i
+
+            # Make sure y is within bounds
+            if y >= curses.LINES - 1:
+                break
+
+            self.stdscr.move(y, 0)
             self.stdscr.clrtoeol()
+
             if i == selected_index:
-                pointer = self.generate_pointer(len(item), self.WIDTH)
-                item_with_pointer = pointer[:len(pointer)//2] + item + pointer[len(pointer)//2:]
-                self.stdscr.addstr(self.MENU_Y_START + i, 0, item_with_pointer.ljust(self.WIDTH))
-                max_chgat_len = min(self.WIDTH - len(pointer)//2, len(item_with_pointer))
-                self.stdscr.chgat(self.MENU_Y_START + i, len(pointer)//2, max_chgat_len)
+                # Selected: > Item <
+                display_text = f"> {item} <"
+                try:
+                    self.stdscr.addstr(y, menu_x, display_text)
+                    self.stdscr.chgat(y, menu_x, len(display_text), curses.A_REVERSE)
+                except curses.error:
+                    pass
             else:
-                self.stdscr.addstr(self.MENU_Y_START + i, 0, item.ljust(self.WIDTH))
+                # Unselected:   Item   (aligned with selected)
+                display_text = f"  {item}  "
+                try:
+                    self.stdscr.addstr(y, menu_x, display_text)
+                except curses.error:
+                    pass
+
+        # Always refresh after drawing menu so it's immediately visible
         self.stdscr.refresh()
-                
+
     def get_key_variables(self):
-        KEY_UP = 450
-        KEY_DOWN = 456
-        KEY_ENTER = ord('\n')
+        # Use curses constants for arrow keys (more reliable)
+        KEY_UP = curses.KEY_UP
+        KEY_DOWN = curses.KEY_DOWN
+        # Support multiple enter keys
+        KEY_ENTER = [ord('\n'), ord('\r'), curses.KEY_ENTER, 10, 13]
+        # Support space key for selection
+        KEY_SPACE = ord(' ')
         KEY_ESCAPE = 27
         NUM_OFFSET = 49
 
-        return KEY_UP, KEY_DOWN, KEY_ENTER, KEY_ESCAPE, NUM_OFFSET
+        return KEY_UP, KEY_DOWN, KEY_ENTER, KEY_SPACE, KEY_ESCAPE, NUM_OFFSET
 
     def prompt_and_draw_menu(self, menu_items, selected_index, prompt=None):
         prompt_message = prompt if prompt is not None else 'Select an option:'
@@ -109,30 +163,26 @@ class GameTerminal:
         return key
 
     def get_menu_choice(self, menu_items, prompt=None):
-        KEY_UP, KEY_DOWN, KEY_ENTER, KEY_ESCAPE, NUM_OFFSET = self.get_key_variables()
-
-        key_actions = {
-            KEY_UP: lambda: (selected_index - 1) % len(menu_items),
-            KEY_DOWN: lambda: (selected_index + 1) % len(menu_items),
-            KEY_ENTER: lambda: None,
-            KEY_ESCAPE: lambda: self.pause_menu.pause(),
-        }
+        KEY_UP, KEY_DOWN, KEY_ENTER, KEY_SPACE, KEY_ESCAPE, NUM_OFFSET = self.get_key_variables()
 
         selected_index = 0
         self.enable_mouse()
         while True:
             key = self.prompt_and_draw_menu(menu_items, selected_index, prompt)
 
-            if key in key_actions:
-                action = key_actions[key]
-                result = action()
-                if result is None:
-                    break
-                elif key == KEY_ESCAPE:
-                    continue
-                else:
-                    selected_index = result
+            # Check for enter keys (multiple supported)
+            if key in KEY_ENTER or key == KEY_SPACE:
+                # Select current item
+                break
+            elif key == KEY_UP:
+                selected_index = (selected_index - 1) % len(menu_items)
+            elif key == KEY_DOWN:
+                selected_index = (selected_index + 1) % len(menu_items)
+            elif key == KEY_ESCAPE:
+                self.pause_menu.pause()
+                continue
             elif NUM_OFFSET <= key <= NUM_OFFSET + len(menu_items) - 1:
+                # Number key pressed
                 selected_index = key - NUM_OFFSET
                 break
 
@@ -148,7 +198,11 @@ class GameTerminal:
             self.draw(self.ART_Y_START + idx, 0, line)
 
     def draw_separator(self, offset=0):
-        self.draw(self.SEPARATOR_Y - offset, 0, "-" * self.WIDTH)
+        # Draw a clean separator line
+        separator_width = self.WIDTH - self.LEFT_MARGIN - self.RIGHT_MARGIN
+        separator = "-" * separator_width
+        self.draw(self.SEPARATOR_Y - offset, 0, separator)
+        self.stdscr.refresh()
 
     def draw_game_title(self):
         x = (self.WIDTH - len(self.title)) // 2
@@ -162,14 +216,81 @@ class GameTerminal:
             self.draw(self.PLAYER_INFO_Y + 2, 0, self.player_shield)
 
     def draw_cow_stats(self):
-        self.draw(y=self.COW_INFO_Y, x=0, text=self.cow_stats, align='right')
+        # Draw cow stats on the right side of the screen
+        # Use explicit x position to ensure it's on the right
+        cow_x = self.COW_INFO_X
+        try:
+            self.stdscr.addstr(self.COW_INFO_Y, cow_x, self.cow_stats)
+        except curses.error:
+            pass
+        self.stdscr.refresh()
+
+    def save_dialog_state(self) -> str:
+        """
+        Save current dialogue text for restoration later.
+
+        Uses the last dialog from dialog_history, which stores the original
+        text before word-wrapping. This ensures perfect restoration.
+
+        Returns:
+            String containing dialogue text, or empty string if nothing to save.
+        """
+        if self.dialog_history.dialog_history:
+            timestamp, last_dialog = self.dialog_history.dialog_history[-1]
+            return last_dialog
+        return ""
+
+    def restore_dialog_state(self, saved_text: str):
+        """
+        Restore previously saved dialogue text.
+
+        Args:
+            saved_text: Original text to restore (from save_dialog_state)
+
+        Safe to call with empty string - will skip restoration.
+        """
+        if saved_text:
+            self.draw_dialog(saved_text)
 
     def draw_dialog(self, text):
+        """Draw dialog with word wrapping to fit margins."""
         self.clear_area(self.DIALOG_Y_START, self.DIALOG_Y_END)
         self.dialog_history.add_dialog(text)
-        lines = text.split("\n")
-        for idx, line in enumerate(lines):
+
+        # Respect newlines in the text - split by newline first
+        max_width = self.WIDTH - self.LEFT_MARGIN - self.RIGHT_MARGIN - 4
+        input_lines = text.split('\n')
+        lines = []
+
+        # Process each line separately to preserve intentional line breaks
+        for input_line in input_lines:
+            if not input_line.strip():
+                # Empty line - preserve it
+                lines.append("")
+                continue
+
+            # Word wrap this line
+            words = input_line.split(' ')
+            current_line = ""
+
+            for word in words:
+                if len(current_line) + len(word) + 1 <= max_width:
+                    current_line += (word + " ")
+                else:
+                    if current_line:
+                        lines.append(current_line.strip())
+                    current_line = word + " "
+
+            if current_line:
+                lines.append(current_line.strip())
+
+        # Draw wrapped lines - now support up to 12 lines (DIALOG_Y_END - DIALOG_Y_START)
+        max_lines = self.DIALOG_Y_END - self.DIALOG_Y_START
+        for idx, line in enumerate(lines[:max_lines]):
             self.draw(self.DIALOG_Y_START + idx, 0, line)
+
+        # Always refresh after drawing dialog so it's immediately visible
+        self.stdscr.refresh()
 
     def set_player_stats(self, stats, weapon, shield):
         self.player_stats = stats
@@ -227,10 +348,16 @@ class GameTerminal:
             self.stdscr.clrtoeol()
 
     def clear_screen(self):
-        if os.name == 'nt':
-            os.system('cls')
-        else:
-            os.system('clear')
+        """Clear the screen using curses."""
+        # Use curses clear instead of os.system to prevent interference
+        self.stdscr.clear()
+        # Erase the entire window to prevent any bleed-through
+        self.stdscr.erase()
+        # Fill with background
+        try:
+            self.stdscr.bkgd(' ', curses.A_NORMAL)
+        except:
+            pass
 
     def refresh(self):
         self.clear_screen()

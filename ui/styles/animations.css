@@ -1,0 +1,321 @@
+/* Animation styles for Virtual Cow Tipper Textual UI */
+
+/* ==================== Keyframe Animations ==================== */
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+@keyframes shake {
+    0%, 100% { offset: 0 0; }
+    25% { offset: -1 0; }
+    75% { offset: 1 0; }
+}
+
+@keyframes bounce {
+    0%, 100% { offset: 0 0; }
+    50% { offset: 0 -1; }
+}
+
+@keyframes glow {
+    0% { background: $primary; }
+    50% { background: $primary-lighten-2; }
+    100% { background: $primary; }
+}
+
+@keyframes slide-in {
+    0% { offset: -50 0; }
+    100% { offset: 0 0; }
+}
+
+@keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* ==================== Combat Animations ==================== */
+
+.combat-hit {
+    animation: shake 0.3s;
+    color: $error;
+}
+
+.combat-critical {
+    animation: shake 0.5s;
+    color: $error-lighten-2;
+    text-style: bold;
+}
+
+.combat-miss {
+    animation: fade-in 0.5s;
+    color: $text-muted;
+}
+
+.combat-block {
+    animation: pulse 0.5s;
+    color: $warning;
+}
+
+/* HP bar animations */
+.hp-decrease {
+    animation: shake 0.3s;
+    transition: width 0.5s;
+}
+
+.hp-increase {
+    animation: glow 0.5s;
+    transition: width 0.5s;
+}
+
+.hp-critical {
+    animation: pulse 1s infinite;
+    color: $error;
+}
+
+/* ==================== UI Element Animations ==================== */
+
+/* Button hover effects */
+Button:hover {
+    animation: pulse 2s infinite;
+    background: $primary-lighten-1;
+}
+
+Button:focus {
+    animation: glow 2s infinite;
+    text-style: bold;
+}
+
+Button.primary:hover {
+    background: $success-lighten-1;
+}
+
+Button.warning:hover {
+    background: $warning-lighten-1;
+}
+
+Button.error:hover {
+    background: $error-lighten-1;
+}
+
+/* Menu item selection */
+.menu-item-selected {
+    animation: slide-in 0.3s;
+    background: $primary;
+}
+
+/* ==================== Screen Transitions ==================== */
+
+Screen {
+    animation: fade-in 0.5s;
+}
+
+.screen-exit {
+    animation: fade-in 0.3s reverse;
+}
+
+/* Dialog boxes */
+.dialogue-appear {
+    animation: slide-in 0.5s;
+}
+
+.dialogue-speaker {
+    animation: bounce 0.5s;
+}
+
+/* ==================== Notification Animations ==================== */
+
+.notification-success {
+    animation: slide-in 0.3s;
+    border: solid $success;
+}
+
+.notification-error {
+    animation: shake 0.5s;
+    border: solid $error;
+}
+
+.notification-warning {
+    animation: pulse 1s;
+    border: solid $warning;
+}
+
+.notification-info {
+    animation: fade-in 0.5s;
+    border: solid $primary;
+}
+
+/* ==================== Loading Animations ==================== */
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+.loading-spinner {
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    0% { content: "⠋"; }
+    10% { content: "⠙"; }
+    20% { content: "⠹"; }
+    30% { content: "⠸"; }
+    40% { content: "⠼"; }
+    50% { content: "⠴"; }
+    60% { content: "⠦"; }
+    70% { content: "⠧"; }
+    80% { content: "⠇"; }
+    90% { content: "⠏"; }
+    100% { content: "⠋"; }
+}
+
+/* ==================== Special Effects ==================== */
+
+/* Victory screen */
+.victory-title {
+    animation: glow 2s infinite, bounce 1s;
+    color: $success;
+    text-style: bold;
+}
+
+/* Game over screen */
+.game-over-title {
+    animation: shake 0.5s, fade-in 1s;
+    color: $error;
+    text-style: bold;
+}
+
+/* Achievement unlocked */
+.achievement {
+    animation: slide-in 0.5s, glow 3s;
+    border: double $warning;
+    background: $panel;
+}
+
+/* Floor transition */
+.floor-transition {
+    animation: slide-in 1s;
+    text-align: center;
+    text-style: bold;
+}
+
+/* ==================== Cow Animations ==================== */
+
+.cow-art {
+    animation: bounce 2s infinite;
+}
+
+.cow-aggressive {
+    animation: shake 0.5s infinite;
+    color: $error;
+}
+
+.cow-happy {
+    animation: bounce 1s infinite;
+    color: $success;
+}
+
+.cow-tipped {
+    animation: spin 1s;
+}
+
+/* ==================== Shop Animations ==================== */
+
+.shop-item:hover {
+    animation: pulse 1s;
+    background: $primary-darken-1;
+}
+
+.shop-purchase {
+    animation: glow 0.5s, fade-in 0.5s;
+    color: $success;
+}
+
+.shop-insufficient-funds {
+    animation: shake 0.3s;
+    color: $error;
+}
+
+/* ==================== Inventory Animations ==================== */
+
+.item-equipped {
+    animation: glow 2s infinite;
+    border: solid $success;
+}
+
+.item-use {
+    animation: fade-in 0.5s reverse;
+}
+
+.item-drop {
+    animation: slide-in 0.5s reverse;
+}
+
+/* ==================== Status Panel Animations ==================== */
+
+.stat-increase {
+    animation: glow 0.5s;
+    color: $success;
+}
+
+.stat-decrease {
+    animation: shake 0.3s;
+    color: $error;
+}
+
+.floor-change {
+    animation: slide-in 1s, glow 2s;
+    color: $primary;
+    text-style: bold;
+}
+
+/* ==================== Progress Bar Animations ==================== */
+
+ProgressBar {
+    transition: percentage 0.5s ease-in-out;
+}
+
+ProgressBar.health {
+    bar-color: $success;
+}
+
+ProgressBar.health-low {
+    animation: pulse 1s infinite;
+    bar-color: $error;
+}
+
+ProgressBar.enemy {
+    bar-color: $error;
+}
+
+/* ==================== Text Effects ==================== */
+
+.typewriter {
+    animation: typewriter 2s steps(40, end);
+}
+
+@keyframes typewriter {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+.blink {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+}
+
+/* ==================== Responsive Animations ==================== */
+
+/* Reduce animations for performance */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

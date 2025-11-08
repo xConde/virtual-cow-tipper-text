@@ -1,0 +1,83 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-11-08T12:00:00",
+  "player": {
+    "name": "Tycoon",
+    "hp": 100,
+    "cash": 1500,
+    "stunned_turns": 0,
+    "inventory": [
+      {
+        "type": "weapon",
+        "name": "Mythril Blade",
+        "min_damage": 12,
+        "max_damage": 18,
+        "rarity": "rare",
+        "scale": 4
+      },
+      {
+        "type": "weapon",
+        "name": "Godsword",
+        "min_damage": 18,
+        "max_damage": 28,
+        "rarity": "legendairy",
+        "scale": 5
+      },
+      {
+        "type": "shield",
+        "name": "Tower Shield",
+        "min_defence": 10,
+        "max_defence": 16,
+        "rarity": "rare",
+        "scale": 4
+      },
+      {
+        "type": "tool",
+        "name": "Cow Bell"
+      },
+      {
+        "type": "tool",
+        "name": "Bucket"
+      }
+    ],
+    "weapon": {
+      "name": "Excalibur",
+      "min_damage": 20,
+      "max_damage": 30,
+      "rarity": "legendairy",
+      "scale": 5
+    },
+    "shield": {
+      "name": "Aegis",
+      "min_defence": 14,
+      "max_defence": 20,
+      "rarity": "legendairy",
+      "scale": 5
+    }
+  },
+  "stats": {
+    "cows_defeated": 45,
+    "cows_fled_from": 5,
+    "total_damage_dealt": 2000,
+    "total_damage_taken": 400,
+    "cash_earned": 5000,
+    "cash_spent": 1500,
+    "items_purchased": 25,
+    "items_sold": 15,
+    "mini_games_won": 20,
+    "mini_games_lost": 8,
+    "legendary_items_found": 3,
+    "dairy_cows_milked": 12,
+    "shops_visited": 15
+  },
+  "cow_packs": {
+    "1": 10.0,
+    "2": -5.0,
+    "3": 8.5,
+    "4": 2.0,
+    "5": 6.0,
+    "6": -2.0
+  },
+  "current_floor": 5,
+  "encounters_this_floor": 3
+}

@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-11-08T12:00:00",
+  "player": {
+    "name": "Newbie",
+    "hp": 20,
+    "cash": 50,
+    "stunned_turns": 0,
+    "inventory": [],
+    "weapon": null,
+    "shield": null
+  },
+  "stats": {
+    "cows_defeated": 0,
+    "cows_fled_from": 0,
+    "total_damage_dealt": 0,
+    "total_damage_taken": 0,
+    "cash_earned": 0,
+    "cash_spent": 0,
+    "items_purchased": 0,
+    "items_sold": 0,
+    "mini_games_won": 0,
+    "mini_games_lost": 0,
+    "legendary_items_found": 0,
+    "dairy_cows_milked": 0,
+    "shops_visited": 0
+  },
+  "cow_packs": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0,
+    "6": 0.0
+  },
+  "current_floor": 1,
+  "encounters_this_floor": 0
+}

@@ -1,0 +1,50 @@
+# Local development assistance (never commit)
+.ai/
+
+# Save files (but keep example files and scenarios)
+saves/*
+!saves/dev_save.example.json
+!saves/scenarios/
+!saves/scenarios/*.json
+!saves/scenarios/*.md
+game_save.json
+
+# Career stats (user's personal progress)
+career_stats.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+venv_textual/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Performance/profiling data (generated during development)
+*.stats
+*_baseline.txt
+performance_baseline.txt
+tests_baseline.txt
+curses_profile.stats
+
+# Claude Code settings (local configuration)
+.claude/settings.local.json
+
+# Test output files (generated)
+test_output/
+*.log

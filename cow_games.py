@@ -1,3 +1,45 @@
+from typing import TYPE_CHECKING
+import random
+import time
+import os
+import sys
+
+if TYPE_CHECKING:
+    from player import Player
+    from cow import Cow
+
+# Cross-platform keyboard detection
+try:
+    import msvcrt  # Windows
+    HAS_MSVCRT = True
+except ImportError:
+    HAS_MSVCRT = False
+    # Unix/Mac - use termios
+    import tty
+    import termios
+
+def wait_for_keypress() -> None:
+    """Wait for any key press - cross-platform."""
+    if HAS_MSVCRT:
+        msvcrt.getch()
+    else:
+        # Unix/Mac
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+def check_keypress() -> bool:
+    """Check if key was pressed - cross-platform."""
+    if HAS_MSVCRT:
+        return msvcrt.kbhit()
+    else:
+        # Unix/Mac - use select
+        import select
+        return select.select([sys.stdin], [], [], 0.0)[0] != []
 
 class CowGames:
     def __init__(self, player, cow):
@@ -28,17 +70,17 @@ class CowGames:
         input(f"Tipping Bar | Press ENTER to stop the arrow at the right spot {tip_amount} / {max_tip} | Press ENTER to start!")
         time.sleep(time_interval)
 
-        while not msvcrt.kbhit():
+        while not check_keypress():
             arrow_line = [' '] * bar_length
             arrow_line[arrow_position] = '>'
 
             # Cow face rendering
             cow_face = [
-                '      \\^__^/',
-                '      ( oo )\\________',
-                '        (__)\        )\/\ ',
-                '            ||----w |',
-                '            ||     ||'
+                r'      \^__^/',
+                r'      ( oo )\________',
+                r'        (__)\        )\/\ ',
+                r'            ||----w |',
+                r'            ||     ||'
             ]
             cow_face_width = len(cow_face[0])
             for i in range(len(cow_face)):
@@ -68,7 +110,7 @@ class CowGames:
             # Clear the terminal
             os.system('cls' if os.name == 'nt' else 'clear')
 
-        msvcrt.getch()  # clear the key buffer
+        wait_for_keypress()  # clear the key buffer
 
         # Calculate the tip amount based on whether the arrow_position is within range of the target
         if target_position - 1 <= arrow_position <= target_position + 1:
