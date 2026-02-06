@@ -214,16 +214,21 @@ class CowInteraction:
 
                         if random.random() < drop_chance:
                             from item_factory import ItemFactory
+                            from game_config import PLAYER_MAX_INVENTORY_SIZE
                             if legendary.get('guaranteed_legendary_drop'):
                                 # Force legendary rarity
                                 drop = ItemFactory.create_random_item(less_likely=True)
                                 drop.rarity = 'legendairy'
                             else:
                                 drop = ItemFactory.create_random_item(less_likely=True)
-                            self.player.inventory.append(drop)
-                            if hasattr(drop, 'rarity') and drop.rarity == 'legendairy':
-                                self.game_instance.stats.legendary_items_found += 1
-                            victory_msg += f"\n  Item Drop: {drop.name}!"
+
+                            if len(self.player.inventory) < PLAYER_MAX_INVENTORY_SIZE:
+                                self.player.update_inventory(drop, "add")
+                                if hasattr(drop, 'rarity') and drop.rarity == 'legendairy':
+                                    self.game_instance.stats.legendary_items_found += 1
+                                victory_msg += f"\n  Item Drop: {drop.name}!"
+                            else:
+                                victory_msg += f"\n  Item Drop: {drop.name} (inventory full — lost!)"
 
                         self.game_terminal.draw_dialog(victory_msg)
                         self.pause_with_prompt("[Press any key to continue...]")
