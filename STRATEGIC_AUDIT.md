@@ -185,7 +185,7 @@ After `CowAttack.cow_attack()` modifies `player.hp`, `player.display_info()` is 
 
 **Goal:** Take branch `feat/velocity-stats-and-combat-pipeline` from "started" to "shippable."
 
-- [ ] **1. Fix save/load potion loss** — `save_manager.py:restore_player()` silently drops health potions on load. Add potion reconstruction in the restore path. Also persist `damage_bonus` and `dairy_heal_bonus` so loaded games retain career attributes.
-- [ ] **2. Fix stale HP display in combat** — Call `player.display_info()` after the cow's attack phase in `cow_interaction.py` so the terminal header stays current. Also fix during stun turns.
-- [ ] **3. Fix invalid combat input giving cow a free attack** — In `cow_interaction.py:handle_combat()`, an unrecognized menu choice falls through to the cow's attack phase. Invalid input should loop back without penalizing the player.
-- [ ] **4. Test suite hardening** — Run all test files, fix any failures caused by our changes, add targeted tests for the new mechanics (shield defense, power-up strength, stat tracking).
+- [x] **1. Fix save/load potion loss** — Added potion_strength to save serialization; restore_player now reconstructs HealthPotion from strength tier. Verified with roundtrip test.
+- [x] **2. Fix stale HP display in combat** — Added `player.display_info()` + `set_cow_stats()` after every cow attack (normal and stun turns). Terminal header now always reflects current HP.
+- [x] **3. Fix invalid combat input giving cow a free attack** — Added `continue` for invalid input and inventory check so the cow doesn't get a free turn. Only attack (choice 1) triggers the cow's response.
+- [x] **4. Test suite hardening** — 8 new targeted tests in `test_new_mechanics.py`, fixed MockTerminals in 2 existing test files. 45/45 tests pass across all 8 test files.
