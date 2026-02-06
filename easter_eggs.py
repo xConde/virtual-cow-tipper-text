@@ -12,15 +12,18 @@ LEGENDARY_COWS = {
         "approach": "A cow wearing thick glasses furiously solving advanced calculus on a chalkboard. Mathematical symbols float around its head.",
         "mood_override": "friendly",
         "cash_multiplier": 3.0,
+        "mini_game_multiplier": 3.0,
         "strength_override": 15,
         "dialogue_intro": "The numbers, {player_name}! They're utterly irrational! Care to compute a tip?",
+        "dialogue_graceful": "Your math checks out! The Cowculator approves this transaction!",
         "dialogue_victory": "You've... divided by zero... *dissolves into mathematical symbols*",
-        "special": "Drops triple cash (mathematician's fortune!)"
+        "special": "Mini-games pay triple (mathematician's fortune!)"
     },
     "Moodini": {
         "approach": "A cow performing impossible escape tricks from a locked barn, chains clinking dramatically.",
         "mood_override": "neutral",
-        "cannot_defeat": True,  # Always escapes at 1 HP
+        "is_aggro": True,
+        "cannot_defeat": True,  # Always escapes at 0 HP
         "dialogue_intro": "You'll never catch Moodini! Watch as I escape certain doom!",
         "dialogue_escape": "*Disappears in a puff of hay and reappears outside the fence* Better luck next time!",
         "special": "Cannot be defeated (flees at 1 HP, no rewards)"
@@ -45,6 +48,7 @@ LEGENDARY_COWS = {
     "The Notorious C.O.W.": {
         "approach": "A cow wearing a backwards baseball cap and thick gold chains, beatboxing softly.",
         "mood_override": "neutral",
+        "is_aggro": True,
         "guaranteed_legendary_drop": True,
         "dialogue_intro": "Yo, it's all about the moo-lah, baby. You got that cheddar?",
         "dialogue_victory": "Respect. You earned it. *drops legendary item* Keep it real.",
@@ -132,36 +136,46 @@ class EasterEggRewards:
 
     @staticmethod
     def legendary_cow_found(cow_name: str):
-        """Called when legendary cow encountered."""
-        print(f"\n{'*'*60}")
-        print(f"LEGENDARY COW ENCOUNTERED: {cow_name}!")
-        print(f"{'*'*60}")
-        print("This is a RARE encounter! (0.1% chance)")
+        """Legendary announcement — handled in-game via draw_dialog, not here.
+
+        WARNING: Do not add print() here. This may be called during a curses
+        session, and raw print() will corrupt the terminal display.
+        """
+        pass
 
     @staticmethod
     def lucky_777_activated(hp_or_cash: str):
-        """Called when player has exactly 777 or 77."""
+        """Called when player has exactly 77 HP or 777 cash.
+
+        Returns immediate bonus rewards (cash + HP restore).
+        """
         print(f"\n{'*'*40}")
         print(f"LUCKY NUMBER 777! ({hp_or_cash})")
         print(f"{'*'*40}")
         print("A four-leaf clover appears!")
-        print("Next 3 shops will have legendary items!")
-        print("Next 3 mini-games will auto-win!")
+        print("\nLuck smiles upon you:")
+        print("  +$200 bonus cash!")
+        print("  +30 HP restored!")
         return {
-            'legendary_shop_count': 3,
-            'mini_game_auto_win': 3
+            'cash_bonus': 200,
+            'hp_bonus': 30
         }
 
     @staticmethod
     def achievement_42():
-        """The Answer to Life, Universe, and Everything."""
+        """The Answer to Life, Universe, and Everything.
+
+        Returns the Towel of Destiny shield for the player.
+        """
+        from item import Shield
         print(f"\n{'='*40}")
         print("42 COWS DEFEATED!")
         print(f"{'='*40}")
         print("You've found the Answer to Life, the Universe, and Everything!")
         print("\n*A towel mysteriously appears*")
-        print("\nUNLOCKED: The Towel of Destiny (legendary item)")
+        print("\nUNLOCKED: The Towel of Destiny (legendary shield)")
         print("So long, and thanks for all the tips!")
+        return Shield("Towel of Destiny", 10, 42, "legendairy", 5)
 
     @staticmethod
     def developer_encounter():

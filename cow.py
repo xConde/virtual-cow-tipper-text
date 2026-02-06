@@ -33,6 +33,7 @@ class Cow:
         self.is_aggro = properties.is_aggro
         self.pack = properties.pack
         self.approach = properties.approach
+        self.legendary_data = properties.legendary_data
         self.mood: CowMood = self.set_mood(self.likeliness)
 
     @staticmethod
@@ -133,10 +134,6 @@ class Cow:
     @staticmethod
     def _create_legendary_cow(player, cow_name: str, legendary_data: Dict) -> CowProperties:
         """Create a legendary named cow with special properties."""
-        from easter_eggs import EasterEggRewards
-
-        EasterEggRewards.legendary_cow_found(cow_name)
-
         # Use legendary approach
         approach = legendary_data['approach']
         mood = legendary_data.get('mood_override', 'friendly')
@@ -158,6 +155,7 @@ class Cow:
             is_shop=legendary_data.get('is_shop', False),
             is_aggro=legendary_data.get('is_aggro', False),
             pack=random.randint(1, 6),
-            approach=approach
+            approach=approach,
+            legendary_data=legendary_data
         )
         

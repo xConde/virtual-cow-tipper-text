@@ -32,6 +32,10 @@ class VirtualCowTipper:
             starting_cash=50 + bonuses['extra_cash']
         )
 
+        # Apply career bonuses to player
+        self.player.damage_bonus = bonuses['damage_bonus']
+        self.player.dairy_heal_bonus = bonuses['dairy_heal_bonus']
+
         # Apply starting items from unlocks
         for item_id in bonuses['starting_items']:
             if item_id == 'cowbell':
@@ -200,11 +204,17 @@ class VirtualCowTipper:
                 self._lucky_777_used = True
                 from easter_eggs import EasterEggRewards
                 self.game_terminal.close_game_terminal()
-                self._lucky_effects = EasterEggRewards.lucky_777_activated(
+                lucky_rewards = EasterEggRewards.lucky_777_activated(
                     "HP" if self.player.hp == 77 else "Cash"
                 )
+                # Apply immediate rewards
+                from game_config import PLAYER_MAX_HP
+                self.player.cash += lucky_rewards['cash_bonus']
+                self.player.hp = min(self.player.hp + lucky_rewards['hp_bonus'], PLAYER_MAX_HP)
+                self.stats.cash_earned += lucky_rewards['cash_bonus']
+                input("\nPress Enter to continue...")
                 self.game_terminal = GameTerminal()
-                # Redraw the intro after easter egg
+                self.player.display_info()
                 self.game_terminal.draw_dialog(intro_msg)
                 self.game_terminal.stdscr.refresh()
 
@@ -214,6 +224,15 @@ class VirtualCowTipper:
         if meta:
             self.game_terminal.draw_dialog(f"[The cow pauses and looks at you] \"{meta}\" [It continues as normal]")
             self._pause_with_prompt("[Press any key to continue...]")
+
+        # Easter egg: Philosopher cow dialogue (0.5% chance on neutral encounters)
+        if self.cow.mood == 'neutral':
+            from easter_eggs import get_philosopher_cow_dialogue
+            philosophy = get_philosopher_cow_dialogue()
+            if philosophy:
+                formatted = philosophy.replace('{player_name}', self.player.name)
+                self.game_terminal.draw_dialog(f"{self.cow.name}: \"{formatted}\"")
+                self._pause_with_prompt("[Press any key to continue...]")
 
         is_interrupted = self.get_interruption()
         if is_interrupted:
@@ -291,15 +310,17 @@ class VirtualCowTipper:
             newly_unlocked = self.career_stats.check_unlocks()
             self.career_stats.save()
 
-            # Show unlocks if any
+            # Close curses before print-based screens
+            self.game_terminal.close_game_terminal()
+
             if newly_unlocked:
                 self._show_new_unlocks(newly_unlocked)
 
             should_restart = self.player.die(self.stats)
             if should_restart:
+                self.game_terminal = GameTerminal()
                 self._restart_game()
             else:
-                self.game_terminal.close_game_terminal()
                 self.running = False
 
     def check_victory_conditions(self) -> None:
@@ -312,7 +333,10 @@ class VirtualCowTipper:
                 self._achievements_shown = set()
             self._achievements_shown.add(self.stats.cows_defeated)
             self.game_terminal.close_game_terminal()
-            EasterEggRewards.achievement_42()
+            towel = EasterEggRewards.achievement_42()
+            self.player.update_inventory(towel, "add")
+            self.stats.legendary_items_found += 1
+            input("\nPress Enter to continue...")
             self.game_terminal = GameTerminal()
 
         if self.stats.check_victory():
@@ -321,13 +345,14 @@ class VirtualCowTipper:
             newly_unlocked = self.career_stats.check_unlocks()
             self.career_stats.save()
 
+            # Close curses before print-based screens
+            self.game_terminal.close_game_terminal()
+
             self._show_victory_screen()
 
-            # Show unlocks after victory
             if newly_unlocked:
                 self._show_new_unlocks(newly_unlocked)
 
-            self.game_terminal.close_game_terminal()
             self.running = False
 
     def _show_new_unlocks(self, newly_unlocked: List[str]) -> None:
@@ -387,15 +412,38 @@ class VirtualCowTipper:
         self.game_terminal.stdscr.getch()
 
     def _restart_game(self) -> None:
-        """Reset game state for new run."""
-        # Delete old save before restarting
+        """Reset game state for new run, preserving career bonuses."""
         SaveManager.delete_save()
 
-        self.player = Player(self.game_terminal, self.player.name)
+        # Re-load career stats (may have new unlocks from the run that just ended)
+        self.career_stats = CareerStats.load()
+        bonuses = self.career_stats.get_starting_bonuses()
+        self.career_bonuses = bonuses
+
+        self.player = Player(
+            self.game_terminal,
+            self.player.name,
+            starting_hp=20 + bonuses['extra_hp'],
+            starting_cash=50 + bonuses['extra_cash']
+        )
+        self.player.damage_bonus = bonuses['damage_bonus']
+        self.player.dairy_heal_bonus = bonuses['dairy_heal_bonus']
+
+        # Apply starting items from unlocks
+        for item_id in bonuses['starting_items']:
+            if item_id == 'cowbell':
+                self.player.inventory.append(CowBell())
+            elif item_id == 'basic_weapon':
+                from item_factory import ItemFactory
+                weapon = ItemFactory.create_weapon(less_likely=True)
+                self.player.weapon = weapon
+
         self.cow = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
         self.cow_packs = {pack: 0.0 for pack in range(1, NUM_COW_PACKS + 1)}
-        self.stats = GameStats()  # Reset stats
+        self.stats = GameStats()
+        self.current_floor = 1
+        self.encounters_this_floor = 0
 
     def save_game(self) -> bool:
         """Save current game state."""

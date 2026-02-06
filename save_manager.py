@@ -73,6 +73,7 @@ class SaveManager:
                         'max_defence': getattr(item, 'max_defence', None),
                         'rarity': getattr(item, 'rarity', None),
                         'scale': getattr(item, 'scale', None),
+                        'potion_strength': getattr(item, 'strength', None),
                     }
                     for item in player.inventory
                 ],
@@ -179,7 +180,7 @@ class SaveManager:
     @staticmethod
     def restore_player(player, save_data: Dict) -> None:
         """Restore player state from save data."""
-        from item import Weapon, Shield, CowBell, Bucket, LiquidGold
+        from item import Weapon, Shield, CowBell, Bucket, LiquidGold, HealthPotion
 
         player_data = save_data['player']
 
@@ -217,6 +218,9 @@ class SaveManager:
                 item = Bucket()
             elif item_data['name'] == 'Liquid Gold':
                 item = LiquidGold()
+            elif item_data['type'] == 'potion':
+                strength = item_data.get('potion_strength', 'normal')
+                item = HealthPotion(strength)
             else:
                 continue  # Skip unknown items
 

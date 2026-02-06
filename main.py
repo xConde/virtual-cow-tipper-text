@@ -96,8 +96,22 @@ def main():
                 player_name_input = input('\nEnter your name: ').strip()
                 player_name = player_name_input if player_name_input else "Adventurer"
 
-                # Start game directly (no easter egg)
+                # Easter egg: Developer name bonus
+                from easter_eggs import check_developer_name, EasterEggRewards
+                is_developer = check_developer_name(player_name)
+                if is_developer:
+                    EasterEggRewards.developer_encounter()
+                    input("\nPress Enter to continue...")
+
                 game = VirtualCowTipper(player_name, show_tutorial=show_tutorial)
+
+                # Developer bonus: legendary starting weapon
+                if is_developer:
+                    from item_factory import ItemFactory
+                    dev_weapon = ItemFactory.create_weapon(less_likely=True)
+                    dev_weapon.rarity = 'legendairy'
+                    game.player.weapon = dev_weapon
+
                 game.start()
 
                 # After game ends, reinitialize menu

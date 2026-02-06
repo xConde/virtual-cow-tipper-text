@@ -80,7 +80,8 @@ class Player:
         """
         base_damage = random.randint(PLAYER_BASE_DAMAGE_MIN, PLAYER_BASE_DAMAGE_MAX) + (self.cash // PLAYER_DAMAGE_CASH_SCALING)
         weapon_damage = roll_weapon_dmg(self.weapon)
-        total_damage = base_damage + weapon_damage
+        career_bonus = getattr(self, 'damage_bonus', 0)
+        total_damage = base_damage + weapon_damage + career_bonus
         total_damage = min(total_damage, cow.hp)
 
         cow_hp_before = cow.hp

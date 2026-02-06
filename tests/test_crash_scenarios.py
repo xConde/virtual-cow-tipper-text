@@ -16,7 +16,6 @@ def test_imports_dont_crash():
         from player import Player
         from cow_interaction import CowInteraction
         from cow_attack import CowAttack
-        from cow_games import CowGames
         from item import Weapon, Shield, HealthPotion, CowBell, Bucket
         from item_factory import ItemFactory
         from dialogue_manager import DialogueManager
@@ -41,7 +40,13 @@ def test_player_inventory_operations():
 
     class MockTerminal:
         def set_player_stats(self, *args): pass
+        def draw_player_stats(self): pass
+        def draw_game_title(self): pass
+        def draw_separator(self): pass
         def refresh(self): pass
+        class stdscr:
+            @staticmethod
+            def refresh(): pass
 
     print("\nTesting inventory operations...")
 
@@ -176,8 +181,14 @@ def test_combat_edge_cases():
 
     class MockTerminal:
         def set_player_stats(self, *args): pass
+        def draw_player_stats(self): pass
+        def draw_game_title(self): pass
+        def draw_separator(self): pass
         def refresh(self): pass
         def draw_dialog(self, text): pass
+        class stdscr:
+            @staticmethod
+            def refresh(): pass
 
     terminal = MockTerminal()
     player = Player(terminal, "Fighter")
