@@ -204,12 +204,17 @@ class VirtualCowTipper:
                 self._lucky_777_used = True
                 from easter_eggs import EasterEggRewards
                 self.game_terminal.close_game_terminal()
-                self._lucky_effects = EasterEggRewards.lucky_777_activated(
+                lucky_rewards = EasterEggRewards.lucky_777_activated(
                     "HP" if self.player.hp == 77 else "Cash"
                 )
+                # Apply immediate rewards
+                from game_config import PLAYER_MAX_HP
+                self.player.cash += lucky_rewards['cash_bonus']
+                self.player.hp = min(self.player.hp + lucky_rewards['hp_bonus'], PLAYER_MAX_HP)
+                self.stats.cash_earned += lucky_rewards['cash_bonus']
                 input("\nPress Enter to continue...")
                 self.game_terminal = GameTerminal()
-                # Redraw the intro after easter egg
+                self.player.display_info()
                 self.game_terminal.draw_dialog(intro_msg)
                 self.game_terminal.stdscr.refresh()
 

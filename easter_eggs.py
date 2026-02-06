@@ -145,16 +145,20 @@ class EasterEggRewards:
 
     @staticmethod
     def lucky_777_activated(hp_or_cash: str):
-        """Called when player has exactly 777 or 77."""
+        """Called when player has exactly 77 HP or 777 cash.
+
+        Returns immediate bonus rewards (cash + HP restore).
+        """
         print(f"\n{'*'*40}")
         print(f"LUCKY NUMBER 777! ({hp_or_cash})")
         print(f"{'*'*40}")
         print("A four-leaf clover appears!")
-        print("Next 3 shops will have legendary items!")
-        print("Next 3 mini-games will auto-win!")
+        print("\nLuck smiles upon you:")
+        print("  +$200 bonus cash!")
+        print("  +30 HP restored!")
         return {
-            'legendary_shop_count': 3,
-            'mini_game_auto_win': 3
+            'cash_bonus': 200,
+            'hp_bonus': 30
         }
 
     @staticmethod
