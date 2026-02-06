@@ -121,6 +121,8 @@ class CowInteraction:
                 if attack_msg:
                     stun_msg += attack_msg
 
+                self.player.display_info(combat=True)
+                self.game_terminal.set_cow_stats(self.cow.get_combat_stats())
                 self.game_terminal.draw_dialog(stun_msg)
                 self.pause_with_prompt("[Continue...]")
                 continue
@@ -182,6 +184,7 @@ class CowInteraction:
                         self.pause_with_prompt("[Continue to cow's turn...]")
                 elif choice == 2:
                     self.player.check_inventory()
+                    continue
                 elif choice == 3:
                     self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_FLEE)
                     self.game_instance.stats.cows_fled_from += 1
@@ -193,6 +196,7 @@ class CowInteraction:
                 error_msg = "Invalid choice. Please enter 1, 2, or 3."
                 self.game_terminal.draw_dialog(error_msg)
                 self.game_terminal.stdscr.refresh()
+                continue
 
             if self.cow.hp > 0:
                 hp_before = self.player.hp
@@ -201,6 +205,8 @@ class CowInteraction:
                 if damage_taken > 0:
                     self.game_instance.stats.total_damage_taken += damage_taken
                 if attack_msg:
+                    self.player.display_info(combat=True)
+                    self.game_terminal.set_cow_stats(self.cow.get_combat_stats())
                     self.game_terminal.draw_dialog(attack_msg)
                     self.pause_with_prompt("[Continue...]")
                 
