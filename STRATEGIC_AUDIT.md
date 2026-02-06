@@ -114,3 +114,24 @@ The Cowculator has `cash_multiplier: 3.0`, which sets `cow.cash = 90` in `_creat
 
 ### Weakness 3 — LOW: Bovine Einstein's `dialogue_purchase` is hollow data
 `easter_eggs.py` defines `"dialogue_purchase": "A wise investment! The theory of relativi-moo approves!"` for Bovine Einstein. No code ever reads this field. The shop purchase handler shows a generic "Purchased: ..." message for all items. Another data-defined-but-never-read field.
+
+---
+
+## Deployment Checklist
+
+### 1. Fix inventory overflow on combat drops — DONE
+- [x] Combat drops now use `update_inventory()` with capacity check
+- [x] Shows "inventory full — lost!" when cap reached
+
+### 2. Fix curses/print corruption on game-end screens — DONE
+- [x] Close `game_terminal` BEFORE print-based death/victory/unlock screens
+- [x] Re-init `GameTerminal` only if restarting
+- [x] Added `input()` pause to achievement_42 and lucky_777 before curses re-init
+
+### 3. Wire lucky 777 with tangible reward — DONE
+- [x] Replaced hollow multi-turn promises with immediate +$200 cash and +30 HP
+- [x] Rewards applied and tracked in stats.cash_earned
+
+### 4. Wire achievement 42 with actual item — DONE
+- [x] Returns Shield("Towel of Destiny", 10, 42, "legendairy", 5)
+- [x] Added to player inventory via update_inventory(), tracked as legendary find
