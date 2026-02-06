@@ -207,6 +207,7 @@ class VirtualCowTipper:
                 self._lucky_effects = EasterEggRewards.lucky_777_activated(
                     "HP" if self.player.hp == 77 else "Cash"
                 )
+                input("\nPress Enter to continue...")
                 self.game_terminal = GameTerminal()
                 # Redraw the intro after easter egg
                 self.game_terminal.draw_dialog(intro_msg)
@@ -304,15 +305,17 @@ class VirtualCowTipper:
             newly_unlocked = self.career_stats.check_unlocks()
             self.career_stats.save()
 
-            # Show unlocks if any
+            # Close curses before print-based screens
+            self.game_terminal.close_game_terminal()
+
             if newly_unlocked:
                 self._show_new_unlocks(newly_unlocked)
 
             should_restart = self.player.die(self.stats)
             if should_restart:
+                self.game_terminal = GameTerminal()
                 self._restart_game()
             else:
-                self.game_terminal.close_game_terminal()
                 self.running = False
 
     def check_victory_conditions(self) -> None:
@@ -326,6 +329,7 @@ class VirtualCowTipper:
             self._achievements_shown.add(self.stats.cows_defeated)
             self.game_terminal.close_game_terminal()
             EasterEggRewards.achievement_42()
+            input("\nPress Enter to continue...")
             self.game_terminal = GameTerminal()
 
         if self.stats.check_victory():
@@ -334,13 +338,14 @@ class VirtualCowTipper:
             newly_unlocked = self.career_stats.check_unlocks()
             self.career_stats.save()
 
+            # Close curses before print-based screens
+            self.game_terminal.close_game_terminal()
+
             self._show_victory_screen()
 
-            # Show unlocks after victory
             if newly_unlocked:
                 self._show_new_unlocks(newly_unlocked)
 
-            self.game_terminal.close_game_terminal()
             self.running = False
 
     def _show_new_unlocks(self, newly_unlocked: List[str]) -> None:
