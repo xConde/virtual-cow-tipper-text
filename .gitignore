@@ -21,7 +21,6 @@ __pycache__/
 
 # Virtual environments
 venv/
-venv_textual/
 env/
 ENV/
 
@@ -35,12 +34,8 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Performance/profiling data (generated during development)
+# Performance/profiling data
 *.stats
-*_baseline.txt
-performance_baseline.txt
-tests_baseline.txt
-curses_profile.stats
 
 # Claude Code settings (local configuration)
 .claude/settings.local.json
