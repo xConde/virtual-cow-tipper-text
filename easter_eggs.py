@@ -20,7 +20,8 @@ LEGENDARY_COWS = {
     "Moodini": {
         "approach": "A cow performing impossible escape tricks from a locked barn, chains clinking dramatically.",
         "mood_override": "neutral",
-        "cannot_defeat": True,  # Always escapes at 1 HP
+        "is_aggro": True,
+        "cannot_defeat": True,  # Always escapes at 0 HP
         "dialogue_intro": "You'll never catch Moodini! Watch as I escape certain doom!",
         "dialogue_escape": "*Disappears in a puff of hay and reappears outside the fence* Better luck next time!",
         "special": "Cannot be defeated (flees at 1 HP, no rewards)"
@@ -45,6 +46,7 @@ LEGENDARY_COWS = {
     "The Notorious C.O.W.": {
         "approach": "A cow wearing a backwards baseball cap and thick gold chains, beatboxing softly.",
         "mood_override": "neutral",
+        "is_aggro": True,
         "guaranteed_legendary_drop": True,
         "dialogue_intro": "Yo, it's all about the moo-lah, baby. You got that cheddar?",
         "dialogue_victory": "Respect. You earned it. *drops legendary item* Keep it real.",

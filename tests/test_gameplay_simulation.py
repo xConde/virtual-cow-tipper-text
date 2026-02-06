@@ -15,15 +15,23 @@ from save_manager import SaveManager
 import random
 
 
+class MockStdscr:
+    def refresh(self): pass
+    def addstr(self, *args): pass
+    def getch(self): return ord('\n')
+
 class MockTerminal:
     """Mock terminal for headless testing."""
     def __init__(self):
-        pass
+        self.stdscr = MockStdscr()
     def clear_screen(self): pass
     def refresh(self): pass
     def set_cow_stats(self, s): pass
     def draw_dialog(self, s): pass
     def set_player_stats(self, *args): pass
+    def draw_player_stats(self, *args): pass
+    def draw_game_title(self, *args): pass
+    def draw_separator(self, *args): pass
     def close_game_terminal(self): pass
 
 

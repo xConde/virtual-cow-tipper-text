@@ -1,8 +1,8 @@
 """
 Data models using dataclasses for clean, typed data structures.
 """
-from dataclasses import dataclass
-from typing import Literal
+from dataclasses import dataclass, field
+from typing import Literal, Optional, Dict
 
 CowMood = Literal['upset', 'neutral', 'friendly']
 
@@ -20,6 +20,7 @@ class CowProperties:
     is_aggro: bool
     pack: int
     approach: str
+    legendary_data: Optional[Dict] = field(default=None, repr=False)
 
     @property
     def mood(self) -> CowMood:

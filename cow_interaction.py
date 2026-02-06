@@ -101,8 +101,20 @@ class CowInteraction:
 
         self.game_instance.destroy_cow()
 
+    def _format_legendary_dialogue(self, text: str) -> str:
+        """Format legendary dialogue placeholders."""
+        return text.format(player_name=self.player.name)
+
     def handle_combat(self) -> None:
         """Handle combat encounter with aggressive cow."""
+        legendary = getattr(self.cow, 'legendary_data', None) or {}
+
+        # Show legendary intro dialogue before combat
+        if legendary.get('dialogue_intro'):
+            intro_text = self._format_legendary_dialogue(legendary['dialogue_intro'])
+            self.game_terminal.draw_dialog(f"=== LEGENDARY ENCOUNTER ===\n\n{self.cow.name}: \"{intro_text}\"")
+            self.pause_with_prompt("[Press any key to fight...]")
+
         self.game_terminal.draw_dialog(self.cow.approach)
         self.game_terminal.set_cow_stats(self.cow.get_combat_stats())
 
@@ -157,6 +169,25 @@ class CowInteraction:
                     self.game_terminal.draw_dialog(damage_msg)
 
                     if self.cow.hp <= 0:
+                        # Moodini: cannot be defeated — escapes at 0 HP
+                        if legendary.get('cannot_defeat'):
+                            escape_msg = self._format_legendary_dialogue(
+                                legendary.get('dialogue_escape', f"{self.cow.name} vanishes!"))
+                            half_cash = int(self.cow.cash // 2)
+                            self.player.update_cash(half_cash)
+                            self.game_instance.stats.cash_earned += half_cash
+
+                            result_msg = (
+                                f"=== {self.cow.name} ESCAPES ===\n\n"
+                                f"{escape_msg}\n\n"
+                                f"Partial reward: +${half_cash}\n"
+                                f"No kill credit awarded."
+                            )
+                            self.game_terminal.draw_dialog(result_msg)
+                            self.pause_with_prompt("[Press any key to continue...]")
+                            self.game_instance.destroy_cow()
+                            break
+
                         from game_config import COMBAT_CASH_MULTIPLIER, COMBAT_ITEM_DROP_CHANCE
 
                         cash_reward = int(self.cow.cash * COMBAT_CASH_MULTIPLIER)
@@ -166,12 +197,25 @@ class CowInteraction:
                         self.game_instance.stats.cows_defeated += 1
                         self.game_instance.stats.cash_earned += cash_reward
 
-                        victory_msg = f"=== VICTORY ===\nYou defeat {self.cow.name}!\n\nRewards:\n  Cash: +${cash_reward}"
+                        # Legendary dialogue on victory
+                        victory_dialogue = legendary.get('dialogue_victory', '')
+                        if victory_dialogue:
+                            formatted_victory = self._format_legendary_dialogue(victory_dialogue)
+                            victory_msg = f"=== LEGENDARY VICTORY ===\n{formatted_victory}\n\nRewards:\n  Cash: +${cash_reward}"
+                        else:
+                            victory_msg = f"=== VICTORY ===\nYou defeat {self.cow.name}!\n\nRewards:\n  Cash: +${cash_reward}"
 
-                        import random
-                        if random.random() < COMBAT_ITEM_DROP_CHANCE:
+                        # Notorious C.O.W.: guaranteed legendary drop
+                        drop_chance = 1.0 if legendary.get('guaranteed_legendary_drop') else COMBAT_ITEM_DROP_CHANCE
+
+                        if random.random() < drop_chance:
                             from item_factory import ItemFactory
-                            drop = ItemFactory.create_random_item(less_likely=True)
+                            if legendary.get('guaranteed_legendary_drop'):
+                                # Force legendary rarity
+                                drop = ItemFactory.create_random_item(less_likely=True)
+                                drop.rarity = 'legendairy'
+                            else:
+                                drop = ItemFactory.create_random_item(less_likely=True)
                             self.player.inventory.append(drop)
                             if hasattr(drop, 'rarity') and drop.rarity == 'legendairy':
                                 self.game_instance.stats.legendary_items_found += 1
@@ -219,13 +263,18 @@ class CowInteraction:
         lucky_chance = SHOP_LUCKY_CHANCE_UPSET if self.cow.mood == 'upset' else SHOP_LUCKY_CHANCE_FRIENDLY
         isLucky = random.random() < lucky_chance
 
-        greeting_msg = f"{self.cow.name}'s Shop\n\n"
-        if self.cow.mood == 'friendly' and isLucky:
-            greeting_msg += "The shop owner greets you warmly!"
+        legendary = getattr(self.cow, 'legendary_data', None) or {}
+
+        # Legendary shop dialogue
+        if legendary.get('dialogue_intro'):
+            intro_text = self._format_legendary_dialogue(legendary['dialogue_intro'])
+            greeting_msg = f"{self.cow.name}'s Shop\n\n{intro_text}"
+        elif self.cow.mood == 'friendly' and isLucky:
+            greeting_msg = f"{self.cow.name}'s Shop\n\nThe shop owner greets you warmly!"
         elif self.cow.mood == 'upset' and isLucky:
-            greeting_msg += f"{self.cow.name} grudgingly serves you."
+            greeting_msg = f"{self.cow.name}'s Shop\n\n{self.cow.name} grudgingly serves you."
         else:
-            greeting_msg += f"Welcome to the shop. ({self.cow.mood} mood)"
+            greeting_msg = f"{self.cow.name}'s Shop\n\nWelcome to the shop. ({self.cow.mood} mood)"
 
         self.game_terminal.draw_dialog(greeting_msg)
         self.pause_with_prompt("[Browse items...]")
@@ -235,6 +284,18 @@ class CowInteraction:
         while True:
             shop_discount = getattr(self.game_instance, 'career_bonuses', {}).get('shop_discount', 0.0)
             available_items = get_shop_items(self.cow.mood, self.player.cash, isLucky, shop_discount)
+
+            # Bovine Einstein: force a legendary item in the shop
+            if legendary.get('shop_has_legendary'):
+                from item_factory import ItemFactory
+                legendary_weapon = ItemFactory.create_weapon(less_likely=True)
+                legendary_weapon.rarity = 'legendairy'
+                available_items.append({
+                    "label": "legendary item",
+                    "item": legendary_weapon,
+                    "price": int(150 * (1.0 - shop_discount))
+                })
+
             num_items = len(available_items)
 
             item_strings = []
@@ -534,8 +595,15 @@ class CowInteraction:
 
     def handle_tip_or_leave(self) -> None:
         """Handle regular cow encounter (tip for mini-game or leave)."""
+        legendary = getattr(self.cow, 'legendary_data', None) or {}
         self.game_terminal.set_cow_stats(self.cow.get_mood_status())
-        self.cow.print_response(self.cow.name, 'intro', False)
+
+        # Show legendary dialogue if available, otherwise standard intro
+        if legendary.get('dialogue_intro'):
+            intro_text = self._format_legendary_dialogue(legendary['dialogue_intro'])
+            self.game_terminal.draw_dialog(f"{self.cow.name}: {intro_text}")
+        else:
+            self.cow.print_response(self.cow.name, 'intro', False)
         actions = {
             "play_mini_game": f"Play mini-game with {self.cow.name}",
             "leave": "Leave"
@@ -600,16 +668,35 @@ class CowInteraction:
                 )
 
                 self.game_instance.stats.mini_games_won += 1
-                profit = bet_amount
-                self.player.update_cash(bet_amount * 2)
-                self.game_instance.stats.cash_earned += bet_amount * 2
 
-                win_msg = (
-                    f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
-                    f"YOU WIN!\n\n"
-                    f"The dice favor you!\n"
-                    f"Profit: +${profit}"
-                )
+                # Elvis Parcowly: mini-game multiplier
+                payout_multiplier = int(legendary.get('mini_game_multiplier', 2))
+                payout = bet_amount * payout_multiplier
+                profit = payout - bet_amount
+                self.player.update_cash(payout)
+                self.game_instance.stats.cash_earned += payout
+
+                # Legendary dialogue on win (e.g. Elvis Parcowly's dialogue_graceful)
+                graceful_dialogue = legendary.get('dialogue_graceful', '')
+
+                if payout_multiplier > 2:
+                    win_msg = (
+                        f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
+                        f"YOU WIN! ({payout_multiplier}x PAYOUT!)\n\n"
+                        f"{self.cow.name} pays out big!\n"
+                        f"Profit: +${profit}"
+                    )
+                else:
+                    win_msg = (
+                        f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
+                        f"YOU WIN!\n\n"
+                        f"The dice favor you!\n"
+                        f"Profit: +${profit}"
+                    )
+
+                if graceful_dialogue:
+                    win_msg += f"\n\n{self.cow.name}: \"{self._format_legendary_dialogue(graceful_dialogue)}\""
+
                 self.game_terminal.draw_dialog(win_msg)
 
                 # Scaled reputation based on bet size

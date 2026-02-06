@@ -219,6 +219,15 @@ class VirtualCowTipper:
             self.game_terminal.draw_dialog(f"[The cow pauses and looks at you] \"{meta}\" [It continues as normal]")
             self._pause_with_prompt("[Press any key to continue...]")
 
+        # Easter egg: Philosopher cow dialogue (0.5% chance on neutral encounters)
+        if self.cow.mood == 'neutral':
+            from easter_eggs import get_philosopher_cow_dialogue
+            philosophy = get_philosopher_cow_dialogue()
+            if philosophy:
+                formatted = philosophy.format(player_name=self.player.name)
+                self.game_terminal.draw_dialog(f"{self.cow.name}: \"{formatted}\"")
+                self._pause_with_prompt("[Press any key to continue...]")
+
         is_interrupted = self.get_interruption()
         if is_interrupted:
             CowInteraction(self, self.player, self.cow).interact()
