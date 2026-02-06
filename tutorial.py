@@ -26,17 +26,17 @@ YOUR ACTIONS MATTER:
 
 COW TYPES:
 ----------
-• AGGRESSIVE (15% chance) - Fight or flee!
+• AGGRESSIVE (35% chance) - Fight or flee!
 • SHOP KEEPER (15% chance) - Buy and sell items
 • DAIRY COW (5% chance) - Milk them if you have a bucket
-• REGULAR COW (default) - Tip them to play mini-games
+• REGULAR COW (default) - Play dice games and wager cash
 
 PROGRESSION:
 -----------
 • Earn cash by defeating cows and winning mini-games
 • Buy better weapons and shields at shops
 • Cows get stronger as YOU get stronger
-• The game adapts to your progression!
+• Career unlocks carry bonuses across runs!
 
 TIPS FOR SUCCESS:
 ----------------
@@ -44,7 +44,7 @@ TIPS FOR SUCCESS:
 • Buy a Cow Bell early - helps find dairy cows
 • Sell old equipment when you find better gear
 • Friendly shop cows pay 70% for items, upset only pay 50%
-• Watch your HP - there's no healing (yet!)
+• Rest to heal, buy potions at shops, or milk dairy cows for HP
 
 Ready to start your bovine adventure?
 """)

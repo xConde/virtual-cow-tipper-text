@@ -130,28 +130,14 @@ class LiquidGold(Object):
         return 150 + 5 * weapon_dps + 10 * (player.cash // 50)
 
 
-# All item generation moved to item_factory.py
-# This file now only contains item classes
 
-# Legacy function exports at end of file to avoid circular imports
-
-# Legacy exports for backwards compatibility (at end to avoid circular imports)
-def find_median_stat(item):
-    """DEPRECATED: Use ItemFactory.calculate_item_median_stat()"""
-    from item_factory import ItemFactory
-    return ItemFactory.calculate_item_median_stat(item)
+# Legacy function exports - forwarding to ItemFactory
+# These remain for backward compatibility with existing callers
 
 def roll_weapon_dmg(weapon):
-    """DEPRECATED: Use ItemFactory.roll_weapon_damage()"""
     from item_factory import ItemFactory
     return ItemFactory.roll_weapon_damage(weapon)
 
-def random_item_roll(less_likely):
-    """DEPRECATED: Use ItemFactory.create_random_item()"""
+def get_shop_items(cow_mood, player_cash, isLucky, shop_discount=0.0):
     from item_factory import ItemFactory
-    return ItemFactory.create_random_item(less_likely)
-
-def get_shop_items(cow_mood, player_cash, isLucky):
-    """DEPRECATED: Use ItemFactory.get_shop_inventory()"""
-    from item_factory import ItemFactory
-    return ItemFactory.get_shop_inventory(cow_mood, player_cash, isLucky)
+    return ItemFactory.get_shop_inventory(cow_mood, player_cash, isLucky, shop_discount)

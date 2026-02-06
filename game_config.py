@@ -63,16 +63,6 @@ PACK_SCORE_SHOP_EXPENSIVE_BONUS = 50  # +1 per 50 cash spent
 COMBAT_CASH_MULTIPLIER = 2.0  # Combat gives 2x cash!
 COMBAT_ITEM_DROP_CHANCE = 0.15  # 15% chance for item drop
 
-# Mini-Game Settings
-TIPPING_BAR_MAX_MULTIPLIER = 3  # Max reward = bet * 3
-TIPPING_BAR_TIME_BASE = 0.30
-TIPPING_BAR_TIME_SCALING = 0.01  # Faster with higher bets
-COW_RACE_LENGTH = 50
-COW_RACE_BASE_SPEED = 1
-COW_RACE_WIN_MULTIPLIER = 2  # Win = bet * 2
-GUESSING_GAME_MAX_GUESSES = 4
-GUESSING_GAME_RANGE_MULTIPLIER = 1.5  # Range = bet * 1.5
-
 # Item Generation Weights
 ITEM_TYPE_WEIGHTS_NORMAL = [35, 30, 32, 3]  # weapon, shield, tool, object
 ITEM_TYPE_WEIGHTS_LUCKY = [63, 15, 20, 2]

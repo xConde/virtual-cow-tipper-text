@@ -126,7 +126,6 @@ def test_all_imports():
         from player import Player
         from cow_interaction import CowInteraction
         from cow_attack import CowAttack
-        from cow_games import CowGames
         from item_factory import ItemFactory
         from dialogue_manager import DialogueManager
         from models import CowProperties, PlayerState

@@ -3,9 +3,8 @@ import random
 import time
 import os
 
-from item import CowBell, Bucket, random_item_roll, get_shop_items, Tool
+from item import CowBell, Bucket, get_shop_items, Tool
 from cow_attack import CowAttack
-from cow_games import CowGames
 from dialogue_manager import DialogueManager
 from utils import safe_print
 from game_config import (
@@ -72,10 +71,12 @@ class CowInteraction:
             liquid_gold = bucket.use()
             self.player.update_inventory(liquid_gold, "add")
             self.player.update_inventory(bucket, "remove")
+            self.game_instance.stats.dairy_cows_milked += 1
 
-            # HEALING: Milking dairy cows restores HP!
+            # HEALING: Milking dairy cows restores HP! (+ career bonus)
+            dairy_heal = DAIRY_COW_HEAL_AMOUNT + getattr(self.player, 'dairy_heal_bonus', 0)
             old_hp = self.player.hp
-            self.player.hp = min(self.player.hp + DAIRY_COW_HEAL_AMOUNT, PLAYER_MAX_HP)
+            self.player.hp = min(self.player.hp + dairy_heal, PLAYER_MAX_HP)
             healed = self.player.hp - old_hp
 
             # Show dairy interaction results
@@ -112,7 +113,11 @@ class CowInteraction:
                 stun_msg = f"Stunned! You can't act!\n({self.player.stunned_turns} turns remaining)\n\n"
                 self.player.stunned_turns -= 1
 
+                hp_before_stun = self.player.hp
                 attack_msg = CowAttack.cow_attack(self.player, self.cow)
+                stun_damage_taken = hp_before_stun - self.player.hp
+                if stun_damage_taken > 0:
+                    self.game_instance.stats.total_damage_taken += stun_damage_taken
                 if attack_msg:
                     stun_msg += attack_msg
 
@@ -132,6 +137,7 @@ class CowInteraction:
                 choice = int(choice)
                 if choice == 1:
                     damage_dealt, flavor_text = self.player.deal_damage(self.cow)
+                    self.game_instance.stats.total_damage_dealt += damage_dealt
 
                     if flavor_text:
                         damage_msg = flavor_text
@@ -156,6 +162,7 @@ class CowInteraction:
                         self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_WIN)
                         self.player.update_cash(cash_reward)
                         self.game_instance.stats.cows_defeated += 1
+                        self.game_instance.stats.cash_earned += cash_reward
 
                         victory_msg = f"=== VICTORY ===\nYou defeat {self.cow.name}!\n\nRewards:\n  Cash: +${cash_reward}"
 
@@ -164,6 +171,8 @@ class CowInteraction:
                             from item_factory import ItemFactory
                             drop = ItemFactory.create_random_item(less_likely=True)
                             self.player.inventory.append(drop)
+                            if hasattr(drop, 'rarity') and drop.rarity == 'legendairy':
+                                self.game_instance.stats.legendary_items_found += 1
                             victory_msg += f"\n  Item Drop: {drop.name}!"
 
                         self.game_terminal.draw_dialog(victory_msg)
@@ -175,6 +184,7 @@ class CowInteraction:
                     self.player.check_inventory()
                 elif choice == 3:
                     self.game_instance.update_cow_scores(self.cow, PACK_SCORE_COMBAT_FLEE)
+                    self.game_instance.stats.cows_fled_from += 1
                     flee_msg = f"Fled!\n\nYou escape from {self.cow.name}."
                     self.game_terminal.draw_dialog(flee_msg)
                     self.pause_with_prompt("[Escaping...]")
@@ -185,13 +195,18 @@ class CowInteraction:
                 self.game_terminal.stdscr.refresh()
 
             if self.cow.hp > 0:
+                hp_before = self.player.hp
                 attack_msg = CowAttack.cow_attack(self.player, self.cow)
+                damage_taken = hp_before - self.player.hp
+                if damage_taken > 0:
+                    self.game_instance.stats.total_damage_taken += damage_taken
                 if attack_msg:
                     self.game_terminal.draw_dialog(attack_msg)
                     self.pause_with_prompt("[Continue...]")
                 
     def handle_shop(self) -> None:
         """Handle shop encounter (buy and sell items)."""
+        self.game_instance.stats.shops_visited += 1
         starting_cash = self.player.cash
         purchases = []
         sales = []
@@ -212,7 +227,8 @@ class CowInteraction:
         saved_shop_greeting = greeting_msg
 
         while True:
-            available_items = get_shop_items(self.cow.mood, self.player.cash, isLucky)
+            shop_discount = getattr(self.game_instance, 'career_bonuses', {}).get('shop_discount', 0.0)
+            available_items = get_shop_items(self.cow.mood, self.player.cash, isLucky, shop_discount)
             num_items = len(available_items)
 
             item_strings = []
@@ -236,6 +252,11 @@ class CowInteraction:
                         self.player.update_cash(-item_price)
                         self.player.update_inventory(item_choice['item'], "add")
                         self.player.display_info()
+
+                        self.game_instance.stats.cash_spent += item_price
+                        self.game_instance.stats.items_purchased += 1
+                        if hasattr(item_choice['item'], 'rarity') and item_choice['item'].rarity == 'legendairy':
+                            self.game_instance.stats.legendary_items_found += 1
 
                         item_name = item_choice['item'].name
                         purchases.append((item_name, item_price))
@@ -288,6 +309,9 @@ class CowInteraction:
                         self.player.update_inventory(sold_item, "remove")
                         self.player.update_cash(sell_price)
                         self.player.display_info()
+
+                        self.game_instance.stats.cash_earned += sell_price
+                        self.game_instance.stats.items_sold += 1
 
                         sales.append((sold_item.name, sell_price))
                         total_earned = sum(price for _, price in sales)
@@ -556,6 +580,7 @@ class CowInteraction:
 
             # Step 3: Roll dice
             self.player.update_cash(-bet_amount)
+            self.game_instance.stats.cash_spent += bet_amount
             die1 = random.randint(1, 6)
             die2 = random.randint(1, 6)
             total = die1 + die2
@@ -568,8 +593,10 @@ class CowInteraction:
                     MINI_GAME_WIN_SCORE_PER_BET_MULTIPLIER
                 )
 
+                self.game_instance.stats.mini_games_won += 1
                 profit = bet_amount
                 self.player.update_cash(bet_amount * 2)
+                self.game_instance.stats.cash_earned += bet_amount * 2
 
                 win_msg = (
                     f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
@@ -594,6 +621,8 @@ class CowInteraction:
                     MINI_GAME_REMATCH_WIN_SCORE,
                     MINI_GAME_REMATCH_LOSS_SCORE
                 )
+
+                self.game_instance.stats.mini_games_lost += 1
 
                 loss_msg = (
                     f"🎲 You Rolled: {die1} + {die2} = {total} 🎲\n\n"
@@ -621,6 +650,7 @@ class CowInteraction:
 
                     # Rematch roll
                     self.player.update_cash(-bet_amount)
+                    self.game_instance.stats.cash_spent += bet_amount
                     die1 = random.randint(1, 6)
                     die2 = random.randint(1, 6)
                     total = die1 + die2
@@ -628,7 +658,9 @@ class CowInteraction:
 
                     if rematch_won:
                         # WIN REMATCH - Break even
+                        self.game_instance.stats.mini_games_won += 1
                         self.player.update_cash(bet_amount * 2)
+                        self.game_instance.stats.cash_earned += bet_amount * 2
 
                         rematch_win_msg = (
                             f"🎲 Rematch: {die1} + {die2} = {total} 🎲\n\n"
@@ -645,6 +677,7 @@ class CowInteraction:
 
                     else:
                         # LOSE REMATCH - Double loss
+                        self.game_instance.stats.mini_games_lost += 1
                         rematch_loss_msg = (
                             f"🎲 Rematch: {die1} + {die2} = {total} 🎲\n\n"
                             f"REMATCH LOST!\n\n"

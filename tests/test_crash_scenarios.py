@@ -16,7 +16,6 @@ def test_imports_dont_crash():
         from player import Player
         from cow_interaction import CowInteraction
         from cow_attack import CowAttack
-        from cow_games import CowGames
         from item import Weapon, Shield, HealthPotion, CowBell, Bucket
         from item_factory import ItemFactory
         from dialogue_manager import DialogueManager

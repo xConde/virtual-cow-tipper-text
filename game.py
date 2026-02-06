@@ -32,6 +32,10 @@ class VirtualCowTipper:
             starting_cash=50 + bonuses['extra_cash']
         )
 
+        # Apply career bonuses to player
+        self.player.damage_bonus = bonuses['damage_bonus']
+        self.player.dairy_heal_bonus = bonuses['dairy_heal_bonus']
+
         # Apply starting items from unlocks
         for item_id in bonuses['starting_items']:
             if item_id == 'cowbell':
@@ -387,15 +391,38 @@ class VirtualCowTipper:
         self.game_terminal.stdscr.getch()
 
     def _restart_game(self) -> None:
-        """Reset game state for new run."""
-        # Delete old save before restarting
+        """Reset game state for new run, preserving career bonuses."""
         SaveManager.delete_save()
 
-        self.player = Player(self.game_terminal, self.player.name)
+        # Re-load career stats (may have new unlocks from the run that just ended)
+        self.career_stats = CareerStats.load()
+        bonuses = self.career_stats.get_starting_bonuses()
+        self.career_bonuses = bonuses
+
+        self.player = Player(
+            self.game_terminal,
+            self.player.name,
+            starting_hp=20 + bonuses['extra_hp'],
+            starting_cash=50 + bonuses['extra_cash']
+        )
+        self.player.damage_bonus = bonuses['damage_bonus']
+        self.player.dairy_heal_bonus = bonuses['dairy_heal_bonus']
+
+        # Apply starting items from unlocks
+        for item_id in bonuses['starting_items']:
+            if item_id == 'cowbell':
+                self.player.inventory.append(CowBell())
+            elif item_id == 'basic_weapon':
+                from item_factory import ItemFactory
+                weapon = ItemFactory.create_weapon(less_likely=True)
+                self.player.weapon = weapon
+
         self.cow = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
         self.cow_packs = {pack: 0.0 for pack in range(1, NUM_COW_PACKS + 1)}
-        self.stats = GameStats()  # Reset stats
+        self.stats = GameStats()
+        self.current_floor = 1
+        self.encounters_this_floor = 0
 
     def save_game(self) -> bool:
         """Save current game state."""

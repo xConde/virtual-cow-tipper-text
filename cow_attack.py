@@ -52,8 +52,19 @@ class CowAttack:
 
         if hit_chance <= chosen_attack.accuracy:
             if chosen_attack.damage:
-                player.hp -= chosen_attack.damage
-                attack_msg = f"{cow.name} uses {chosen_attack.name} for {chosen_attack.damage} damage!"
+                raw_damage = chosen_attack.damage
+                blocked = 0
+                if player.shield:
+                    blocked = random.randint(player.shield.min_defence, player.shield.max_defence)
+                    blocked = min(blocked, raw_damage)
+                actual_damage = max(0, raw_damage - blocked)
+                player.hp -= actual_damage
+                if blocked > 0 and actual_damage > 0:
+                    attack_msg = f"{cow.name} uses {chosen_attack.name}! Your shield deflects the blow! {actual_damage} damage taken."
+                elif blocked > 0:
+                    attack_msg = f"{cow.name} uses {chosen_attack.name}! Your shield absorbs the hit completely!"
+                else:
+                    attack_msg = f"{cow.name} uses {chosen_attack.name}! {raw_damage} damage taken."
 
             if chosen_attack.effect:
                 if chosen_attack.effect == "stun":
@@ -66,7 +77,7 @@ class CowAttack:
                     # Add heal info to attack message
                     attack_msg += f"\n{cow.name} heals for {chosen_attack.healing} HP!"
                 elif chosen_attack.effect == "power_up":
-                    # Add power up info to attack message
+                    cow.strength += 1
                     attack_msg += f"\n{cow.name} powers up! Strength increased!"
         else:
             attack_msg = f"{cow.name} misses!"

@@ -104,7 +104,7 @@ class ItemFactory:
             return ItemFactory._create_random_object()
 
     @staticmethod
-    def get_shop_inventory(cow_mood: str, player_cash: float, is_lucky: bool) -> List[Dict]:
+    def get_shop_inventory(cow_mood: str, player_cash: float, is_lucky: bool, shop_discount: float = 0.0) -> List[Dict]:
         """Generate shop inventory with pricing based on cow mood and player wealth."""
         from game_config import POTION_MINOR_PRICE, POTION_NORMAL_PRICE, POTION_GREATER_PRICE
         from item import HealthPotion
@@ -112,28 +112,30 @@ class ItemFactory:
         # ECONOMY FIX: Reduce price scaling (was too expensive late game)
         base_price = random.randint(SHOP_PRICE_BASE_MIN, SHOP_PRICE_BASE_MAX) + int(player_cash // SHOP_PRICE_CASH_SCALING)
         price_multiplier = SHOP_PRICE_UPSET_MULTIPLIER if cow_mood == 'upset' else 1.0
+        # Apply career shop discount
+        discount_multiplier = 1.0 - shop_discount
         less_likely = not (is_lucky and cow_mood != 'neutral')
 
         items = [
             {
                 "label": "random item",
                 "item": ItemFactory.create_random_item(less_likely),
-                "price": base_price * SHOP_RANDOM_ITEM_MULTIPLIER * price_multiplier
+                "price": int(base_price * SHOP_RANDOM_ITEM_MULTIPLIER * price_multiplier * discount_multiplier)
             },
             {
                 "label": "random weapon",
                 "item": ItemFactory.create_weapon(less_likely=False),
-                "price": base_price * SHOP_WEAPON_MULTIPLIER * price_multiplier
+                "price": int(base_price * SHOP_WEAPON_MULTIPLIER * price_multiplier * discount_multiplier)
             },
             {
                 "label": "random shield",
                 "item": ItemFactory.create_shield(less_likely=False),
-                "price": base_price * SHOP_SHIELD_MULTIPLIER * price_multiplier
+                "price": int(base_price * SHOP_SHIELD_MULTIPLIER * price_multiplier * discount_multiplier)
             },
             {
                 "label": "health potion",
                 "item": HealthPotion('normal'),
-                "price": POTION_NORMAL_PRICE * price_multiplier
+                "price": int(POTION_NORMAL_PRICE * price_multiplier * discount_multiplier)
             },
         ]
 
@@ -142,7 +144,7 @@ class ItemFactory:
             items.append({
                 "label": "greater health potion",
                 "item": HealthPotion('greater'),
-                "price": POTION_GREATER_PRICE * price_multiplier
+                "price": int(POTION_GREATER_PRICE * price_multiplier * discount_multiplier)
             })
 
         return items
