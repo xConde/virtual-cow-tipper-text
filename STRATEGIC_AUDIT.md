@@ -81,3 +81,36 @@
 ---
 
 **All steps complete. Pass #2 is closed.**
+
+---
+
+## Red Team Critique
+
+**Reviewed by:** Lead Security & Reliability Engineer | **Scope:** Commit `5612019` (legendary abilities + easter eggs)
+
+### Weakness 1 — CRITICAL: `str.format()` crash vector in dialogue formatting
+`_format_legendary_dialogue()` used `text.format(player_name=...)` and `game.py` used `philosophy.format(player_name=...)`. Python's `str.format()` treats ALL `{...}` tokens as format placeholders. Any dialogue string with stray curly braces (e.g., `"E=MC{squared}"`) would throw `KeyError` at runtime. This crash only manifests during 0.1% legendary or 0.5% philosopher encounters — potentially hundreds of runs to reproduce.
+- **Fix:** Replaced with `str.replace('{player_name}', ...)` — safe, explicit, no crash on unexpected braces.
+
+### Weakness 2 — MEDIUM: Bovine Einstein legendary item regenerated per shop loop
+The legendary weapon was created INSIDE the `while True` shop loop. Every browse/buy/sell/invalid-input cycled the loop and generated a NEW random legendary weapon. Player could refresh-shop until they got desired stats.
+- **Fix:** Moved legendary weapon creation BEFORE the loop — generated once, stable across all shop interactions.
+
+### Weakness 3 — LOW: Dead `EasterEggRewards.legendary_cow_found()` retained live `print()` calls
+We removed the call but left the method body with raw `print()` statements. If anyone re-calls this method during a curses session, terminal corruption occurs.
+- **Fix:** Replaced method body with `pass` and a docstring warning about curses safety.
+
+---
+
+## Red Team Critique — Pass 2
+
+**Reviewed by:** Lead Security & Reliability Engineer | **Scope:** Red Team Pass 1 fixes + full legendary ability implementation
+
+### Weakness 1 — CRITICAL: Bovine Einstein legendary item purchasable infinitely
+The Red Team #1 fix moved legendary weapon creation before the shop loop — but didn't track purchase state. `legendary_shop_item` is always truthy, so it's appended to `available_items` every loop iteration. After buying, the SAME dict (with the SAME object reference) reappears. The player can purchase the same legendary weapon unlimited times. Worse: each purchase inserts the same Python object reference into `player.inventory`, causing shared-state corruption if the player tries to sell or modify one copy.
+
+### Weakness 2 — HIGH: The Cowculator's "triple cash" ability is a no-op
+The Cowculator has `cash_multiplier: 3.0`, which sets `cow.cash = 90` in `_create_legendary_cow`. But The Cowculator is NOT aggro and NOT a shop — it routes to `handle_tip_or_leave`, where `cow.cash` is never referenced. The mini-game uses `bet_amount` exclusively. The Cowculator's stated special ability ("Drops triple cash") does absolutely nothing. Its `dialogue_victory` text ("You've divided by zero...") also never displays, because victory dialogue only triggers in `handle_combat`. A 0.1% encounter whose signature ability is hollow — the exact class of bug this pass was supposed to eliminate.
+
+### Weakness 3 — LOW: Bovine Einstein's `dialogue_purchase` is hollow data
+`easter_eggs.py` defines `"dialogue_purchase": "A wise investment! The theory of relativi-moo approves!"` for Bovine Einstein. No code ever reads this field. The shop purchase handler shows a generic "Purchased: ..." message for all items. Another data-defined-but-never-read field.

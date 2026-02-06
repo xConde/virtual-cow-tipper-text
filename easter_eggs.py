@@ -12,10 +12,12 @@ LEGENDARY_COWS = {
         "approach": "A cow wearing thick glasses furiously solving advanced calculus on a chalkboard. Mathematical symbols float around its head.",
         "mood_override": "friendly",
         "cash_multiplier": 3.0,
+        "mini_game_multiplier": 3.0,
         "strength_override": 15,
         "dialogue_intro": "The numbers, {player_name}! They're utterly irrational! Care to compute a tip?",
+        "dialogue_graceful": "Your math checks out! The Cowculator approves this transaction!",
         "dialogue_victory": "You've... divided by zero... *dissolves into mathematical symbols*",
-        "special": "Drops triple cash (mathematician's fortune!)"
+        "special": "Mini-games pay triple (mathematician's fortune!)"
     },
     "Moodini": {
         "approach": "A cow performing impossible escape tricks from a locked barn, chains clinking dramatically.",
@@ -134,11 +136,12 @@ class EasterEggRewards:
 
     @staticmethod
     def legendary_cow_found(cow_name: str):
-        """Called when legendary cow encountered."""
-        print(f"\n{'*'*60}")
-        print(f"LEGENDARY COW ENCOUNTERED: {cow_name}!")
-        print(f"{'*'*60}")
-        print("This is a RARE encounter! (0.1% chance)")
+        """Legendary announcement — handled in-game via draw_dialog, not here.
+
+        WARNING: Do not add print() here. This may be called during a curses
+        session, and raw print() will corrupt the terminal display.
+        """
+        pass
 
     @staticmethod
     def lucky_777_activated(hp_or_cash: str):

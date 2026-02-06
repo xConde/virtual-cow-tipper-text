@@ -224,7 +224,7 @@ class VirtualCowTipper:
             from easter_eggs import get_philosopher_cow_dialogue
             philosophy = get_philosopher_cow_dialogue()
             if philosophy:
-                formatted = philosophy.format(player_name=self.player.name)
+                formatted = philosophy.replace('{player_name}', self.player.name)
                 self.game_terminal.draw_dialog(f"{self.cow.name}: \"{formatted}\"")
                 self._pause_with_prompt("[Press any key to continue...]")
 

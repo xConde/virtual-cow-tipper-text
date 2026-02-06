@@ -102,8 +102,12 @@ class CowInteraction:
         self.game_instance.destroy_cow()
 
     def _format_legendary_dialogue(self, text: str) -> str:
-        """Format legendary dialogue placeholders."""
-        return text.format(player_name=self.player.name)
+        """Format legendary dialogue placeholders using safe replacement.
+
+        Uses str.replace instead of str.format to avoid KeyError crashes
+        if dialogue text contains stray curly braces (e.g. "{gold}").
+        """
+        return text.replace('{player_name}', self.player.name)
 
     def handle_combat(self) -> None:
         """Handle combat encounter with aggressive cow."""
@@ -281,20 +285,26 @@ class CowInteraction:
 
         saved_shop_greeting = greeting_msg
 
+        # Bovine Einstein: generate legendary item ONCE, remove after purchase
+        legendary_shop_item = None
+        legendary_item_purchased = False
+        if legendary.get('shop_has_legendary'):
+            from item_factory import ItemFactory
+            legendary_weapon = ItemFactory.create_weapon(less_likely=True)
+            legendary_weapon.rarity = 'legendairy'
+            shop_discount = getattr(self.game_instance, 'career_bonuses', {}).get('shop_discount', 0.0)
+            legendary_shop_item = {
+                "label": "legendary item",
+                "item": legendary_weapon,
+                "price": int(150 * (1.0 - shop_discount))
+            }
+
         while True:
             shop_discount = getattr(self.game_instance, 'career_bonuses', {}).get('shop_discount', 0.0)
             available_items = get_shop_items(self.cow.mood, self.player.cash, isLucky, shop_discount)
 
-            # Bovine Einstein: force a legendary item in the shop
-            if legendary.get('shop_has_legendary'):
-                from item_factory import ItemFactory
-                legendary_weapon = ItemFactory.create_weapon(less_likely=True)
-                legendary_weapon.rarity = 'legendairy'
-                available_items.append({
-                    "label": "legendary item",
-                    "item": legendary_weapon,
-                    "price": int(150 * (1.0 - shop_discount))
-                })
+            if legendary_shop_item and not legendary_item_purchased:
+                available_items.append(legendary_shop_item)
 
             num_items = len(available_items)
 
@@ -325,6 +335,10 @@ class CowInteraction:
                         if hasattr(item_choice['item'], 'rarity') and item_choice['item'].rarity == 'legendairy':
                             self.game_instance.stats.legendary_items_found += 1
 
+                        # Bovine Einstein: remove legendary item after purchase
+                        if item_choice is legendary_shop_item:
+                            legendary_item_purchased = True
+
                         item_name = item_choice['item'].name
                         purchases.append((item_name, item_price))
                         total_spent = sum(price for _, price in purchases)
@@ -333,11 +347,17 @@ class CowInteraction:
                         else:
                             item_display = item_choice['item'].name
 
+                        # Legendary purchase dialogue (Bovine Einstein)
+                        purchase_dialogue = legendary.get('dialogue_purchase', '')
+
                         purchase_msg = (
                             f"Purchased: {item_display}\n"
                             f"Paid: ${item_price} | Remaining: ${self.player.cash}\n\n"
                             f"Visit Total: {len(purchases)} items | ${total_spent} spent"
                         )
+
+                        if purchase_dialogue:
+                            purchase_msg += f"\n\n{self.cow.name}: \"{self._format_legendary_dialogue(purchase_dialogue)}\""
 
                         self.game_terminal.draw_dialog(purchase_msg)
                         self.pause_with_prompt("[Continue shopping...]")
