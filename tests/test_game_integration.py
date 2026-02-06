@@ -78,7 +78,13 @@ def test_player_combat():
     class MockTerminal:
         def draw_dialog(self, text): pass
         def set_player_stats(self, *args): pass
+        def draw_player_stats(self): pass
+        def draw_game_title(self): pass
+        def draw_separator(self): pass
         def refresh(self): pass
+        class stdscr:
+            @staticmethod
+            def refresh(): pass
 
     terminal = MockTerminal()
     player = Player(terminal, "TestHero")

@@ -40,7 +40,13 @@ def test_player_inventory_operations():
 
     class MockTerminal:
         def set_player_stats(self, *args): pass
+        def draw_player_stats(self): pass
+        def draw_game_title(self): pass
+        def draw_separator(self): pass
         def refresh(self): pass
+        class stdscr:
+            @staticmethod
+            def refresh(): pass
 
     print("\nTesting inventory operations...")
 
@@ -175,8 +181,14 @@ def test_combat_edge_cases():
 
     class MockTerminal:
         def set_player_stats(self, *args): pass
+        def draw_player_stats(self): pass
+        def draw_game_title(self): pass
+        def draw_separator(self): pass
         def refresh(self): pass
         def draw_dialog(self, text): pass
+        class stdscr:
+            @staticmethod
+            def refresh(): pass
 
     terminal = MockTerminal()
     player = Player(terminal, "Fighter")

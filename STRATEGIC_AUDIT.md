@@ -178,3 +178,14 @@ After `CowAttack.cow_attack()` modifies `player.hp`, `player.display_info()` is 
 **Mitigation:** The attack message now shows actual damage taken (our Pass #1 fix), so the player knows what happened. But the header contradicts the message until the next turn.
 
 **Severity:** MINOR — UX inconsistency, partially mitigated by improved attack messages.
+
+---
+
+## Deployment Checklist
+
+**Goal:** Take branch `feat/velocity-stats-and-combat-pipeline` from "started" to "shippable."
+
+- [ ] **1. Fix save/load potion loss** — `save_manager.py:restore_player()` silently drops health potions on load. Add potion reconstruction in the restore path. Also persist `damage_bonus` and `dairy_heal_bonus` so loaded games retain career attributes.
+- [ ] **2. Fix stale HP display in combat** — Call `player.display_info()` after the cow's attack phase in `cow_interaction.py` so the terminal header stays current. Also fix during stun turns.
+- [ ] **3. Fix invalid combat input giving cow a free attack** — In `cow_interaction.py:handle_combat()`, an unrecognized menu choice falls through to the cow's attack phase. Invalid input should loop back without penalizing the player.
+- [ ] **4. Test suite hardening** — Run all test files, fix any failures caused by our changes, add targeted tests for the new mechanics (shield defense, power-up strength, stat tracking).
