@@ -163,14 +163,19 @@ class EasterEggRewards:
 
     @staticmethod
     def achievement_42():
-        """The Answer to Life, Universe, and Everything."""
+        """The Answer to Life, Universe, and Everything.
+
+        Returns the Towel of Destiny shield for the player.
+        """
+        from item import Shield
         print(f"\n{'='*40}")
         print("42 COWS DEFEATED!")
         print(f"{'='*40}")
         print("You've found the Answer to Life, the Universe, and Everything!")
         print("\n*A towel mysteriously appears*")
-        print("\nUNLOCKED: The Towel of Destiny (legendary item)")
+        print("\nUNLOCKED: The Towel of Destiny (legendary shield)")
         print("So long, and thanks for all the tips!")
+        return Shield("Towel of Destiny", 10, 42, "legendairy", 5)
 
     @staticmethod
     def developer_encounter():

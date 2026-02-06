@@ -333,7 +333,9 @@ class VirtualCowTipper:
                 self._achievements_shown = set()
             self._achievements_shown.add(self.stats.cows_defeated)
             self.game_terminal.close_game_terminal()
-            EasterEggRewards.achievement_42()
+            towel = EasterEggRewards.achievement_42()
+            self.player.update_inventory(towel, "add")
+            self.stats.legendary_items_found += 1
             input("\nPress Enter to continue...")
             self.game_terminal = GameTerminal()
 
