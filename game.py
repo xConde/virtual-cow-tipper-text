@@ -10,7 +10,7 @@ from dialogue_manager import DialogueManager
 from models import GameStats
 from save_manager import SaveManager
 from career_stats import CareerStats, Unlock
-from utils import safe_print
+
 from game_config import (
     COW_QUEUE_SIZE,
     NUM_COW_PACKS,
@@ -99,15 +99,19 @@ class VirtualCowTipper:
 
     def start(self) -> None:
         """Main game loop."""
-        if not hasattr(self, 'showed_intro'):
-            self._show_game_introduction()
-            self.showed_intro = True
+        try:
+            if not hasattr(self, 'showed_intro'):
+                self._show_game_introduction()
+                self.showed_intro = True
 
-        while self.running:
-            self.player.display_info()
-            self.player_turn()
-            self.check_end_conditions()
-            self.check_victory_conditions()
+            while self.running:
+                self.player.display_info()
+                self.player_turn()
+                self.check_end_conditions()
+                self.check_victory_conditions()
+        except Exception:
+            self.game_terminal.close_game_terminal()
+            raise
 
     def generate_cow(self) -> Cow:
         """Generate a new random cow scaled to player progression."""
@@ -256,9 +260,8 @@ class VirtualCowTipper:
             try:
                 action_func()
             except Exception as e:
-                safe_print(f"Error executing action: {e}")
-                import traceback
-                traceback.print_exc()
+                self.game_terminal.draw_dialog(f"Error: {e}")
+                self._pause_with_prompt("[Press any key to continue...]")
 
     def _rest(self) -> None:
         """Rest to recover HP. Only skips cow if healing occurs."""

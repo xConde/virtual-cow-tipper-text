@@ -30,7 +30,7 @@ def main():
             os.system('cls')
         else:
             os.system('clear')
-    except:
+    except OSError:
         # Fallback to ANSI escape codes
         print("\033[2J\033[H", end='', flush=True)
 

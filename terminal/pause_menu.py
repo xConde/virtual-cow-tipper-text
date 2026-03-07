@@ -19,37 +19,38 @@ class PauseMenu:
         self.set_menu_start_position()
 
         self.game_terminal.stdscr.nodelay(True)
-        pause_menu_items = ['1. Continue', '2. Help/Controls', '3. Quit Game']
-        selected_index = 0
+        try:
+            pause_menu_items = ['1. Continue', '2. Help/Controls', '3. Quit Game']
+            selected_index = 0
 
-        while True:
-            key = self.game_terminal.prompt_and_draw_menu(pause_menu_items, selected_index)
-            key_actions = self.get_pause_menu_key_actions(selected_index, pause_menu_items)
+            while True:
+                key = self.game_terminal.prompt_and_draw_menu(pause_menu_items, selected_index)
+                key_actions = self.get_pause_menu_key_actions(selected_index, pause_menu_items)
 
-            action = key_actions.get(key)
-            if action:
-                new_index = action()
-                if new_index is not None:
-                    selected_index = new_index
-                else:
-                    if selected_index == 0:
-                        self.game_terminal.stdscr.clear()
-                        self.game_terminal.stdscr.refresh()
-                        break
-                    elif selected_index == 1:
-                        self.show_options()
-                    elif selected_index == 2:
-                        self.game_terminal.close_game_terminal()
-                        sys.exit(0)
-            elif key == self.KEY_ESCAPE:
-                self.game_terminal.stdscr.clear()
-                self.game_terminal.stdscr.refresh()
-                break
-            elif self.NUM_OFFSET <= key <= self.NUM_OFFSET + len(pause_menu_items) - 1:
-                selected_index = key - self.NUM_OFFSET
-                continue
-
-        self.game_terminal.stdscr.nodelay(False)
+                action = key_actions.get(key)
+                if action:
+                    new_index = action()
+                    if new_index is not None:
+                        selected_index = new_index
+                    else:
+                        if selected_index == 0:
+                            self.game_terminal.stdscr.clear()
+                            self.game_terminal.stdscr.refresh()
+                            break
+                        elif selected_index == 1:
+                            self.show_options()
+                        elif selected_index == 2:
+                            self.game_terminal.close_game_terminal()
+                            sys.exit(0)
+                elif key == self.KEY_ESCAPE:
+                    self.game_terminal.stdscr.clear()
+                    self.game_terminal.stdscr.refresh()
+                    break
+                elif self.NUM_OFFSET <= key <= self.NUM_OFFSET + len(pause_menu_items) - 1:
+                    selected_index = key - self.NUM_OFFSET
+                    continue
+        finally:
+            self.game_terminal.stdscr.nodelay(False)
         self.game_terminal.refresh()
 
     def set_menu_start_position(self):
