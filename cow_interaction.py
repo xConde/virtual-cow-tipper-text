@@ -6,7 +6,7 @@ import os
 from item import CowBell, Bucket, get_shop_items, Tool
 from cow_attack import CowAttack
 from dialogue_manager import DialogueManager
-from utils import safe_print
+
 from game_config import (
     DAIRY_ENCOUNTER_BASE_CHANCE,
     DAIRY_ENCOUNTER_WITH_COWBELL,

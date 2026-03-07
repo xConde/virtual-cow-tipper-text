@@ -43,3 +43,5 @@ Thumbs.db
 # Test output files (generated)
 test_output/
 *.log
+logs/
+.coverage

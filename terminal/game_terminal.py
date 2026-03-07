@@ -8,6 +8,8 @@ class GameTerminal:
     HEIGHT = 30
     LEFT_MARGIN = 2   # Add left margin for readability
     RIGHT_MARGIN = 2  # Add right margin
+    MIN_HEIGHT = 25
+    MIN_WIDTH = 60
 
     # Header section (top)
     PLAYER_INFO_Y = 0
@@ -52,6 +54,14 @@ class GameTerminal:
         # This prevents bleed-through from terminal content
         max_height, max_width = self.stdscr.getmaxyx()
 
+        # Validate minimum terminal size
+        if max_height < self.MIN_HEIGHT or max_width < self.MIN_WIDTH:
+            curses.endwin()
+            raise RuntimeError(
+                f"Terminal too small ({max_width}x{max_height}). "
+                f"Minimum: {self.MIN_WIDTH}x{self.MIN_HEIGHT}"
+            )
+
         # Adjust our constants to fit the actual terminal
         self.HEIGHT = min(self.HEIGHT, max_height)
         self.WIDTH = min(self.WIDTH, max_width)
@@ -59,13 +69,14 @@ class GameTerminal:
         # Set background character to fill entire screen
         try:
             self.stdscr.bkgd(' ', curses.A_NORMAL)
-        except:
+        except curses.error:
             pass
 
         # Clear entire terminal, not just our window
         self.stdscr.clear()
         self.stdscr.refresh()
 
+        self._closed = False
         self.show_art = False
         self.player_stats = ''
         self.player_weapon = ''
@@ -89,7 +100,7 @@ class GameTerminal:
 
         try:
             self.stdscr.addstr(y, x, text, custom_attr)
-        except:
+        except curses.error:
             pass  # Ignore if out of bounds
 
     def generate_pointer(self, menu_item_length, total_width):
@@ -178,6 +189,10 @@ class GameTerminal:
                 selected_index = (selected_index - 1) % len(menu_items)
             elif key == KEY_DOWN:
                 selected_index = (selected_index + 1) % len(menu_items)
+            elif key == curses.KEY_RESIZE:
+                self.handle_resize()
+                self.refresh()
+                continue
             elif key == KEY_ESCAPE:
                 self.pause_menu.pause()
                 continue
@@ -305,6 +320,18 @@ class GameTerminal:
         if art:
             self.art = art.split("\n")
 
+    def handle_resize(self):
+        """Re-read terminal dimensions and validate minimum size."""
+        max_height, max_width = self.stdscr.getmaxyx()
+
+        if max_height < self.MIN_HEIGHT or max_width < self.MIN_WIDTH:
+            # Don't crash — just keep old dimensions
+            return False
+
+        self.HEIGHT = min(30, max_height)
+        self.WIDTH = min(85, max_width)
+        return True
+
     def handle_pause(self):
         self.pause_menu.pause()
 
@@ -356,7 +383,7 @@ class GameTerminal:
         # Fill with background
         try:
             self.stdscr.bkgd(' ', curses.A_NORMAL)
-        except:
+        except curses.error:
             pass
 
     def refresh(self):
@@ -373,6 +400,9 @@ class GameTerminal:
         self.stdscr.refresh()
 
     def close_game_terminal(self):
+        if getattr(self, '_closed', False):
+            return
+        self._closed = True
         curses.echo()
         curses.nocbreak()
         self.stdscr.keypad(False)

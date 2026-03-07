@@ -10,7 +10,10 @@ from dialogue_manager import DialogueManager
 from models import GameStats
 from save_manager import SaveManager
 from career_stats import CareerStats, Unlock
-from utils import safe_print
+from logging_config import get_logger
+
+logger = get_logger("vct.game")
+
 from game_config import (
     COW_QUEUE_SIZE,
     NUM_COW_PACKS,
@@ -40,12 +43,12 @@ class VirtualCowTipper:
         for item_id in bonuses['starting_items']:
             if item_id == 'cowbell':
                 self.player.inventory.append(CowBell())
-                print(f"[UNLOCK BONUS] {player_name} starts with a Cow Bell!")
+                logger.info("Unlock bonus: %s starts with a Cow Bell", player_name)
             elif item_id == 'basic_weapon':
                 from item_factory import ItemFactory
                 weapon = ItemFactory.create_weapon(less_likely=True)  # Common weapon
                 self.player.weapon = weapon
-                print(f"[UNLOCK BONUS] {player_name} starts with {weapon.name}!")
+                logger.info("Unlock bonus: %s starts with %s", player_name, weapon.name)
 
         self.cow: Optional[Cow] = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
@@ -99,15 +102,24 @@ class VirtualCowTipper:
 
     def start(self) -> None:
         """Main game loop."""
-        if not hasattr(self, 'showed_intro'):
-            self._show_game_introduction()
-            self.showed_intro = True
+        try:
+            if not hasattr(self, 'showed_intro'):
+                self._show_game_introduction()
+                self.showed_intro = True
 
-        while self.running:
-            self.player.display_info()
-            self.player_turn()
-            self.check_end_conditions()
-            self.check_victory_conditions()
+            while self.running:
+                self.player.display_info()
+                self.player_turn()
+                self.check_end_conditions()
+                self.check_victory_conditions()
+        except Exception:
+            logger.exception("Crash in game loop — attempting emergency save")
+            try:
+                self.save_game()
+            except Exception:
+                logger.exception("Emergency save also failed")
+            self.game_terminal.close_game_terminal()
+            raise
 
     def generate_cow(self) -> Cow:
         """Generate a new random cow scaled to player progression."""
@@ -127,6 +139,9 @@ class VirtualCowTipper:
         self.game_terminal.set_cow_stats('')
         self.cow = None
         self.encounters_this_floor += 1
+
+        # Autosave after each encounter
+        self._autosave()
 
         if self.encounters_this_floor >= self.encounters_per_floor:
             self.advance_floor()
@@ -256,9 +271,9 @@ class VirtualCowTipper:
             try:
                 action_func()
             except Exception as e:
-                safe_print(f"Error executing action: {e}")
-                import traceback
-                traceback.print_exc()
+                logger.exception("Error in player action: %s", action_name)
+                self.game_terminal.draw_dialog(f"Error: {e}")
+                self._pause_with_prompt("[Press any key to continue...]")
 
     def _rest(self) -> None:
         """Rest to recover HP. Only skips cow if healing occurs."""
@@ -450,11 +465,18 @@ class VirtualCowTipper:
         return SaveManager.save_game(self.player, self.stats, self.cow_packs,
                                      self.current_floor, self.encounters_this_floor)
 
+    def _autosave(self) -> None:
+        """Silently autosave after each encounter. Failures are non-fatal."""
+        try:
+            self.save_game()
+        except Exception:
+            logger.exception("Autosave failed")
+
     def _load_saved_game(self) -> None:
         """Load game state from save file."""
         save_data = SaveManager.load_game()
         if not save_data:
-            print("No save file found or load failed.")
+            logger.warning("No save file found or load failed")
             return
 
         SaveManager.restore_player(self.player, save_data)

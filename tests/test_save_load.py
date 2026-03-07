@@ -1,10 +1,6 @@
 """
 Test save/load system.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from save_manager import SaveManager
 from models import GameStats
 
@@ -38,8 +34,6 @@ def test_save_file_creation():
     success = SaveManager.save_game(MockPlayer(), stats, cow_packs)
     assert success, "Save should succeed"
     assert SaveManager.save_exists(), "Save file should exist after save"
-
-    print("test_save_file_creation: PASSED")
 
 
 def test_save_load_roundtrip():
@@ -79,8 +73,6 @@ def test_save_load_roundtrip():
     assert loaded['cow_packs'][1] == 5.0
     assert loaded['cow_packs'][2] == -3.0
 
-    print("test_save_load_roundtrip: PASSED")
-
 
 def test_delete_save():
     """Test save file deletion."""
@@ -98,8 +90,6 @@ def test_delete_save():
     assert success, "Delete should succeed"
     assert not SaveManager.save_exists(), "Save should not exist after delete"
 
-    print("test_delete_save: PASSED")
-
 
 def test_load_nonexistent_save():
     """Test loading when no save exists."""
@@ -108,24 +98,95 @@ def test_load_nonexistent_save():
     loaded = SaveManager.load_game()
     assert loaded is None, "Load should return None when no save exists"
 
-    print("test_load_nonexistent_save: PASSED")
+
+def test_corrupt_save_falls_back_to_backup():
+    """Test that corrupted primary save falls back to .bak file."""
+    import os
+
+    SaveManager.delete_save()
+
+    class MockPlayer:
+        name = "BackupTest"
+        hp = 42
+        cash = 999
+        stunned_turns = 0
+        inventory = []
+        weapon = None
+        shield = None
+
+    stats = GameStats(cows_defeated=7, cash_earned=300)
+    cow_packs = {1: 1.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0}
+
+    # Save a valid game (creates .bak on second save)
+    SaveManager.save_game(MockPlayer(), stats, cow_packs)
+    SaveManager.save_game(MockPlayer(), stats, cow_packs)  # Creates .bak
+
+    # Corrupt the primary save
+    save_path = SaveManager.get_save_path()
+    with open(save_path, 'w') as f:
+        f.write("{corrupt json data!!!")
+
+    # Load should fall back to .bak
+    loaded = SaveManager.load_game()
+    assert loaded is not None, "Should fall back to backup"
+    assert loaded['player']['name'] == "BackupTest"
+    assert loaded['player']['hp'] == 42
+
+    # Cleanup
+    SaveManager.delete_save()
+    backup = save_path + '.bak'
+    if os.path.exists(backup):
+        os.remove(backup)
 
 
-if __name__ == "__main__":
-    print("="*60)
-    print("SAVE/LOAD SYSTEM TESTS")
-    print("="*60)
-    print()
+def test_invalid_save_schema_returns_none():
+    """Test that save with missing required keys returns None."""
+    import json
+    import os
 
-    test_save_file_creation()
-    test_save_load_roundtrip()
-    test_delete_save()
-    test_load_nonexistent_save()
+    SaveManager.delete_save()
+    save_path = SaveManager.get_save_path()
+
+    # Write valid JSON but missing required keys
+    with open(save_path, 'w') as f:
+        json.dump({"version": "1.0", "timestamp": "now"}, f)
+
+    loaded = SaveManager.load_game()
+    assert loaded is None, "Missing keys should return None"
 
     # Cleanup
     SaveManager.delete_save()
 
-    print()
-    print("="*60)
-    print("ALL SAVE/LOAD TESTS PASSED!")
-    print("="*60)
+
+def test_atomic_write_creates_backup():
+    """Test that saving creates a .bak of the previous save."""
+    import os
+
+    SaveManager.delete_save()
+
+    class MockPlayer:
+        name = "AtomicTest"
+        hp = 50
+        cash = 100
+        stunned_turns = 0
+        inventory = []
+        weapon = None
+        shield = None
+
+    stats = GameStats()
+    packs = {1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0}
+
+    # First save — no backup yet
+    SaveManager.save_game(MockPlayer(), stats, packs)
+    save_path = SaveManager.get_save_path()
+    backup_path = save_path + '.bak'
+    assert not os.path.exists(backup_path), "No backup on first save"
+
+    # Second save — should create backup
+    SaveManager.save_game(MockPlayer(), stats, packs)
+    assert os.path.exists(backup_path), "Backup should exist after second save"
+
+    # Cleanup
+    SaveManager.delete_save()
+    if os.path.exists(backup_path):
+        os.remove(backup_path)

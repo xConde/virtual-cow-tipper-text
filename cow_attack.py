@@ -1,6 +1,6 @@
 from typing import Optional, Literal, TYPE_CHECKING
 import random
-from utils import safe_print
+
 
 if TYPE_CHECKING:
     from player import Player

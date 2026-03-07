@@ -1,9 +1,7 @@
 """
 Test meta-progression and career stats system.
 """
-import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from career_stats import CareerStats, Unlock
 from models import GameStats
@@ -16,8 +14,6 @@ def test_career_stats_creation():
     assert career.total_runs == 0
     assert career.total_cows_defeated == 0
     assert len(career.unlocks) == 0
-
-    print("test_career_stats_creation: PASSED")
 
 
 def test_unlock_checking():
@@ -38,8 +34,6 @@ def test_unlock_checking():
     unlocks2 = career.check_unlocks()
     assert len(unlocks2) == 0, "Already unlocked items shouldn't unlock again"
 
-    print("test_unlock_checking: PASSED")
-
 
 def test_starting_bonuses():
     """Test starting bonuses are calculated from unlocks."""
@@ -58,8 +52,6 @@ def test_starting_bonuses():
     assert bonuses['extra_hp'] == 10
     assert bonuses['extra_cash'] == 25
     assert 'cowbell' in bonuses['starting_items']
-
-    print("test_starting_bonuses: PASSED")
 
 
 def test_run_stats_accumulation():
@@ -95,8 +87,6 @@ def test_run_stats_accumulation():
     assert career.total_victories == 1
     assert career.total_dairy_milked == 7
 
-    print("test_run_stats_accumulation: PASSED")
-
 
 def test_multiple_unlocks():
     """Test earning multiple unlocks at once."""
@@ -110,8 +100,6 @@ def test_multiple_unlocks():
 
     # Should unlock 5 things
     assert len(unlocks) >= 3, f"Should unlock at least 3 items, got {len(unlocks)}"
-
-    print(f"test_multiple_unlocks: PASSED ({len(unlocks)} unlocks)")
 
 
 def test_save_load_career():
@@ -137,29 +125,3 @@ def test_save_load_career():
     # Cleanup
     if os.path.exists("career_stats.json"):
         os.remove("career_stats.json")
-
-    print("test_save_load_career: PASSED")
-
-
-if __name__ == "__main__":
-    print("="*60)
-    print("META-PROGRESSION TEST SUITE")
-    print("="*60)
-    print()
-
-    test_career_stats_creation()
-    test_unlock_checking()
-    test_starting_bonuses()
-    test_run_stats_accumulation()
-    test_multiple_unlocks()
-    test_save_load_career()
-
-    print()
-    print("="*60)
-    print("ALL META-PROGRESSION TESTS PASSED!")
-    print("="*60)
-    print("\n[OK] Career system working")
-    print("[OK] Unlocks trigger correctly")
-    print("[OK] Bonuses apply to new runs")
-    print("[OK] Stats persist across sessions")
-    print("\nMeta-progression makes every run valuable!")
