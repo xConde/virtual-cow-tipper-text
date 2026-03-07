@@ -217,8 +217,7 @@ class SaveManager:
             if os.path.exists(save_path):
                 os.remove(save_path)
             return True
-        except Exception as e:
-            print(f"Error deleting save: {e}")
+        except OSError:
             return False
 
     @staticmethod

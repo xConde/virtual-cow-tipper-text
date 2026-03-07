@@ -50,7 +50,7 @@ class Player:
             self.shield = item
             self.display_info()
         else:
-            safe_print(f"{item.name} is neither a weapon nor a shield and cannot be equipped.")
+            self.game_terminal.draw_dialog(f"{item.name} cannot be equipped.")
 
     def get_damage_context(self, cow_name, total_damage, cow_hp_before_damage) -> Optional[str]:
         """
@@ -192,7 +192,7 @@ class Player:
         elif action == "remove" and item in self.inventory:
             self.inventory.remove(item)
         else:
-            safe_print(f"update_inventory failed to {action} {item.name}.")
+            pass  # Caller handles full inventory / missing item messaging
     
     def check_inventory(self):
         """Display inventory with interactive item selection. Preserves and restores previous screen state."""
@@ -235,38 +235,15 @@ class Player:
     def use_item(self, item=None):
         """Use an item from inventory."""
         if item is None:
-            # Show inventory to select item
-            if not self.inventory:
-                safe_print("Inventory is empty!")
-                return
-
-            safe_print("\nSelect item to use:")
-            for i, inv_item in enumerate(self.inventory):
-                safe_print(f"{i+1}. {inv_item.name}")
-            safe_print(f"{len(self.inventory)+1}. Cancel")
-
-            try:
-                choice = int(input("Choice: ").strip())
-                if choice <= len(self.inventory):
-                    item = self.inventory[choice - 1]
-                else:
-                    return
-            except (ValueError, IndexError):
-                safe_print("Invalid choice.")
-                return
+            self.check_inventory()
+            return
 
         if item in self.inventory:
             if isinstance(item, Potion):
-                # Use potion
                 if item.use(self):
                     self.inventory.remove(item)
                     self.display_info()
             elif isinstance(item, Tool):
-                # Tools might have actions
                 if hasattr(item, 'action') and item.action:
                     item.action()
                 self.inventory.remove(item)
-            else:
-                safe_print(f"{self.name} cannot use {item.name}.")
-        else:
-            safe_print(f"{self.name} does not have {item.name} in their inventory.")
