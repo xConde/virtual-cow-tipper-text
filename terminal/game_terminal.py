@@ -188,6 +188,10 @@ class GameTerminal:
                 selected_index = (selected_index - 1) % len(menu_items)
             elif key == KEY_DOWN:
                 selected_index = (selected_index + 1) % len(menu_items)
+            elif key == curses.KEY_RESIZE:
+                self.handle_resize()
+                self.refresh()
+                continue
             elif key == KEY_ESCAPE:
                 self.pause_menu.pause()
                 continue
@@ -314,6 +318,20 @@ class GameTerminal:
         self.show_art = not self.show_art
         if art:
             self.art = art.split("\n")
+
+    def handle_resize(self):
+        """Re-read terminal dimensions and validate minimum size."""
+        max_height, max_width = self.stdscr.getmaxyx()
+
+        MIN_HEIGHT = 25
+        MIN_WIDTH = 60
+        if max_height < MIN_HEIGHT or max_width < MIN_WIDTH:
+            # Don't crash — just keep old dimensions
+            return False
+
+        self.HEIGHT = min(30, max_height)
+        self.WIDTH = min(85, max_width)
+        return True
 
     def handle_pause(self):
         self.pause_menu.pause()

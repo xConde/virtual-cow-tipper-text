@@ -42,6 +42,15 @@ class PauseMenu:
                         elif selected_index == 2:
                             self.game_terminal.close_game_terminal()
                             sys.exit(0)
+                elif key == curses.KEY_RESIZE:
+                    self.game_terminal.handle_resize()
+                    # Redraw pause menu
+                    self.game_terminal.stdscr.clear()
+                    self.game_terminal.stdscr.refresh()
+                    self.draw_pause_menu_title()
+                    self.game_terminal.draw_separator(2)
+                    self.show_dialog_history()
+                    continue
                 elif key == self.KEY_ESCAPE:
                     self.game_terminal.stdscr.clear()
                     self.game_terminal.stdscr.refresh()
