@@ -3,6 +3,8 @@ Save/Load system for game persistence.
 """
 import json
 import os
+import shutil
+import tempfile
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -121,17 +123,58 @@ class SaveManager:
                 'encounters_this_floor': encounters_this_floor,
             }
 
-            # Write to file
+            # Atomic write: temp file then rename
             save_path = SaveManager.get_save_path()
-            with open(save_path, 'w') as f:
-                json.dump(save_data, f, indent=2)
+            save_dir = os.path.dirname(save_path)
 
-            print(f"\nGame saved to {save_path}")
+            # Keep one backup of previous save
+            if os.path.exists(save_path):
+                backup_path = save_path + '.bak'
+                try:
+                    shutil.copy2(save_path, backup_path)
+                except OSError:
+                    pass
+
+            fd, tmp_path = tempfile.mkstemp(dir=save_dir, suffix='.tmp')
+            try:
+                with os.fdopen(fd, 'w') as f:
+                    json.dump(save_data, f, indent=2)
+                os.replace(tmp_path, save_path)  # Atomic on POSIX
+            except Exception:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+                return False
+
             return True
 
-        except Exception as e:
-            print(f"\nError saving game: {e}")
+        except Exception:
             return False
+
+    @staticmethod
+    def _parse_save_data(save_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Parse and validate raw save data dict. Returns None if invalid."""
+        # Validate save data structure
+        required_keys = {'player', 'stats', 'cow_packs'}
+        if not required_keys.issubset(save_data.keys()):
+            return None
+
+        player_keys = {'name', 'hp', 'cash', 'inventory'}
+        if not player_keys.issubset(save_data['player'].keys()):
+            return None
+
+        # Convert pack scores back to int keys
+        cow_packs = {int(k): v for k, v in save_data['cow_packs'].items()}
+
+        return {
+            'player': save_data['player'],
+            'stats': save_data['stats'],
+            'cow_packs': cow_packs,
+            'current_floor': save_data.get('current_floor', 1),
+            'encounters_this_floor': save_data.get('encounters_this_floor', 0),
+            'timestamp': save_data.get('timestamp', 'Unknown'),
+        }
 
     @staticmethod
     def load_game() -> Optional[Dict[str, Any]]:
@@ -141,29 +184,30 @@ class SaveManager:
         Returns:
             Dict with 'player', 'stats', 'cow_packs' or None if load failed
         """
-        try:
-            save_path = SaveManager.get_save_path()
-            if not os.path.exists(save_path):
-                return None
+        save_path = SaveManager.get_save_path()
 
-            with open(save_path, 'r') as f:
-                save_data = json.load(f)
+        # Try primary save file
+        if os.path.exists(save_path):
+            try:
+                with open(save_path, 'r') as f:
+                    save_data = json.load(f)
+                result = SaveManager._parse_save_data(save_data)
+                if result is not None:
+                    return result
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+                pass
 
-            # Convert pack scores back to int keys
-            cow_packs = {int(k): v for k, v in save_data['cow_packs'].items()}
+        # Primary failed or invalid — try backup
+        backup_path = save_path + '.bak'
+        if os.path.exists(backup_path):
+            try:
+                with open(backup_path, 'r') as f:
+                    save_data = json.load(f)
+                return SaveManager._parse_save_data(save_data)
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+                pass
 
-            return {
-                'player': save_data['player'],
-                'stats': save_data['stats'],
-                'cow_packs': cow_packs,
-                'current_floor': save_data.get('current_floor', 1),
-                'encounters_this_floor': save_data.get('encounters_this_floor', 0),
-                'timestamp': save_data.get('timestamp', 'Unknown'),
-            }
-
-        except Exception as e:
-            print(f"\nError loading game: {e}")
-            return None
+        return None
 
     @staticmethod
     def delete_save() -> bool:

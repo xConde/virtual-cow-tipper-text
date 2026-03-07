@@ -4,6 +4,7 @@ Every run contributes to long-term unlocks, making losses valuable!
 """
 import json
 import os
+import tempfile
 from typing import List, Dict, Optional
 from datetime import datetime
 
@@ -217,6 +218,7 @@ class CareerStats:
     def save(self):
         """Save career stats to disk."""
         data = {
+            'version': 1,
             'total_runs': self.total_runs,
             'total_victories': self.total_victories,
             'total_cows_defeated': self.total_cows_defeated,
@@ -232,8 +234,17 @@ class CareerStats:
             'last_updated': datetime.now().isoformat(),
         }
 
-        with open(CAREER_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
+        fd, tmp_path = tempfile.mkstemp(dir='.', suffix='.tmp')
+        try:
+            with os.fdopen(fd, 'w') as f:
+                json.dump(data, f, indent=2)
+            os.replace(tmp_path, CAREER_FILE)
+        except Exception:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
 
     @staticmethod
     def load() -> 'CareerStats':
@@ -246,6 +257,8 @@ class CareerStats:
                 data = json.load(f)
 
             stats = CareerStats()
+            version = data.get('version', 0)
+            # Future: handle version migrations here
             stats.total_runs = data.get('total_runs', 0)
             stats.total_victories = data.get('total_victories', 0)
             stats.total_cows_defeated = data.get('total_cows_defeated', 0)
