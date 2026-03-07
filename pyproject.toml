@@ -25,6 +25,7 @@ source = [
     "models",
     "player",
     "save_manager",
+    "logging_config",
     "tutorial",
     "utils",
     "terminal",

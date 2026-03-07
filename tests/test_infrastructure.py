@@ -2,14 +2,8 @@
 import json
 import logging
 import os
-import sys
 
 import pytest
-
-# Ensure project root is on sys.path
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
 
 
 # ---------------------------------------------------------------------------
@@ -159,13 +153,33 @@ def test_save_schema_validates_required_player_keys():
     assert SaveManager._parse_save_data(data) is None
 
 
+def test_save_schema_rejects_missing_stats_keys():
+    """_parse_save_data should reject save data with missing stats keys."""
+    from save_manager import SaveManager
+
+    data = {
+        "player": {"name": "Test", "hp": 20, "cash": 50, "inventory": []},
+        "stats": {"cows_defeated": 0},  # Missing all other required stats keys
+        "cow_packs": {"1": 0.0},
+    }
+    assert SaveManager._parse_save_data(data) is None
+
+
 def test_save_schema_accepts_valid_data():
     """_parse_save_data should accept valid save data."""
     from save_manager import SaveManager
 
     data = {
         "player": {"name": "Test", "hp": 20, "cash": 50, "inventory": []},
-        "stats": {"cows_defeated": 0},
+        "stats": {
+            "cows_defeated": 0, "cows_fled_from": 0,
+            "total_damage_dealt": 0, "total_damage_taken": 0,
+            "cash_earned": 0, "cash_spent": 0,
+            "items_purchased": 0, "items_sold": 0,
+            "mini_games_won": 0, "mini_games_lost": 0,
+            "legendary_items_found": 0, "dairy_cows_milked": 0,
+            "shops_visited": 0,
+        },
         "cow_packs": {"1": 0.0, "2": 1.5},
     }
     result = SaveManager._parse_save_data(data)

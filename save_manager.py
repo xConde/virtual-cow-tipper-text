@@ -170,6 +170,16 @@ class SaveManager:
         if not player_keys.issubset(save_data['player'].keys()):
             return None
 
+        stats_keys = {
+            'cows_defeated', 'cows_fled_from', 'total_damage_dealt',
+            'total_damage_taken', 'cash_earned', 'cash_spent',
+            'items_purchased', 'items_sold', 'mini_games_won',
+            'mini_games_lost', 'legendary_items_found',
+            'dairy_cows_milked', 'shops_visited',
+        }
+        if not stats_keys.issubset(save_data['stats'].keys()):
+            return None
+
         # Convert pack scores back to int keys
         cow_packs = {int(k): v for k, v in save_data['cow_packs'].items()}
 
@@ -220,11 +230,14 @@ class SaveManager:
 
     @staticmethod
     def delete_save() -> bool:
-        """Delete existing save file."""
+        """Delete existing save file and its backup."""
         try:
             save_path = SaveManager.get_save_path()
             if os.path.exists(save_path):
                 os.remove(save_path)
+            backup_path = save_path + '.bak'
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
             return True
         except OSError:
             return False

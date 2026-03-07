@@ -237,7 +237,8 @@ class CareerStats:
             'last_updated': datetime.now().isoformat(),
         }
 
-        fd, tmp_path = tempfile.mkstemp(dir='.', suffix='.tmp')
+        save_dir = os.path.dirname(os.path.abspath(CAREER_FILE))
+        fd, tmp_path = tempfile.mkstemp(dir=save_dir, suffix='.tmp')
         try:
             with os.fdopen(fd, 'w') as f:
                 json.dump(data, f, indent=2)

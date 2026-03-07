@@ -43,12 +43,12 @@ class VirtualCowTipper:
         for item_id in bonuses['starting_items']:
             if item_id == 'cowbell':
                 self.player.inventory.append(CowBell())
-                print(f"[UNLOCK BONUS] {player_name} starts with a Cow Bell!")
+                logger.info("Unlock bonus: %s starts with a Cow Bell", player_name)
             elif item_id == 'basic_weapon':
                 from item_factory import ItemFactory
                 weapon = ItemFactory.create_weapon(less_likely=True)  # Common weapon
                 self.player.weapon = weapon
-                print(f"[UNLOCK BONUS] {player_name} starts with {weapon.name}!")
+                logger.info("Unlock bonus: %s starts with %s", player_name, weapon.name)
 
         self.cow: Optional[Cow] = None
         self.cows = [self.generate_cow() for _ in range(COW_QUEUE_SIZE)]
@@ -470,13 +470,13 @@ class VirtualCowTipper:
         try:
             self.save_game()
         except Exception:
-            pass
+            logger.exception("Autosave failed")
 
     def _load_saved_game(self) -> None:
         """Load game state from save file."""
         save_data = SaveManager.load_game()
         if not save_data:
-            print("No save file found or load failed.")
+            logger.warning("No save file found or load failed")
             return
 
         SaveManager.restore_player(self.player, save_data)

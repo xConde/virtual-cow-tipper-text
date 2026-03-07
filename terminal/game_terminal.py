@@ -8,6 +8,8 @@ class GameTerminal:
     HEIGHT = 30
     LEFT_MARGIN = 2   # Add left margin for readability
     RIGHT_MARGIN = 2  # Add right margin
+    MIN_HEIGHT = 25
+    MIN_WIDTH = 60
 
     # Header section (top)
     PLAYER_INFO_Y = 0
@@ -53,13 +55,11 @@ class GameTerminal:
         max_height, max_width = self.stdscr.getmaxyx()
 
         # Validate minimum terminal size
-        MIN_HEIGHT = 25
-        MIN_WIDTH = 60
-        if max_height < MIN_HEIGHT or max_width < MIN_WIDTH:
+        if max_height < self.MIN_HEIGHT or max_width < self.MIN_WIDTH:
             curses.endwin()
             raise RuntimeError(
                 f"Terminal too small ({max_width}x{max_height}). "
-                f"Minimum: {MIN_WIDTH}x{MIN_HEIGHT}"
+                f"Minimum: {self.MIN_WIDTH}x{self.MIN_HEIGHT}"
             )
 
         # Adjust our constants to fit the actual terminal
@@ -76,6 +76,7 @@ class GameTerminal:
         self.stdscr.clear()
         self.stdscr.refresh()
 
+        self._closed = False
         self.show_art = False
         self.player_stats = ''
         self.player_weapon = ''
@@ -323,9 +324,7 @@ class GameTerminal:
         """Re-read terminal dimensions and validate minimum size."""
         max_height, max_width = self.stdscr.getmaxyx()
 
-        MIN_HEIGHT = 25
-        MIN_WIDTH = 60
-        if max_height < MIN_HEIGHT or max_width < MIN_WIDTH:
+        if max_height < self.MIN_HEIGHT or max_width < self.MIN_WIDTH:
             # Don't crash — just keep old dimensions
             return False
 
@@ -401,6 +400,9 @@ class GameTerminal:
         self.stdscr.refresh()
 
     def close_game_terminal(self):
+        if getattr(self, '_closed', False):
+            return
+        self._closed = True
         curses.echo()
         curses.nocbreak()
         self.stdscr.keypad(False)
