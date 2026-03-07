@@ -1,5 +1,6 @@
 from game import VirtualCowTipper
 from main_menu import MainMenu
+from logging_config import setup_logging, get_logger
 import os
 import sys
 import shutil
@@ -21,6 +22,9 @@ def ensure_dev_save_exists():
 
 def main():
     """Main entry point with menu system."""
+    logger = setup_logging()
+    logger.info("Game starting")
+
     # Ensure dev save is always available
     ensure_dev_save_exists()
 
@@ -119,9 +123,11 @@ def main():
 
     except KeyboardInterrupt:
         menu.cleanup()
+        logger.info("Game interrupted by user")
         print("\n\nGame interrupted. Goodbye!")
     except Exception as e:
         menu.cleanup()
+        logger.exception("Unhandled error in main loop")
         print(f"\n\nAn error occurred: {e}")
         raise
 

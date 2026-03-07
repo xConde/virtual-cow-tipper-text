@@ -7,6 +7,9 @@ import os
 import tempfile
 from typing import List, Dict, Optional
 from datetime import datetime
+from logging_config import get_logger
+
+logger = get_logger("vct.career")
 
 
 CAREER_FILE = "career_stats.json"
@@ -273,8 +276,8 @@ class CareerStats:
             stats.best_run_cows = data.get('best_run_cows', 0)
 
             return stats
-        except Exception as e:
-            print(f"Error loading career stats: {e}")
+        except Exception:
+            logger.exception("Failed to load career stats, starting fresh")
             return CareerStats()
 
     def show_progress(self):

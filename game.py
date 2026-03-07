@@ -10,6 +10,9 @@ from dialogue_manager import DialogueManager
 from models import GameStats
 from save_manager import SaveManager
 from career_stats import CareerStats, Unlock
+from logging_config import get_logger
+
+logger = get_logger("vct.game")
 
 from game_config import (
     COW_QUEUE_SIZE,
@@ -110,11 +113,11 @@ class VirtualCowTipper:
                 self.check_end_conditions()
                 self.check_victory_conditions()
         except Exception:
-            # Attempt emergency save before crashing
+            logger.exception("Crash in game loop — attempting emergency save")
             try:
                 self.save_game()
             except Exception:
-                pass
+                logger.exception("Emergency save also failed")
             self.game_terminal.close_game_terminal()
             raise
 
@@ -268,6 +271,7 @@ class VirtualCowTipper:
             try:
                 action_func()
             except Exception as e:
+                logger.exception("Error in player action: %s", action_name)
                 self.game_terminal.draw_dialog(f"Error: {e}")
                 self._pause_with_prompt("[Press any key to continue...]")
 

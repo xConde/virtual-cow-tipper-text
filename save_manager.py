@@ -9,6 +9,9 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 
 from models import PlayerState, GameStats
+from logging_config import get_logger
+
+logger = get_logger("vct.save")
 
 
 SAVE_DIR = "saves"
@@ -141,15 +144,18 @@ class SaveManager:
                     json.dump(save_data, f, indent=2)
                 os.replace(tmp_path, save_path)  # Atomic on POSIX
             except Exception:
+                logger.exception("Failed to write save file")
                 try:
                     os.unlink(tmp_path)
                 except OSError:
                     pass
                 return False
 
+            logger.info("Game saved to %s", save_path)
             return True
 
         except Exception:
+            logger.exception("Failed to serialize save data")
             return False
 
     @staticmethod
@@ -195,7 +201,7 @@ class SaveManager:
                 if result is not None:
                     return result
             except (json.JSONDecodeError, KeyError, TypeError, ValueError):
-                pass
+                logger.warning("Primary save file corrupt or invalid: %s", save_path)
 
         # Primary failed or invalid — try backup
         backup_path = save_path + '.bak'
@@ -203,9 +209,12 @@ class SaveManager:
             try:
                 with open(backup_path, 'r') as f:
                     save_data = json.load(f)
-                return SaveManager._parse_save_data(save_data)
+                result = SaveManager._parse_save_data(save_data)
+                if result is not None:
+                    logger.info("Recovered from backup save: %s", backup_path)
+                return result
             except (json.JSONDecodeError, KeyError, TypeError, ValueError):
-                pass
+                logger.warning("Backup save also corrupt: %s", backup_path)
 
         return None
 
