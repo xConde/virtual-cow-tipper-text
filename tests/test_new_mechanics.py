@@ -6,10 +6,6 @@ Tests for mechanics added in feat/velocity-stats-and-combat-pipeline:
 - Potion save/load roundtrip
 - Career bonus application
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import random
 
 
@@ -67,7 +63,6 @@ def test_shield_blocks_damage():
 
     assert shielded_total < unshielded_total, \
         f"Shield should reduce total damage: shielded={shielded_total} vs unshielded={unshielded_total}"
-    print(f"test_shield_blocks_damage: PASSED (shielded={shielded_total}, unshielded={unshielded_total})")
 
 
 def test_shield_full_absorb():
@@ -97,7 +92,6 @@ def test_shield_full_absorb():
             full_absorbs += 1
 
     assert full_absorbs > 0, "Strong shield should fully absorb some weak attacks"
-    print(f"test_shield_full_absorb: PASSED ({full_absorbs}/200 attacks fully absorbed)")
 
 
 # --- Power-up Strength ---
@@ -127,7 +121,6 @@ def test_power_up_increases_strength():
         msg = CowAttack.cow_attack(player, cow)
         if "powers up" in msg:
             assert cow.strength > initial_strength, "Strength should have increased"
-            print(f"test_power_up_increases_strength: PASSED (strength {initial_strength} -> {cow.strength})")
             return
 
     assert False, "Power-up never fired in 500 attempts"
@@ -155,8 +148,6 @@ def test_game_stats_victory_conditions():
     # Path 3: Legendary items
     stats.legendary_items_found = 3
     assert stats.check_victory()
-
-    print("test_game_stats_victory_conditions: PASSED (all 3 victory paths work)")
 
 
 def test_career_stats_accumulation():
@@ -191,8 +182,6 @@ def test_career_stats_accumulation():
     assert career.total_cows_defeated == 20
     assert career.total_runs == 2
     assert career.total_victories == 1
-
-    print("test_career_stats_accumulation: PASSED")
 
 
 # --- Potion Save/Load ---
@@ -231,7 +220,6 @@ def test_potion_save_load_roundtrip():
     assert potions[1].boost_amount == 40  # greater heals 40
 
     SaveManager.delete_save()
-    print("test_potion_save_load_roundtrip: PASSED")
 
 
 # --- Career Bonus Application ---
@@ -274,8 +262,6 @@ def test_career_damage_bonus():
 
     assert bonus_total > base_total, \
         f"Bonus damage should be higher: base={base_total}, bonus={bonus_total}"
-    diff = bonus_total - base_total
-    print(f"test_career_damage_bonus: PASSED (bonus adds ~{diff/100:.1f} damage per hit over 100 attacks)")
 
 
 # --- Shop Discount ---
@@ -293,26 +279,3 @@ def test_shop_discount_applied():
     for full, disc in zip(items_full, items_disc):
         assert disc['price'] <= full['price'], \
             f"Discounted price {disc['price']} should be <= full price {full['price']}"
-
-    print("test_shop_discount_applied: PASSED")
-
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("NEW MECHANICS TEST SUITE")
-    print("=" * 60)
-    print()
-
-    test_shield_blocks_damage()
-    test_shield_full_absorb()
-    test_power_up_increases_strength()
-    test_game_stats_victory_conditions()
-    test_career_stats_accumulation()
-    test_potion_save_load_roundtrip()
-    test_career_damage_bonus()
-    test_shop_discount_applied()
-
-    print()
-    print("=" * 60)
-    print("ALL NEW MECHANICS TESTS PASSED!")
-    print("=" * 60)

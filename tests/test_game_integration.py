@@ -1,9 +1,6 @@
 """
 Integration test - Verify all refactored components work together.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def test_cow_generation_full():
@@ -40,8 +37,6 @@ def test_cow_generation_full():
     assert response is not None
     assert len(response) > 0
 
-    print("test_cow_generation_full: PASSED")
-
 
 def test_item_creation_full():
     """Test complete item generation pipeline."""
@@ -65,8 +60,6 @@ def test_item_creation_full():
     # Test damage rolling
     damage = ItemFactory.roll_weapon_damage(weapon)
     assert damage > 0
-
-    print("test_item_creation_full: PASSED")
 
 
 def test_player_combat():
@@ -104,8 +97,6 @@ def test_player_combat():
     # Cow should have taken damage
     assert cow.hp < initial_cow_hp, "Cow should have taken damage"
 
-    print("test_player_combat: PASSED")
-
 
 def test_config_values():
     """Test game_config values are loaded."""
@@ -121,45 +112,17 @@ def test_config_values():
     assert NUM_COW_PACKS == 6
     assert INTERRUPTION_CHANCE == 0.10
 
-    print("test_config_values: PASSED")
-
 
 def test_all_imports():
     """Test all modules can be imported without errors."""
-    try:
-        from game import VirtualCowTipper
-        from cow import Cow
-        from player import Player
-        from cow_interaction import CowInteraction
-        from cow_attack import CowAttack
-        from item_factory import ItemFactory
-        from dialogue_manager import DialogueManager
-        from models import CowProperties, PlayerState
-        from game_config import PLAYER_STARTING_HP
+    from game import VirtualCowTipper
+    from cow import Cow
+    from player import Player
+    from cow_interaction import CowInteraction
+    from cow_attack import CowAttack
+    from item_factory import ItemFactory
+    from dialogue_manager import DialogueManager
+    from models import CowProperties, PlayerState
+    from game_config import PLAYER_STARTING_HP
 
-        print("test_all_imports: PASSED")
-        return True
-    except ImportError as e:
-        print(f"test_all_imports: FAILED - {e}")
-        return False
-
-
-if __name__ == "__main__":
-    print("="*60)
-    print("GAME INTEGRATION TEST SUITE")
-    print("="*60)
-    print()
-
-    test_all_imports()
-    print()
-    test_config_values()
-    test_cow_generation_full()
-    test_item_creation_full()
-    test_player_combat()
-
-    print()
-    print("="*60)
-    print("ALL INTEGRATION TESTS PASSED!")
-    print("="*60)
-    print("\nAll refactored systems work together correctly!")
-    print("Game is ready to run: python3 main.py")
+    assert VirtualCowTipper is not None

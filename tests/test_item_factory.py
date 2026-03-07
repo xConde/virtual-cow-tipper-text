@@ -1,10 +1,6 @@
 """
 Tests for ItemFactory and item generation.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from item_factory import ItemFactory
 from item import Weapon, Shield
 
@@ -20,8 +16,6 @@ def test_weapon_creation():
     assert weapon.rarity in ['common', 'uncommon', 'magic', 'rare', 'legendairy']
     assert 1 <= weapon.scale <= 5
 
-    print("test_weapon_creation: PASSED")
-
 
 def test_shield_creation():
     """Test that shields are created with valid stats."""
@@ -32,8 +26,6 @@ def test_shield_creation():
     assert shield.min_defence > 0
     assert shield.max_defence >= shield.min_defence
     assert shield.rarity in ['common', 'uncommon', 'magic', 'rare', 'legendairy']
-
-    print("test_shield_creation: PASSED")
 
 
 def test_rarity_floor():
@@ -51,8 +43,6 @@ def test_rarity_floor():
             # With rarity floor, min should be boosted
             assert weapon.min_damage >= 2, f"Rare weapon too weak: {weapon.min_damage}"
 
-    print("test_rarity_floor: PASSED")
-
 
 def test_weapon_damage_roll():
     """Test weapon damage rolling."""
@@ -62,8 +52,6 @@ def test_weapon_damage_roll():
     assert damage > 0, "Weapon should deal damage"
     # With scaling, damage can exceed base max
     assert damage >= weapon.min_damage, f"Damage {damage} below min {weapon.min_damage}"
-
-    print("test_weapon_damage_roll: PASSED")
 
 
 def test_shop_inventory():
@@ -80,14 +68,3 @@ def test_shop_inventory():
     # Check health potion is in shop
     has_potion = any('potion' in item['label'].lower() for item in inventory)
     assert has_potion, "Shop should include health potion"
-
-    print("test_shop_inventory: PASSED")
-
-
-if __name__ == "__main__":
-    test_weapon_creation()
-    test_shield_creation()
-    test_rarity_floor()
-    test_weapon_damage_roll()
-    test_shop_inventory()
-    print("\nAll ItemFactory tests passed!")

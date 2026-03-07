@@ -1,0 +1,40 @@
+[project]
+name = "virtual-cow-tipper"
+version = "1.0.0"
+requires-python = ">=3.13"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.coverage.run]
+source = [
+    "career_stats",
+    "cow_attack",
+    "cow_interaction",
+    "cow",
+    "dialogue_manager",
+    "easter_eggs",
+    "game_config",
+    "game",
+    "help_screen",
+    "item_factory",
+    "item",
+    "main_menu",
+    "main",
+    "models",
+    "player",
+    "save_manager",
+    "tutorial",
+    "utils",
+    "terminal",
+]
+omit = [
+    "tests/*",
+    "venv_textual/*",
+    "test_textual_install.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 0

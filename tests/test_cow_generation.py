@@ -1,10 +1,6 @@
 """
 Tests for cow generation and properties.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from cow import Cow
 from models import CowProperties
 
@@ -35,7 +31,6 @@ def test_cow_properties_mood():
         cash=10, is_shop=False, is_aggro=False, pack=1, approach="test"
     )
     assert props3.mood == 'neutral', f"Expected neutral, got {props3.mood}"
-    print("test_cow_properties_mood: PASSED")
 
 
 def test_cow_generation_scales_with_player():
@@ -50,20 +45,9 @@ def test_cow_generation_scales_with_player():
     assert weak_props.strength >= 3, "Cow should have minimum strength"
     assert strong_props.hp > 0, "Cow should have HP"
 
-    print("test_cow_generation_scales_with_player: PASSED")
-
 
 def test_random_likeliness():
     """Test likeliness generation is within expected range."""
     for _ in range(10):
         likeliness = Cow.set_random_likeliness()
         assert 3 <= likeliness <= 7, f"Likeliness {likeliness} out of range (3-7)"
-
-    print("test_random_likeliness: PASSED")
-
-
-if __name__ == "__main__":
-    test_cow_properties_mood()
-    test_cow_generation_scales_with_player()
-    test_random_likeliness()
-    print("\nAll cow generation tests passed!")

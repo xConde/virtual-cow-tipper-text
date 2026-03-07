@@ -1,10 +1,6 @@
 """
 Test save/load system.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from save_manager import SaveManager
 from models import GameStats
 
@@ -38,8 +34,6 @@ def test_save_file_creation():
     success = SaveManager.save_game(MockPlayer(), stats, cow_packs)
     assert success, "Save should succeed"
     assert SaveManager.save_exists(), "Save file should exist after save"
-
-    print("test_save_file_creation: PASSED")
 
 
 def test_save_load_roundtrip():
@@ -79,8 +73,6 @@ def test_save_load_roundtrip():
     assert loaded['cow_packs'][1] == 5.0
     assert loaded['cow_packs'][2] == -3.0
 
-    print("test_save_load_roundtrip: PASSED")
-
 
 def test_delete_save():
     """Test save file deletion."""
@@ -98,8 +90,6 @@ def test_delete_save():
     assert success, "Delete should succeed"
     assert not SaveManager.save_exists(), "Save should not exist after delete"
 
-    print("test_delete_save: PASSED")
-
 
 def test_load_nonexistent_save():
     """Test loading when no save exists."""
@@ -107,25 +97,3 @@ def test_load_nonexistent_save():
 
     loaded = SaveManager.load_game()
     assert loaded is None, "Load should return None when no save exists"
-
-    print("test_load_nonexistent_save: PASSED")
-
-
-if __name__ == "__main__":
-    print("="*60)
-    print("SAVE/LOAD SYSTEM TESTS")
-    print("="*60)
-    print()
-
-    test_save_file_creation()
-    test_save_load_roundtrip()
-    test_delete_save()
-    test_load_nonexistent_save()
-
-    # Cleanup
-    SaveManager.delete_save()
-
-    print()
-    print("="*60)
-    print("ALL SAVE/LOAD TESTS PASSED!")
-    print("="*60)
