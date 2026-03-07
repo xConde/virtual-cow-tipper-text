@@ -110,6 +110,11 @@ class VirtualCowTipper:
                 self.check_end_conditions()
                 self.check_victory_conditions()
         except Exception:
+            # Attempt emergency save before crashing
+            try:
+                self.save_game()
+            except Exception:
+                pass
             self.game_terminal.close_game_terminal()
             raise
 
@@ -131,6 +136,9 @@ class VirtualCowTipper:
         self.game_terminal.set_cow_stats('')
         self.cow = None
         self.encounters_this_floor += 1
+
+        # Autosave after each encounter
+        self._autosave()
 
         if self.encounters_this_floor >= self.encounters_per_floor:
             self.advance_floor()
@@ -452,6 +460,13 @@ class VirtualCowTipper:
         """Save current game state."""
         return SaveManager.save_game(self.player, self.stats, self.cow_packs,
                                      self.current_floor, self.encounters_this_floor)
+
+    def _autosave(self) -> None:
+        """Silently autosave after each encounter. Failures are non-fatal."""
+        try:
+            self.save_game()
+        except Exception:
+            pass
 
     def _load_saved_game(self) -> None:
         """Load game state from save file."""
